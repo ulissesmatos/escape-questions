@@ -38,54 +38,547 @@
     .table-wrap {
       overflow-x: auto;
     }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .tab-btn {
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .tab-btn.ativo {
+      background: #6366f1;
+      color: white;
+      border-color: #6366f1;
+    }
+    .tab-conteudo {
+      display: none;
+    }
+    .tab-conteudo.ativo {
+      display: block;
+    }
+    #btn-nova-pergunta {
+      margin-bottom: 16px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      background: #6366f1;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .pergunta-item {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .pergunta-item .info {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .pergunta-item strong {
+      color: #f8fafc;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: #334155;
+      color: #cbd5e1;
+      white-space: nowrap;
+    }
+    .badge.inativa {
+      background: #7f1d1d;
+      color: #fecaca;
+    }
+    .acoes button {
+      margin-left: 6px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #e2e8f0;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .acoes button:hover {
+      border-color: #6366f1;
+    }
+    #form-pergunta-wrap {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 12px;
+    }
+    #form-pergunta label {
+      margin-top: 10px;
+    }
+    #form-pergunta input[type="text"],
+    #form-pergunta input[type="number"],
+    #form-pergunta textarea,
+    #form-pergunta select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #f8fafc;
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+      font-family: inherit;
+    }
+    #form-pergunta textarea {
+      resize: vertical;
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      margin: 14px 0;
+    }
+    .checkbox-label input {
+      width: auto;
+    }
+    .opcao-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .opcao-row input[type="radio"] {
+      width: auto;
+      flex-shrink: 0;
+      accent-color: #22c55e;
+    }
+    .opcao-row input[type="text"] {
+      flex: 1;
+      margin-bottom: 0;
+    }
+    .opcao-row button {
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: #2a1616;
+      color: #fca5a5;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    #btn-add-opcao {
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: 1px dashed #475569;
+      background: transparent;
+      color: #a5b4fc;
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+    .dica-opcoes {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin: 4px 0 10px;
+    }
+    .form-botoes {
+      display: flex;
+      gap: 8px;
+      margin-top: 18px;
+    }
+    .form-botoes button {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    #btn-salvar-pergunta {
+      background: #22c55e;
+      color: #05230f;
+    }
+    #btn-cancelar-pergunta {
+      background: #334155;
+      color: #e2e8f0;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
       <h1>🔑 Área do Professor</h1>
-      <p>Respostas salvas no banco de dados</p>
+      <p>Gerencie as perguntas e veja as respostas dos alunos</p>
     </header>
 
     <div class="login-box" id="login-box">
       <label for="senha">Senha de acesso</label>
       <input type="text" id="senha" placeholder="Senha" />
-      <button type="submit" id="btn-entrar" onclick="carregar()">Entrar</button>
+      <button type="button" id="btn-entrar">Entrar</button>
       <div class="erro-msg" id="erro-login"></div>
     </div>
 
-    <div class="table-wrap">
-      <table id="tabela" style="display:none">
-        <thead>
-          <tr>
-            <th>Data/Hora</th>
-            <th>Aluno(s) / Grupo</th>
-            <th>Turma</th>
-            <th>Acertos</th>
-            <th>Completo?</th>
-          </tr>
-        </thead>
-        <tbody id="tabela-body"></tbody>
-      </table>
+    <div id="painel" style="display:none">
+      <div class="tabs">
+        <button type="button" class="tab-btn ativo" data-tab="perguntas">Perguntas</button>
+        <button type="button" class="tab-btn" data-tab="respostas">Respostas dos alunos</button>
+      </div>
+
+      <div id="tab-perguntas" class="tab-conteudo ativo">
+        <button type="button" id="btn-nova-pergunta">+ Nova pergunta</button>
+
+        <div id="lista-perguntas"></div>
+
+        <div id="form-pergunta-wrap" style="display:none">
+          <h2 id="form-pergunta-titulo">Nova pergunta</h2>
+          <form id="form-pergunta">
+            <input type="hidden" id="pergunta-id" />
+
+            <label for="pergunta-tipo">Tipo de pergunta</label>
+            <select id="pergunta-tipo">
+              <option value="digito">Dígito (pesquisa + resposta numérica)</option>
+              <option value="multipla_escolha">Múltipla escolha</option>
+              <option value="verdadeiro_falso">Verdadeiro ou Falso</option>
+            </select>
+
+            <label for="pergunta-titulo-input">Título</label>
+            <input type="text" id="pergunta-titulo-input" required />
+
+            <label for="pergunta-enunciado">Enunciado / contexto</label>
+            <textarea id="pergunta-enunciado" rows="3"></textarea>
+
+            <label for="pergunta-pergunta">Pergunta</label>
+            <textarea id="pergunta-pergunta" rows="2"></textarea>
+
+            <div id="campo-digito-correto">
+              <label for="pergunta-digito-correto">Dígito correto (0 a 9)</label>
+              <input type="number" id="pergunta-digito-correto" min="0" max="9" />
+            </div>
+
+            <div id="campo-opcoes" style="display:none">
+              <label>Opções de resposta (marque a correta)</label>
+              <p class="dica-opcoes">Use o botão de marcar (à esquerda) para indicar qual opção é a correta.</p>
+              <div id="lista-opcoes"></div>
+              <button type="button" id="btn-add-opcao">+ Adicionar opção</button>
+            </div>
+
+            <label for="pergunta-ordem">Ordem de exibição</label>
+            <input type="number" id="pergunta-ordem" value="0" />
+
+            <label class="checkbox-label">
+              <input type="checkbox" id="pergunta-ativa" checked />
+              Pergunta ativa (visível para os alunos)
+            </label>
+
+            <div class="erro-msg" id="erro-form-pergunta"></div>
+
+            <div class="form-botoes">
+              <button type="submit" id="btn-salvar-pergunta">Salvar</button>
+              <button type="button" id="btn-cancelar-pergunta">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div id="tab-respostas" class="tab-conteudo">
+        <div class="table-wrap">
+          <table id="tabela" style="display:none">
+            <thead>
+              <tr>
+                <th>Data/Hora</th>
+                <th>Aluno(s) / Grupo</th>
+                <th>Turma</th>
+                <th>Acertos</th>
+                <th>Completo?</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-body"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
-    async function carregar() {
-      const senha = document.getElementById('senha').value;
-      const erroDiv = document.getElementById('erro-login');
-      erroDiv.classList.remove('mostrar');
+    let senhaAdmin = '';
+    let perguntasCache = [];
 
-      const resp = await fetch('/api/admin/submissions?senha=' + encodeURIComponent(senha));
+    const TIPOS_LABEL = {
+      digito: 'Dígito',
+      multipla_escolha: 'Múltipla escolha',
+      verdadeiro_falso: 'Verdadeiro ou Falso',
+    };
+
+    function criarEl(tag, opcoes = {}, filhos = []) {
+      const el = document.createElement(tag);
+      Object.entries(opcoes).forEach(([chave, valor]) => {
+        if (chave === 'texto') el.textContent = valor;
+        else if (chave === 'classe') el.className = valor;
+        else if (chave === 'onclick') el.addEventListener('click', valor);
+        else el.setAttribute(chave, valor);
+      });
+      filhos.forEach((f) => el.appendChild(f));
+      return el;
+    }
+
+    async function chamarApi(url, options = {}) {
+      const headers = { 'x-admin-password': senhaAdmin };
+      if (options.body) headers['Content-Type'] = 'application/json';
+      const resp = await fetch(url, { ...options, headers: { ...headers, ...(options.headers || {}) } });
       const dados = await resp.json();
-
       if (!resp.ok) {
-        erroDiv.textContent = dados.erro || 'Erro ao carregar dados.';
-        erroDiv.classList.add('mostrar');
+        throw new Error(dados.erro || 'Erro na requisição.');
+      }
+      return dados;
+    }
+
+    // ---------- Login ----------
+    const loginBox = document.getElementById('login-box');
+    const painel = document.getElementById('painel');
+    const senhaInput = document.getElementById('senha');
+    const erroLogin = document.getElementById('erro-login');
+
+    document.getElementById('btn-entrar').addEventListener('click', async () => {
+      erroLogin.classList.remove('mostrar');
+      senhaAdmin = senhaInput.value;
+      try {
+        await chamarApi('/api/admin/questions');
+        loginBox.style.display = 'none';
+        painel.style.display = 'block';
+        await Promise.all([carregarPerguntas(), carregarRespostas()]);
+      } catch (err) {
+        senhaAdmin = '';
+        erroLogin.textContent = err.message;
+        erroLogin.classList.add('mostrar');
+      }
+    });
+
+    // ---------- Abas ----------
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('ativo'));
+        document.querySelectorAll('.tab-conteudo').forEach((tc) => tc.classList.remove('ativo'));
+        btn.classList.add('ativo');
+        document.getElementById(`tab-${btn.dataset.tab}`).classList.add('ativo');
+      });
+    });
+
+    // ---------- Perguntas ----------
+    const listaPerguntas = document.getElementById('lista-perguntas');
+    const formWrap = document.getElementById('form-pergunta-wrap');
+    const formPergunta = document.getElementById('form-pergunta');
+    const formTitulo = document.getElementById('form-pergunta-titulo');
+    const campoIdInput = document.getElementById('pergunta-id');
+    const tipoSelect = document.getElementById('pergunta-tipo');
+    const tituloInput = document.getElementById('pergunta-titulo-input');
+    const enunciadoInput = document.getElementById('pergunta-enunciado');
+    const perguntaInput = document.getElementById('pergunta-pergunta');
+    const campoDigitoCorreto = document.getElementById('campo-digito-correto');
+    const digitoCorretoInput = document.getElementById('pergunta-digito-correto');
+    const campoOpcoes = document.getElementById('campo-opcoes');
+    const listaOpcoes = document.getElementById('lista-opcoes');
+    const btnAddOpcao = document.getElementById('btn-add-opcao');
+    const ordemInput = document.getElementById('pergunta-ordem');
+    const ativaInput = document.getElementById('pergunta-ativa');
+    const erroFormPergunta = document.getElementById('erro-form-pergunta');
+
+    async function carregarPerguntas() {
+      perguntasCache = await chamarApi('/api/admin/questions');
+      renderizarListaPerguntas();
+    }
+
+    function renderizarListaPerguntas() {
+      listaPerguntas.innerHTML = '';
+      if (perguntasCache.length === 0) {
+        listaPerguntas.appendChild(criarEl('p', { texto: 'Nenhuma pergunta cadastrada ainda.' }));
         return;
       }
 
-      document.getElementById('login-box').style.display = 'none';
+      perguntasCache
+        .slice()
+        .sort((a, b) => a.ordem - b.ordem)
+        .forEach((p) => {
+          const badge = criarEl('span', {
+            classe: `badge${p.ativa ? '' : ' inativa'}`,
+            texto: p.ativa ? TIPOS_LABEL[p.tipo] : `${TIPOS_LABEL[p.tipo]} · inativa`,
+          });
+          const info = criarEl('div', { classe: 'info' }, [badge, criarEl('strong', { texto: p.titulo })]);
+
+          const btnEditar = criarEl('button', { type: 'button', texto: 'Editar', onclick: () => abrirFormEdicao(p) });
+          const btnExcluir = criarEl('button', { type: 'button', texto: 'Excluir', onclick: () => excluirPergunta(p) });
+          const acoes = criarEl('div', { classe: 'acoes' }, [btnEditar, btnExcluir]);
+
+          listaPerguntas.appendChild(criarEl('div', { classe: 'pergunta-item' }, [info, acoes]));
+        });
+    }
+
+    function criarLinhaOpcao(texto, correta) {
+      const linha = document.createElement('div');
+      linha.className = 'opcao-row';
+
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = 'opcao-correta';
+      radio.checked = Boolean(correta);
+
+      const textoInput = document.createElement('input');
+      textoInput.type = 'text';
+      textoInput.placeholder = 'Texto da opção';
+      textoInput.value = texto || '';
+
+      const btnRemover = document.createElement('button');
+      btnRemover.type = 'button';
+      btnRemover.textContent = 'Remover';
+      btnRemover.addEventListener('click', () => {
+        if (listaOpcoes.querySelectorAll('.opcao-row').length <= 2) return;
+        linha.remove();
+      });
+
+      linha.append(radio, textoInput, btnRemover);
+      return linha;
+    }
+
+    btnAddOpcao.addEventListener('click', () => {
+      listaOpcoes.appendChild(criarLinhaOpcao('', false));
+    });
+
+    tipoSelect.addEventListener('change', () => aplicarTipoNoForm(tipoSelect.value));
+
+    function aplicarTipoNoForm(tipo, opcoesExistentes) {
+      const ehDigito = tipo === 'digito';
+      campoDigitoCorreto.style.display = ehDigito ? 'block' : 'none';
+      campoOpcoes.style.display = ehDigito ? 'none' : 'block';
+
+      if (ehDigito) return;
+
+      listaOpcoes.innerHTML = '';
+
+      if (opcoesExistentes && opcoesExistentes.length > 0) {
+        opcoesExistentes.forEach((o) => listaOpcoes.appendChild(criarLinhaOpcao(o.texto, o.correta)));
+      } else if (tipo === 'verdadeiro_falso') {
+        listaOpcoes.appendChild(criarLinhaOpcao('Verdadeiro', true));
+        listaOpcoes.appendChild(criarLinhaOpcao('Falso', false));
+      } else {
+        listaOpcoes.appendChild(criarLinhaOpcao('', false));
+        listaOpcoes.appendChild(criarLinhaOpcao('', false));
+      }
+
+      const permiteEditarOpcoes = tipo === 'multipla_escolha';
+      btnAddOpcao.style.display = permiteEditarOpcoes ? 'inline-block' : 'none';
+      listaOpcoes.querySelectorAll('.opcao-row button').forEach((btn) => {
+        btn.style.display = permiteEditarOpcoes ? 'inline-block' : 'none';
+      });
+    }
+
+    document.getElementById('btn-nova-pergunta').addEventListener('click', () => {
+      formTitulo.textContent = 'Nova pergunta';
+      campoIdInput.value = '';
+      tipoSelect.value = 'digito';
+      tituloInput.value = '';
+      enunciadoInput.value = '';
+      perguntaInput.value = '';
+      digitoCorretoInput.value = '';
+      ordemInput.value = perguntasCache.length;
+      ativaInput.checked = true;
+      erroFormPergunta.classList.remove('mostrar');
+      aplicarTipoNoForm('digito');
+      formWrap.style.display = 'block';
+      formWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+
+    function abrirFormEdicao(pergunta) {
+      formTitulo.textContent = 'Editar pergunta';
+      campoIdInput.value = pergunta.id;
+      tipoSelect.value = pergunta.tipo;
+      tituloInput.value = pergunta.titulo;
+      enunciadoInput.value = pergunta.enunciado || '';
+      perguntaInput.value = pergunta.pergunta || '';
+      digitoCorretoInput.value = pergunta.resposta_digito ?? '';
+      ordemInput.value = pergunta.ordem;
+      ativaInput.checked = pergunta.ativa;
+      erroFormPergunta.classList.remove('mostrar');
+      aplicarTipoNoForm(pergunta.tipo, pergunta.opcoes);
+      formWrap.style.display = 'block';
+      formWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    document.getElementById('btn-cancelar-pergunta').addEventListener('click', () => {
+      formWrap.style.display = 'none';
+    });
+
+    async function excluirPergunta(pergunta) {
+      if (!confirm(`Excluir a pergunta "${pergunta.titulo}"?`)) return;
+      try {
+        await chamarApi(`/api/admin/questions/${pergunta.id}`, { method: 'DELETE' });
+        await carregarPerguntas();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    formPergunta.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      erroFormPergunta.classList.remove('mostrar');
+
+      const tipo = tipoSelect.value;
+      const payload = {
+        tipo,
+        titulo: tituloInput.value.trim(),
+        enunciado: enunciadoInput.value.trim(),
+        pergunta: perguntaInput.value.trim(),
+        ordem: Number(ordemInput.value) || 0,
+        ativa: ativaInput.checked,
+      };
+
+      if (tipo === 'digito') {
+        payload.respostaDigito = Number(digitoCorretoInput.value);
+      } else {
+        payload.opcoes = Array.from(listaOpcoes.querySelectorAll('.opcao-row')).map((linha) => ({
+          texto: linha.querySelector('input[type="text"]').value.trim(),
+          correta: linha.querySelector('input[type="radio"]').checked,
+        }));
+      }
+
+      const id = campoIdInput.value;
+
+      try {
+        if (id) {
+          await chamarApi(`/api/admin/questions/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+        } else {
+          await chamarApi('/api/admin/questions', { method: 'POST', body: JSON.stringify(payload) });
+        }
+        formWrap.style.display = 'none';
+        await carregarPerguntas();
+      } catch (err) {
+        erroFormPergunta.textContent = err.message;
+        erroFormPergunta.classList.add('mostrar');
+      }
+    });
+
+    // ---------- Respostas ----------
+    async function carregarRespostas() {
+      const dados = await chamarApi('/api/admin/submissions');
       const tabela = document.getElementById('tabela');
       const corpo = document.getElementById('tabela-body');
       corpo.innerHTML = '';
