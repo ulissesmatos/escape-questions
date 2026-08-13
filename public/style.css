@@ -127,21 +127,6 @@ input[type="text"] {
   border-color: #818cf8;
 }
 
-.status-icon {
-  font-size: 1.3rem;
-  min-width: 24px;
-}
-
-.pista.correta {
-  border-color: #22c55e;
-  background: #14291d;
-}
-
-.pista.incorreta {
-  border-color: #ef4444;
-  background: #2a1616;
-}
-
 button[type="submit"] {
   width: 100%;
   padding: 14px;
@@ -175,14 +160,9 @@ button[type="submit"]:disabled {
   display: block;
 }
 
-#resultado.sucesso {
+#resultado.enviado {
   background: #14291d;
   border: 1px solid #22c55e;
-}
-
-#resultado.parcial {
-  background: #2a2410;
-  border: 1px solid #eab308;
 }
 
 #resultado h2 {

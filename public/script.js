@@ -36,18 +36,8 @@ form.addEventListener('submit', async (event) => {
       return;
     }
 
-    dados.detalhes.forEach((item) => {
-      const card = document.querySelector(`.pista[data-id="${item.id}"]`);
-      const icon = card.querySelector('.status-icon');
-      card.classList.remove('correta', 'incorreta');
-      card.classList.add(item.correta ? 'correta' : 'incorreta');
-      icon.textContent = item.correta ? '✅' : '❌';
-    });
-
-    resultadoDiv.className = dados.completo ? 'mostrar sucesso' : 'mostrar parcial';
-    resultadoDiv.innerHTML = dados.completo
-      ? `<h2>🎉 Parabéns!</h2><p>Vocês acertaram todas as ${dados.total} pistas! Chamem o professor para liberar a próxima etapa do escape room.</p>`
-      : `<h2>Quase lá!</h2><p>Vocês acertaram ${dados.acertos} de ${dados.total} pistas. Revisem as pistas marcadas com ❌ e enviem novamente.</p>`;
+    resultadoDiv.className = 'mostrar enviado';
+    resultadoDiv.innerHTML = `<h2>✅ Respostas enviadas!</h2><p>Suas respostas foram registradas com sucesso. Aguarde as instruções do professor.</p>`;
 
     resultadoDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } catch (err) {
