@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Escape Room - Área do Professor</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #1e293b;
+      border-radius: 12px;
+      overflow: hidden;
+      font-size: 0.9rem;
+    }
+    th, td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid #334155;
+    }
+    th {
+      background: #0f172a;
+      color: #94a3b8;
+    }
+    tr.completo {
+      background: #14291d;
+    }
+    .login-box {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 12px;
+      display: grid;
+      gap: 12px;
+      max-width: 340px;
+      margin: 40px auto;
+    }
+    .table-wrap {
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🔑 Área do Professor</h1>
+      <p>Respostas salvas no banco de dados</p>
+    </header>
+
+    <div class="login-box" id="login-box">
+      <label for="senha">Senha de acesso</label>
+      <input type="text" id="senha" placeholder="Senha" />
+      <button type="submit" id="btn-entrar" onclick="carregar()">Entrar</button>
+      <div class="erro-msg" id="erro-login"></div>
+    </div>
+
+    <div class="table-wrap">
+      <table id="tabela" style="display:none">
+        <thead>
+          <tr>
+            <th>Data/Hora</th>
+            <th>Aluno(s) / Grupo</th>
+            <th>Turma</th>
+            <th>Acertos</th>
+            <th>Completo?</th>
+          </tr>
+        </thead>
+        <tbody id="tabela-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    async function carregar() {
+      const senha = document.getElementById('senha').value;
+      const erroDiv = document.getElementById('erro-login');
+      erroDiv.classList.remove('mostrar');
+
+      const resp = await fetch('/api/admin/submissions?senha=' + encodeURIComponent(senha));
+      const dados = await resp.json();
+
+      if (!resp.ok) {
+        erroDiv.textContent = dados.erro || 'Erro ao carregar dados.';
+        erroDiv.classList.add('mostrar');
+        return;
+      }
+
+      document.getElementById('login-box').style.display = 'none';
+      const tabela = document.getElementById('tabela');
+      const corpo = document.getElementById('tabela-body');
+      corpo.innerHTML = '';
+
+      dados.forEach((linha) => {
+        const tr = document.createElement('tr');
+        if (linha.completo) tr.classList.add('completo');
+
+        const celulas = [
+          new Date(linha.criado_em).toLocaleString('pt-BR'),
+          linha.participantes,
+          linha.turma,
+          `${linha.acertos}/${linha.total}`,
+          linha.completo ? '✅' : '—',
+        ];
+
+        celulas.forEach((texto) => {
+          const td = document.createElement('td');
+          td.textContent = texto;
+          tr.appendChild(td);
+        });
+
+        corpo.appendChild(tr);
+      });
+
+      tabela.style.display = 'table';
+    }
+  </script>
+</body>
+</html>

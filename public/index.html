@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Escape Room - Banco de Pistas</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📂 Escape Room Digital</h1>
+      <p>Pesquise, responda e descubra o dígito de cada pista!</p>
+    </header>
+
+    <form id="quiz-form">
+      <div class="identificacao">
+        <div>
+          <label for="participantes">Nome do aluno ou nomes do grupo</label>
+          <input type="text" id="participantes" name="participantes" placeholder="Ex: Ana, Bruno e Carlos" required />
+        </div>
+        <div>
+          <label for="turma">Turma</label>
+          <input type="text" id="turma" name="turma" placeholder="Ex: 7º Ano B" required />
+        </div>
+      </div>
+
+      <div class="erro-msg" id="erro-msg"></div>
+
+      <div class="pista" data-id="animal_navegador">
+        <h2>🦊 O Animal Navegador</h2>
+        <p>O "Firefox" é um dos navegadores de internet mais conhecidos do mundo. Pesquise a logo dele. Qual animal aparece abraçando o globo terrestre?</p>
+        <p class="pergunta">Escreva o nome desse animal em português. Quantas letras tem essa palavra?</p>
+        <div class="digito-wrap">
+          <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" data-pista="animal_navegador" required />
+          <span class="status-icon"></span>
+        </div>
+      </div>
+
+      <div class="pista" data-id="rei_sem_fio">
+        <h2>📶 O Rei Sem Fio</h2>
+        <p>A tecnologia que conecta nossos celulares aos fones de ouvido sem fio tem um nome curioso: <em>Bluetooth</em>. Pesquise a origem desse nome na internet. Ele foi inspirado em um antigo rei viking que tinha um dente de uma cor bem específica.</p>
+        <p class="pergunta">Que cor era o dente do rei? Quantas letras tem o nome dessa cor?</p>
+        <div class="digito-wrap">
+          <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" data-pista="rei_sem_fio" required />
+          <span class="status-icon"></span>
+        </div>
+      </div>
+
+      <div class="pista" data-id="simbolo_categorias">
+        <h2># O Símbolo das Categorias</h2>
+        <p>Quando queremos agrupar um assunto no Instagram, TikTok ou YouTube, usamos o símbolo cerquilha ( # ) antes de uma palavra (ex: #futebol). Essa prática é chamada de <em>Hashtag</em>.</p>
+        <p class="pergunta">Olhe para o teclado do computador. Qual tecla de número você precisa apertar (junto com o Shift) para fazer o símbolo #?</p>
+        <div class="digito-wrap">
+          <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" data-pista="simbolo_categorias" required />
+          <span class="status-icon"></span>
+        </div>
+      </div>
+
+      <div class="pista" data-id="pior_senha">
+        <h2>🔓 A Pior Senha do Mundo</h2>
+        <p>Todo ano, as empresas de segurança na internet divulgam a lista das senhas mais usadas (e mais facilmente hackeadas) do planeta.</p>
+        <p class="pergunta">Qual é a senha número 1 mais usada no mundo? (Dica: é uma sequência numérica muito óbvia de seis números). Qual é o último número dessa senha?</p>
+        <div class="digito-wrap">
+          <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" data-pista="pior_senha" required />
+          <span class="status-icon"></span>
+        </div>
+      </div>
+
+      <div class="pista" data-id="primeiro_video">
+        <h2>🎬 O Primeiro Vídeo</h2>
+        <p>O primeiro vídeo postado na história do YouTube, em 2005, se chama "Me at the zoo" (Eu no zoológico). Pesquise sobre esse vídeo clássico.</p>
+        <p class="pergunta">Em frente a qual animal enorme o rapaz do vídeo estava? Escreva o nome do animal e conte: quantas vogais tem o nome desse animal?</p>
+        <div class="digito-wrap">
+          <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" data-pista="primeiro_video" required />
+          <span class="status-icon"></span>
+        </div>
+      </div>
+
+      <div class="pista" data-id="buscador_gigante">
+        <h2>🔍 O Buscador Gigante</h2>
+        <p>O Google é a página inicial da internet para a maioria das pessoas. O nome surgiu de um erro de matemática, inspirado no número "Googol".</p>
+        <p class="pergunta">Olhe para a palavra GOOGLE. Se você contar apenas as vogais dessa palavra, qual é o total?</p>
+        <div class="digito-wrap">
+          <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" data-pista="buscador_gigante" required />
+          <span class="status-icon"></span>
+        </div>
+      </div>
+
+      <div class="pista" data-id="ondas_conexao">
+        <h2>📡 As Ondas de Conexão</h2>
+        <p>O ícone do Wi-Fi é universal. Em qualquer lugar do mundo que você for, ele indicará que há internet sem fio. O símbolo clássico é formado por um pontinho na base e algumas "ondas" curvadas acima dele.</p>
+        <p class="pergunta">Olhe para o ícone do Wi-Fi no celular ou pesquise na internet. Quantas linhas curvadas existem acima do ponto no ícone clássico completo?</p>
+        <div class="digito-wrap">
+          <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" data-pista="ondas_conexao" required />
+          <span class="status-icon"></span>
+        </div>
+      </div>
+
+      <div class="pista" data-id="arquivos_no_ceu">
+        <h2>☁️ Arquivos no Céu</h2>
+        <p>Hoje em dia, não precisamos salvar tudo no pen drive. Quando salvamos fotos e arquivos na internet (como no Google Drive), dizemos que eles estão armazenados em um lugar que normalmente fica no céu.</p>
+        <p class="pergunta">Que lugar é esse? (Dica: "Armazenamento em..."). Quantas letras tem essa palavra?</p>
+        <div class="digito-wrap">
+          <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" data-pista="arquivos_no_ceu" required />
+          <span class="status-icon"></span>
+        </div>
+      </div>
+
+      <div class="pista" data-id="passaro_extinto">
+        <h2>🐦 O Pássaro Extinto</h2>
+        <p>Uma das redes sociais mais famosas do mundo mudou de nome recentemente e agora se chama "X". Porém, antes dessa mudança, ela era famosa por ter um passarinho azul como logotipo.</p>
+        <p class="pergunta">Qual era o antigo nome dessa rede social? Quantas letras "T" (apenas a letra T) existem nessa palavra?</p>
+        <div class="digito-wrap">
+          <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" data-pista="passaro_extinto" required />
+          <span class="status-icon"></span>
+        </div>
+      </div>
+
+      <div class="pista" data-id="carinhas_japao">
+        <h2>😀 As Carinhas do Japão</h2>
+        <p>As carinhas e símbolos que usamos nas mensagens de texto (😂, ❤️, 👍) para demonstrar emoções revolucionaram a comunicação na internet. O nome original dessas carinhas surgiu no Japão.</p>
+        <p class="pergunta">Qual é o nome oficial dessas carinhas? Quantas letras tem essa palavra?</p>
+        <div class="digito-wrap">
+          <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" data-pista="carinhas_japao" required />
+          <span class="status-icon"></span>
+        </div>
+      </div>
+
+      <button type="submit" id="btn-enviar">Enviar respostas</button>
+    </form>
+
+    <div id="resultado"></div>
+
+    <footer>
+      <a href="admin.html">Área do professor</a>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
