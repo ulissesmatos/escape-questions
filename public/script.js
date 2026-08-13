@@ -13,7 +13,9 @@ form.addEventListener('submit', async (event) => {
 
   const respostas = {};
   document.querySelectorAll('[data-pista]').forEach((input) => {
-    respostas[input.dataset.pista] = input.value;
+    const id = input.dataset.pista;
+    const textoInput = document.querySelector(`[data-resposta-texto="${id}"]`);
+    respostas[id] = { texto: textoInput ? textoInput.value : '', digito: input.value };
   });
 
   btnEnviar.disabled = true;

@@ -57,10 +57,11 @@ app.post('/api/submit', async (req, res) => {
   }
 
   const detalhes = PISTAS.map((pista) => {
-    const respostaBruta = respostas[pista.id];
-    const respostaNum = Number(String(respostaBruta ?? '').trim());
+    const respostaBruta = respostas[pista.id] || {};
+    const respostaTexto = typeof respostaBruta.texto === 'string' ? respostaBruta.texto.trim() : '';
+    const respostaNum = Number(String(respostaBruta.digito ?? '').trim());
     const correta = respostaNum === pista.digito;
-    return { id: pista.id, titulo: pista.titulo, resposta: respostaBruta ?? null, correta };
+    return { id: pista.id, titulo: pista.titulo, respostaTexto, respostaDigito: respostaBruta.digito ?? null, correta };
   });
 
   const acertos = detalhes.filter((d) => d.correta).length;

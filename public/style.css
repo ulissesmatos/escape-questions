@@ -91,6 +91,20 @@ input[type="text"] {
   margin-bottom: 8px;
 }
 
+.resposta-texto-wrap {
+  margin-bottom: 12px;
+}
+
+.resposta-texto-wrap label {
+  color: #cbd5e1;
+}
+
+.digito-label {
+  color: #cbd5e1;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
 .digito-wrap {
   display: flex;
   align-items: center;
