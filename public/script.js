@@ -3,6 +3,17 @@ const perguntasContainer = document.getElementById('perguntas-container');
 const resultadoDiv = document.getElementById('resultado');
 const erroDiv = document.getElementById('erro-msg');
 const btnEnviar = document.getElementById('btn-enviar');
+const progressoTexto = document.getElementById('progresso-texto');
+const progressoPercent = document.getElementById('progresso-percent');
+const progressoBarra = document.getElementById('progresso-barra');
+
+const CORES_ACENTO = [
+  { cor: '#6366f1', fundo: '#eef2ff' },
+  { cor: '#0d9488', fundo: '#f0fdfa' },
+  { cor: '#e11d48', fundo: '#fff1f2' },
+  { cor: '#0284c7', fundo: '#f0f9ff' },
+  { cor: '#7c3aed', fundo: '#f5f3ff' },
+];
 
 let perguntas = [];
 
@@ -23,18 +34,19 @@ function criarElemento(tag, opcoes = {}, filhos = []) {
 
 function renderizarRespostaDigito(pergunta) {
   const campoTexto = criarElemento('div', { classe: 'campo-texto' }, [
-    criarElemento('label', { for: `texto-${pergunta.id}`, texto: 'Sua resposta' }),
+    criarElemento('label', { for: `texto-${pergunta.id}`, texto: '✏️ O que você descobriu?' }),
     criarElemento('input', {
       type: 'text',
       id: `texto-${pergunta.id}`,
       'data-resposta-texto': pergunta.id,
-      placeholder: 'Escreva aqui',
+      placeholder: 'Escreva aqui a palavra ou resposta',
+      autocomplete: 'off',
       required: 'required',
     }),
   ]);
 
   const campoDigito = criarElemento('div', { classe: 'campo-digito' }, [
-    criarElemento('label', { for: `digito-${pergunta.id}`, texto: 'Dígito' }),
+    criarElemento('label', { for: `digito-${pergunta.id}`, texto: '🔢 Número' }),
     criarElemento('input', {
       type: 'text',
       inputmode: 'numeric',
@@ -44,9 +56,10 @@ function renderizarRespostaDigito(pergunta) {
       'data-resposta-digito': pergunta.id,
       required: 'required',
     }),
+    criarElemento('span', { classe: 'campo-digito-ajuda', texto: 'Só o número pedido acima' }),
   ]);
 
-  return criarElemento('div', { classe: 'resposta-linha' }, [campoTexto, campoDigito]);
+  return criarElemento('div', { classe: 'resposta-campos' }, [campoTexto, campoDigito]);
 }
 
 function renderizarRespostaOpcoes(pergunta) {
@@ -65,6 +78,17 @@ function renderizarRespostaOpcoes(pergunta) {
   return criarElemento('div', { classe: 'opcoes-lista' }, opcoesEls);
 }
 
+function renderizarZonaResposta(pergunta) {
+  const ehDigito = pergunta.tipo === 'digito';
+  const titulo = ehDigito ? '✏️ Escreva sua resposta aqui' : '✏️ Escolha sua resposta aqui';
+  const conteudo = ehDigito ? renderizarRespostaDigito(pergunta) : renderizarRespostaOpcoes(pergunta);
+
+  return criarElemento('div', { classe: 'zona-resposta' }, [
+    criarElemento('span', { classe: 'zona-resposta-titulo', texto: titulo }),
+    conteudo,
+  ]);
+}
+
 function renderizarPerguntas() {
   perguntasContainer.innerHTML = '';
 
@@ -72,24 +96,95 @@ function renderizarPerguntas() {
     perguntasContainer.appendChild(
       criarElemento('p', { classe: 'carregando', texto: 'Nenhuma pergunta cadastrada ainda. Fale com o professor.' })
     );
+    atualizarProgresso();
     return;
   }
 
-  perguntas.forEach((pergunta) => {
-    const filhos = [criarElemento('h2', { texto: pergunta.titulo })];
+  perguntas.forEach((pergunta, indice) => {
+    const numero = String(indice + 1).padStart(2, '0');
+    const acento = CORES_ACENTO[indice % CORES_ACENTO.length];
+
+    const cabecalho = criarElemento('div', { classe: 'pergunta-cabecalho' }, [
+      criarElemento('span', { classe: 'pista-badge' }, [
+        document.createTextNode(`Pista ${numero} `),
+        criarElemento('span', { classe: 'status-check', texto: '✓' }),
+      ]),
+      criarElemento('h2', { texto: pergunta.titulo }),
+    ]);
+
+    const filhos = [cabecalho];
 
     if (pergunta.enunciado) {
-      filhos.push(criarElemento('p', { texto: pergunta.enunciado }));
+      filhos.push(
+        criarElemento('div', { classe: 'secao secao-contexto' }, [
+          criarElemento('span', { classe: 'secao-titulo', texto: '🔎 Pesquise antes de responder' }),
+          criarElemento('p', { texto: pergunta.enunciado }),
+        ])
+      );
     }
     if (pergunta.pergunta) {
-      filhos.push(criarElemento('p', { classe: 'pergunta', texto: pergunta.pergunta }));
+      filhos.push(
+        criarElemento('div', { classe: 'secao secao-pergunta' }, [
+          criarElemento('span', { classe: 'secao-titulo', texto: '❓ Sua missão' }),
+          criarElemento('p', { texto: pergunta.pergunta }),
+        ])
+      );
     }
 
-    filhos.push(
-      pergunta.tipo === 'digito' ? renderizarRespostaDigito(pergunta) : renderizarRespostaOpcoes(pergunta)
-    );
+    filhos.push(renderizarZonaResposta(pergunta));
 
-    perguntasContainer.appendChild(criarElemento('div', { classe: 'pergunta-card', 'data-id': pergunta.id }, filhos));
+    const card = criarElemento('div', { classe: 'pergunta-card', 'data-id': pergunta.id }, filhos);
+    card.style.setProperty('--accent', acento.cor);
+    card.style.setProperty('--accent-bg', acento.fundo);
+    card.style.animationDelay = `${Math.min(indice * 0.07, 0.6)}s`;
+
+    perguntasContainer.appendChild(card);
+  });
+
+  ativarAcompanhamentoDeRespostas();
+  atualizarProgresso();
+}
+
+function perguntaFoiRespondida(pergunta) {
+  if (pergunta.tipo === 'digito') {
+    const textoInput = document.querySelector(`[data-resposta-texto="${pergunta.id}"]`);
+    const digitoInput = document.querySelector(`[data-resposta-digito="${pergunta.id}"]`);
+    const textoPreenchido = Boolean(textoInput && textoInput.value.trim());
+    const digitoValido = Boolean(digitoInput && /^[0-9]$/.test(digitoInput.value.trim()));
+    return textoPreenchido && digitoValido;
+  }
+  return Boolean(document.querySelector(`input[name="opcao-${pergunta.id}"]:checked`));
+}
+
+function atualizarProgresso() {
+  const total = perguntas.length;
+  const respondidas = perguntas.filter(perguntaFoiRespondida).length;
+  const percentual = total > 0 ? Math.round((respondidas / total) * 100) : 0;
+
+  progressoTexto.textContent = `${respondidas} de ${total} pistas respondidas`;
+  progressoPercent.textContent = `${percentual}%`;
+  progressoBarra.style.width = `${percentual}%`;
+}
+
+function ativarAcompanhamentoDeRespostas() {
+  perguntas.forEach((pergunta) => {
+    const card = perguntasContainer.querySelector(`.pergunta-card[data-id="${pergunta.id}"]`);
+    if (!card) return;
+
+    const digitoInput = card.querySelector('[data-resposta-digito]');
+
+    const atualizarCard = () => {
+      if (digitoInput) {
+        digitoInput.classList.toggle('preenchido', /^[0-9]$/.test(digitoInput.value.trim()));
+      }
+      card.classList.toggle('respondida', perguntaFoiRespondida(pergunta));
+      atualizarProgresso();
+    };
+
+    card.querySelectorAll('input').forEach((input) => {
+      input.addEventListener('input', atualizarCard);
+      input.addEventListener('change', atualizarCard);
+    });
   });
 }
 

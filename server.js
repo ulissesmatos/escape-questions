@@ -57,7 +57,7 @@ async function ensureSchema() {
 // no código.
 const PERGUNTAS_INICIAIS = [
   {
-    titulo: '🦊 O Animal Navegador',
+    titulo: '🧭 O Animal Navegador',
     enunciado: 'O "Firefox" é um dos navegadores de internet mais conhecidos do mundo. Pesquise a logo dele. Qual animal aparece abraçando o globo terrestre?',
     pergunta: 'Escreva o nome desse animal em português. Quantas letras tem essa palavra?',
     respostaDigito: 6,
@@ -99,7 +99,7 @@ const PERGUNTAS_INICIAIS = [
     respostaDigito: 3,
   },
   {
-    titulo: '☁️ Arquivos no Céu',
+    titulo: '💾 Arquivos no Céu',
     enunciado: 'Hoje em dia, não precisamos salvar tudo no pen drive. Quando salvamos fotos e arquivos na internet (como no Google Drive), dizemos que eles estão armazenados em um lugar que normalmente fica no céu.',
     pergunta: 'Que lugar é esse? (Dica: "Armazenamento em..."). Quantas letras tem essa palavra?',
     respostaDigito: 5,
