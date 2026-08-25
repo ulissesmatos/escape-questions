@@ -98,6 +98,13 @@
     .pergunta-item strong {
       color: #f8fafc;
     }
+    .miniatura-componente {
+      width: 32px;
+      height: 32px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #334155;
+    }
     .badge {
       display: inline-block;
       font-size: 0.72rem;
@@ -125,20 +132,26 @@
     .acoes button:hover {
       border-color: #6366f1;
     }
-    #form-pergunta-wrap {
+    #form-pergunta-wrap,
+    #form-componente-wrap {
       background: #1e293b;
       border: 1px solid #334155;
       border-radius: 12px;
       padding: 18px;
       margin-top: 12px;
     }
-    #form-pergunta label {
+    #form-pergunta label,
+    #form-componente label {
       margin-top: 10px;
     }
     #form-pergunta input[type="text"],
     #form-pergunta input[type="number"],
     #form-pergunta textarea,
-    #form-pergunta select {
+    #form-pergunta select,
+    #form-componente input[type="text"],
+    #form-componente input[type="number"],
+    #form-componente textarea,
+    #form-componente select {
       width: 100%;
       padding: 8px 10px;
       border-radius: 8px;
@@ -149,7 +162,8 @@
       margin-bottom: 4px;
       font-family: inherit;
     }
-    #form-pergunta textarea {
+    #form-pergunta textarea,
+    #form-componente textarea {
       resize: vertical;
     }
     .checkbox-label {
@@ -187,7 +201,8 @@
       cursor: pointer;
       flex-shrink: 0;
     }
-    #btn-add-opcao {
+    #btn-add-opcao,
+    #btn-add-opcao-hw {
       padding: 8px 14px;
       border-radius: 6px;
       border: 1px dashed #475569;
@@ -223,6 +238,58 @@
       background: #334155;
       color: #e2e8f0;
     }
+    #btn-salvar-componente {
+      background: #22c55e;
+      color: #05230f;
+    }
+    #btn-cancelar-componente {
+      background: #334155;
+      color: #e2e8f0;
+    }
+    h2.secao-admin {
+      font-size: 1.1rem;
+      color: #f8fafc;
+      margin: 28px 0 12px;
+    }
+    h2.secao-admin:first-child {
+      margin-top: 0;
+    }
+    .conexao-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: end;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .conexao-form > div {
+      flex: 1 1 180px;
+      min-width: 180px;
+    }
+    .conexao-form select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #f8fafc;
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+    .conexao-form button {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      background: #6366f1;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
@@ -243,6 +310,7 @@
       <div class="tabs">
         <button type="button" class="tab-btn ativo" data-tab="perguntas">Perguntas</button>
         <button type="button" class="tab-btn" data-tab="respostas">Respostas dos alunos</button>
+        <button type="button" class="tab-btn" data-tab="hardware">Hardware</button>
       </div>
 
       <div id="tab-perguntas" class="tab-conteudo ativo">
@@ -317,6 +385,103 @@
           </table>
         </div>
       </div>
+
+      <div id="tab-hardware" class="tab-conteudo">
+        <h2 class="secao-admin">🧩 Componentes do mapa</h2>
+        <button type="button" id="btn-novo-componente">+ Novo componente</button>
+
+        <div id="lista-componentes"></div>
+
+        <div id="form-componente-wrap" style="display:none">
+          <h2 id="form-componente-titulo">Novo componente</h2>
+          <form id="form-componente">
+            <input type="hidden" id="componente-id" />
+
+            <label for="componente-nome">Nome do componente</label>
+            <input type="text" id="componente-nome" placeholder="Ex: Placa de vídeo (GPU)" required />
+
+            <label for="componente-icone">Ícone (emoji, usado se não houver imagem)</label>
+            <input type="text" id="componente-icone" placeholder="Ex: 🎮" maxlength="4" />
+
+            <label for="componente-imagem">Imagem (caminho ou URL, opcional)</label>
+            <input type="text" id="componente-imagem" placeholder="Ex: /images/hardware/gpu.jpg" />
+
+            <label for="componente-tipo">Tipo de pergunta</label>
+            <select id="componente-tipo">
+              <option value="multipla_escolha">Múltipla escolha</option>
+              <option value="verdadeiro_falso">Verdadeiro ou Falso</option>
+            </select>
+
+            <label for="componente-enunciado">Enunciado / o que pesquisar</label>
+            <textarea id="componente-enunciado" rows="3"></textarea>
+
+            <label for="componente-pergunta">Pergunta</label>
+            <textarea id="componente-pergunta" rows="2"></textarea>
+
+            <div id="campo-opcoes-hw">
+              <label>Opções de resposta (marque a correta)</label>
+              <p class="dica-opcoes">Use o botão de marcar (à esquerda) para indicar qual opção é a correta.</p>
+              <div id="lista-opcoes-hw"></div>
+              <button type="button" id="btn-add-opcao-hw">+ Adicionar opção</button>
+            </div>
+
+            <label for="componente-pos-x">Posição no mapa — horizontal (0 a 100)</label>
+            <input type="number" id="componente-pos-x" min="0" max="100" value="50" />
+
+            <label for="componente-pos-y">Posição no mapa — vertical (0 a 100)</label>
+            <input type="number" id="componente-pos-y" min="0" max="100" value="50" />
+
+            <label class="checkbox-label">
+              <input type="checkbox" id="componente-inicial" />
+              Nó inicial (visível para os alunos desde o começo)
+            </label>
+
+            <label class="checkbox-label">
+              <input type="checkbox" id="componente-ativo" checked />
+              Componente ativo (visível no mapa dos alunos)
+            </label>
+
+            <div class="erro-msg" id="erro-form-componente"></div>
+
+            <div class="form-botoes">
+              <button type="submit" id="btn-salvar-componente">Salvar</button>
+              <button type="button" id="btn-cancelar-componente">Cancelar</button>
+            </div>
+          </form>
+        </div>
+
+        <h2 class="secao-admin">🔗 Conexões entre componentes</h2>
+        <div class="conexao-form">
+          <div>
+            <label for="conexao-de">De</label>
+            <select id="conexao-de"></select>
+          </div>
+          <div>
+            <label for="conexao-para">Para</label>
+            <select id="conexao-para"></select>
+          </div>
+          <button type="button" id="btn-conectar">+ Conectar</button>
+        </div>
+        <div class="erro-msg" id="erro-conexao"></div>
+        <div id="lista-conexoes"></div>
+
+        <h2 class="secao-admin">📊 Progresso dos alunos</h2>
+        <div class="table-wrap">
+          <table id="tabela-hw" style="display:none">
+            <thead>
+              <tr>
+                <th>Data/Hora</th>
+                <th>Aluno(s) / Grupo</th>
+                <th>Turma</th>
+                <th>Componente</th>
+                <th>Resposta</th>
+                <th>Resultado</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-hw-body"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -366,7 +531,7 @@
         await chamarApi('/api/admin/questions');
         loginBox.style.display = 'none';
         painel.style.display = 'block';
-        await Promise.all([carregarPerguntas(), carregarRespostas()]);
+        await Promise.all([carregarPerguntas(), carregarRespostas(), carregarHardware()]);
       } catch (err) {
         senhaAdmin = '';
         erroLogin.textContent = err.message;
@@ -593,6 +758,311 @@
           linha.turma,
           `${linha.acertos}/${linha.total}`,
           linha.completo ? '✅' : '—',
+        ];
+
+        celulas.forEach((texto) => {
+          const td = document.createElement('td');
+          td.textContent = texto;
+          tr.appendChild(td);
+        });
+
+        corpo.appendChild(tr);
+      });
+
+      tabela.style.display = 'table';
+    }
+
+    // ---------- Hardware ----------
+    let componentesCache = [];
+    let conexoesCache = [];
+
+    const TIPOS_LABEL_HW = {
+      multipla_escolha: 'Múltipla escolha',
+      verdadeiro_falso: 'Verdadeiro ou Falso',
+    };
+
+    const listaComponentes = document.getElementById('lista-componentes');
+    const formComponenteWrap = document.getElementById('form-componente-wrap');
+    const formComponente = document.getElementById('form-componente');
+    const formComponenteTitulo = document.getElementById('form-componente-titulo');
+    const campoComponenteId = document.getElementById('componente-id');
+    const nomeInputHw = document.getElementById('componente-nome');
+    const iconeInputHw = document.getElementById('componente-icone');
+    const imagemInputHw = document.getElementById('componente-imagem');
+    const tipoSelectHw = document.getElementById('componente-tipo');
+    const enunciadoInputHw = document.getElementById('componente-enunciado');
+    const perguntaInputHw = document.getElementById('componente-pergunta');
+    const listaOpcoesHw = document.getElementById('lista-opcoes-hw');
+    const btnAddOpcaoHw = document.getElementById('btn-add-opcao-hw');
+    const posXInput = document.getElementById('componente-pos-x');
+    const posYInput = document.getElementById('componente-pos-y');
+    const inicialInput = document.getElementById('componente-inicial');
+    const ativoInputHw = document.getElementById('componente-ativo');
+    const erroFormComponente = document.getElementById('erro-form-componente');
+    const selectDe = document.getElementById('conexao-de');
+    const selectPara = document.getElementById('conexao-para');
+    const btnConectar = document.getElementById('btn-conectar');
+    const erroConexao = document.getElementById('erro-conexao');
+    const listaConexoes = document.getElementById('lista-conexoes');
+
+    async function carregarHardware() {
+      await carregarComponentes();
+      await carregarConexoes();
+      await carregarRespostasHardware();
+    }
+
+    async function carregarComponentes() {
+      componentesCache = await chamarApi('/api/admin/hardware/components');
+      renderizarListaComponentes();
+      preencherSelectsConexao();
+    }
+
+    function renderizarListaComponentes() {
+      listaComponentes.innerHTML = '';
+      if (componentesCache.length === 0) {
+        listaComponentes.appendChild(criarEl('p', { texto: 'Nenhum componente cadastrado ainda.' }));
+        return;
+      }
+
+      componentesCache.forEach((c) => {
+        const badges = [
+          criarEl('span', {
+            classe: `badge${c.ativo ? '' : ' inativa'}`,
+            texto: c.ativo ? TIPOS_LABEL_HW[c.tipo] : `${TIPOS_LABEL_HW[c.tipo]} · inativo`,
+          }),
+        ];
+        if (c.inicial) badges.push(criarEl('span', { classe: 'badge', texto: '🚩 inicial' }));
+
+        const infoFilhos = [...badges];
+        if (c.imagem) {
+          infoFilhos.push(criarEl('img', { src: c.imagem, alt: '', classe: 'miniatura-componente' }));
+        }
+        infoFilhos.push(criarEl('strong', { texto: `${c.icone} ${c.nome}` }));
+
+        const info = criarEl('div', { classe: 'info' }, infoFilhos);
+
+        const btnEditar = criarEl('button', { type: 'button', texto: 'Editar', onclick: () => abrirFormEdicaoComponente(c) });
+        const btnExcluir = criarEl('button', { type: 'button', texto: 'Excluir', onclick: () => excluirComponente(c) });
+        const acoes = criarEl('div', { classe: 'acoes' }, [btnEditar, btnExcluir]);
+
+        listaComponentes.appendChild(criarEl('div', { classe: 'pergunta-item' }, [info, acoes]));
+      });
+    }
+
+    function criarLinhaOpcaoHw(texto, correta) {
+      const linha = document.createElement('div');
+      linha.className = 'opcao-row';
+
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = 'hw-opcao-correta';
+      radio.checked = Boolean(correta);
+
+      const textoInput = document.createElement('input');
+      textoInput.type = 'text';
+      textoInput.placeholder = 'Texto da opção';
+      textoInput.value = texto || '';
+
+      const btnRemover = document.createElement('button');
+      btnRemover.type = 'button';
+      btnRemover.textContent = 'Remover';
+      btnRemover.addEventListener('click', () => {
+        if (listaOpcoesHw.querySelectorAll('.opcao-row').length <= 2) return;
+        linha.remove();
+      });
+
+      linha.append(radio, textoInput, btnRemover);
+      return linha;
+    }
+
+    btnAddOpcaoHw.addEventListener('click', () => {
+      listaOpcoesHw.appendChild(criarLinhaOpcaoHw('', false));
+    });
+
+    tipoSelectHw.addEventListener('change', () => aplicarTipoNoFormHw(tipoSelectHw.value));
+
+    function aplicarTipoNoFormHw(tipo, opcoesExistentes) {
+      listaOpcoesHw.innerHTML = '';
+
+      if (opcoesExistentes && opcoesExistentes.length > 0) {
+        opcoesExistentes.forEach((o) => listaOpcoesHw.appendChild(criarLinhaOpcaoHw(o.texto, o.correta)));
+      } else if (tipo === 'verdadeiro_falso') {
+        listaOpcoesHw.appendChild(criarLinhaOpcaoHw('Verdadeiro', true));
+        listaOpcoesHw.appendChild(criarLinhaOpcaoHw('Falso', false));
+      } else {
+        listaOpcoesHw.appendChild(criarLinhaOpcaoHw('', false));
+        listaOpcoesHw.appendChild(criarLinhaOpcaoHw('', false));
+      }
+
+      const permiteEditarOpcoes = tipo === 'multipla_escolha';
+      btnAddOpcaoHw.style.display = permiteEditarOpcoes ? 'inline-block' : 'none';
+      listaOpcoesHw.querySelectorAll('.opcao-row button').forEach((btn) => {
+        btn.style.display = permiteEditarOpcoes ? 'inline-block' : 'none';
+      });
+    }
+
+    document.getElementById('btn-novo-componente').addEventListener('click', () => {
+      formComponenteTitulo.textContent = 'Novo componente';
+      campoComponenteId.value = '';
+      tipoSelectHw.value = 'multipla_escolha';
+      nomeInputHw.value = '';
+      iconeInputHw.value = '';
+      imagemInputHw.value = '';
+      enunciadoInputHw.value = '';
+      perguntaInputHw.value = '';
+      posXInput.value = 50;
+      posYInput.value = 50;
+      inicialInput.checked = false;
+      ativoInputHw.checked = true;
+      erroFormComponente.classList.remove('mostrar');
+      aplicarTipoNoFormHw('multipla_escolha');
+      formComponenteWrap.style.display = 'block';
+      formComponenteWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+
+    function abrirFormEdicaoComponente(componente) {
+      formComponenteTitulo.textContent = 'Editar componente';
+      campoComponenteId.value = componente.id;
+      tipoSelectHw.value = componente.tipo;
+      nomeInputHw.value = componente.nome;
+      iconeInputHw.value = componente.icone || '';
+      imagemInputHw.value = componente.imagem || '';
+      enunciadoInputHw.value = componente.enunciado || '';
+      perguntaInputHw.value = componente.pergunta || '';
+      posXInput.value = componente.pos_x;
+      posYInput.value = componente.pos_y;
+      inicialInput.checked = componente.inicial;
+      ativoInputHw.checked = componente.ativo;
+      erroFormComponente.classList.remove('mostrar');
+      aplicarTipoNoFormHw(componente.tipo, componente.opcoes);
+      formComponenteWrap.style.display = 'block';
+      formComponenteWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    document.getElementById('btn-cancelar-componente').addEventListener('click', () => {
+      formComponenteWrap.style.display = 'none';
+    });
+
+    async function excluirComponente(componente) {
+      if (!confirm(`Excluir o componente "${componente.nome}"? As conexões dele também serão removidas.`)) return;
+      try {
+        await chamarApi(`/api/admin/hardware/components/${componente.id}`, { method: 'DELETE' });
+        await carregarHardware();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    formComponente.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      erroFormComponente.classList.remove('mostrar');
+
+      const payload = {
+        tipo: tipoSelectHw.value,
+        nome: nomeInputHw.value.trim(),
+        icone: iconeInputHw.value.trim(),
+        imagem: imagemInputHw.value.trim(),
+        enunciado: enunciadoInputHw.value.trim(),
+        pergunta: perguntaInputHw.value.trim(),
+        posX: Number(posXInput.value),
+        posY: Number(posYInput.value),
+        inicial: inicialInput.checked,
+        ativo: ativoInputHw.checked,
+        opcoes: Array.from(listaOpcoesHw.querySelectorAll('.opcao-row')).map((linha) => ({
+          texto: linha.querySelector('input[type="text"]').value.trim(),
+          correta: linha.querySelector('input[type="radio"]').checked,
+        })),
+      };
+
+      const id = campoComponenteId.value;
+
+      try {
+        if (id) {
+          await chamarApi(`/api/admin/hardware/components/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+        } else {
+          await chamarApi('/api/admin/hardware/components', { method: 'POST', body: JSON.stringify(payload) });
+        }
+        formComponenteWrap.style.display = 'none';
+        await carregarHardware();
+      } catch (err) {
+        erroFormComponente.textContent = err.message;
+        erroFormComponente.classList.add('mostrar');
+      }
+    });
+
+    // ---------- Conexões ----------
+    function preencherSelectsConexao() {
+      const opcoesHtml = componentesCache
+        .map((c) => `<option value="${c.id}">${c.icone} ${c.nome}</option>`)
+        .join('');
+      selectDe.innerHTML = opcoesHtml;
+      selectPara.innerHTML = opcoesHtml;
+    }
+
+    async function carregarConexoes() {
+      conexoesCache = await chamarApi('/api/admin/hardware/connections');
+      renderizarListaConexoes();
+    }
+
+    function renderizarListaConexoes() {
+      listaConexoes.innerHTML = '';
+      if (conexoesCache.length === 0) {
+        listaConexoes.appendChild(criarEl('p', { texto: 'Nenhuma conexão cadastrada ainda.' }));
+        return;
+      }
+      conexoesCache.forEach((cx) => {
+        const info = criarEl('div', { classe: 'info' }, [
+          criarEl('strong', { texto: `${cx.de_nome} ↔ ${cx.para_nome}` }),
+        ]);
+        const btnRemover = criarEl('button', { type: 'button', texto: 'Remover', onclick: () => excluirConexao(cx) });
+        const acoes = criarEl('div', { classe: 'acoes' }, [btnRemover]);
+        listaConexoes.appendChild(criarEl('div', { classe: 'pergunta-item' }, [info, acoes]));
+      });
+    }
+
+    btnConectar.addEventListener('click', async () => {
+      erroConexao.classList.remove('mostrar');
+      if (!selectDe.value || !selectPara.value) return;
+      try {
+        await chamarApi('/api/admin/hardware/connections', {
+          method: 'POST',
+          body: JSON.stringify({ deId: Number(selectDe.value), paraId: Number(selectPara.value) }),
+        });
+        await carregarConexoes();
+      } catch (err) {
+        erroConexao.textContent = err.message;
+        erroConexao.classList.add('mostrar');
+      }
+    });
+
+    async function excluirConexao(cx) {
+      if (!confirm(`Remover a conexão entre "${cx.de_nome}" e "${cx.para_nome}"?`)) return;
+      try {
+        await chamarApi(`/api/admin/hardware/connections/${cx.id}`, { method: 'DELETE' });
+        await carregarConexoes();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    // ---------- Progresso dos alunos (hardware) ----------
+    async function carregarRespostasHardware() {
+      const dados = await chamarApi('/api/admin/hardware/respostas');
+      const tabela = document.getElementById('tabela-hw');
+      const corpo = document.getElementById('tabela-hw-body');
+      corpo.innerHTML = '';
+
+      dados.forEach((linha) => {
+        const tr = document.createElement('tr');
+        if (linha.correta) tr.classList.add('completo');
+
+        const celulas = [
+          new Date(linha.criado_em).toLocaleString('pt-BR'),
+          linha.participantes,
+          linha.turma,
+          linha.componente_nome,
+          linha.opcao_texto || '—',
+          linha.correta ? '✅' : '❌',
         ];
 
         celulas.forEach((texto) => {

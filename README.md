@@ -1,27 +1,40 @@
 # Escape Room Digital
 
-Site para os alunos responderem as perguntas de um escape room. As perguntas
-ficam no banco (não no código) e o professor gerencia tudo pela área
-`/admin.html`: criar, editar, ativar/desativar e excluir perguntas de três
-tipos — dígito (pesquisa + resposta numérica, como as pistas originais),
-múltipla escolha e verdadeiro/falso. As respostas dos alunos são corrigidas
-automaticamente e salvas em um banco PostgreSQL, junto com o nome do aluno (ou
-do grupo) e a turma.
+Site com duas atividades para os alunos. Todo o conteúdo fica no banco (não
+no código) e o professor gerencia tudo pela área `/admin.html`.
+
+- **Escape Room** (`/`): os alunos respondem perguntas de três tipos —
+  dígito (pesquisa + resposta numérica, como as pistas originais), múltipla
+  escolha e verdadeiro/falso. As respostas são corrigidas automaticamente e
+  salvas junto com o nome do aluno (ou do grupo) e a turma.
+- **Mapa de Hardware** (`/hardware.html`): os alunos exploram um mapa de
+  componentes de computador conectados entre si (ex: Placa-mãe → CPU → RAM →
+  ...). Só a Placa-mãe começa visível; acertar a pergunta de um componente
+  libera os componentes vizinhos conectados a ele no mapa, incentivando o
+  aluno a pesquisar cada peça para "desbloquear" as próximas.
+
+Tudo roda em um banco PostgreSQL.
 
 ## Estrutura
 
 - `server.js` — backend Express: API pública das perguntas (`/api/questions`,
-  sem gabarito), correção e salvamento das respostas (`/api/submit`), e API
-  de administração (`/api/admin/*`) para o CRUD de perguntas e consulta das
-  respostas. Cria as tabelas automaticamente se não existirem e semeia as 10
-  perguntas originais na primeira execução (só se o banco estiver vazio).
-- `public/index.html` + `public/script.js` — formulário do aluno, que busca as
-  perguntas ativas em `/api/questions` e monta o formulário dinamicamente
-  (campo de texto + dígito, ou múltipla escolha / verdadeiro-falso, conforme
-  o tipo de cada pergunta).
-- `public/admin.html` — área do professor: uma aba para gerenciar as
-  perguntas (criar/editar/excluir/ativar) e outra para ver as respostas
-  salvas.
+  sem gabarito), correção e salvamento das respostas (`/api/submit`), API do
+  mapa de hardware (`/api/hardware/*`, também sem gabarito), e API de
+  administração (`/api/admin/*`) para o CRUD de perguntas/componentes e
+  consulta das respostas. Cria as tabelas automaticamente se não existirem e
+  semeia as 10 perguntas originais e os 11 componentes iniciais do mapa de
+  hardware na primeira execução (só se o banco estiver vazio).
+- `public/index.html` + `public/script.js` — formulário do aluno do escape
+  room, que busca as perguntas ativas em `/api/questions` e monta o
+  formulário dinamicamente (campo de texto + dígito, ou múltipla escolha /
+  verdadeiro-falso, conforme o tipo de cada pergunta).
+- `public/hardware.html` + `public/hardware.js` — mapa de hardware do aluno:
+  busca o mapa em `/api/hardware/mapa`, calcula quais componentes estão
+  desbloqueados (com base nas conexões e no progresso salvo) e mostra a
+  pergunta de cada componente clicado em um modal.
+- `public/admin.html` — área do professor: abas para gerenciar as perguntas
+  do escape room, ver as respostas salvas, e gerenciar o mapa de hardware
+  (componentes, conexões entre eles e progresso dos alunos).
 - `docker-compose.yml` — sobe um PostgreSQL localmente.
 - `Dockerfile` — build da aplicação para deploy (ex: Coolify).
 
@@ -66,8 +79,58 @@ npm start
 
 ### 4. Acessar
 
-- Alunos: http://localhost:3000
+- Alunos (Escape Room): http://localhost:3000
+- Alunos (Mapa de Hardware): http://localhost:3000/hardware.html
 - Professor (ver respostas salvas): http://localhost:3000/admin.html
+
+## Gerenciando o Mapa de Hardware
+
+Pela área do professor (`/admin.html`, aba "Hardware"):
+
+- **Componentes**: cada componente tem um nome, ícone (emoji, usado se não
+  houver imagem), uma imagem opcional (caminho ou URL — os componentes
+  iniciais usam fotos reais salvas em `public/images/hardware/`), pergunta
+  fechada (múltipla escolha ou verdadeiro/falso, sempre com gabarito) e uma
+  posição no mapa (`0` a `100`, tanto na horizontal quanto na vertical).
+  Marcar um componente como **nó inicial** faz ele aparecer desbloqueado
+  desde o começo para os alunos — normalmente só um componente (o ponto de
+  partida do mapa) precisa disso. O enunciado de cada componente é só uma
+  dica de "por onde pesquisar" — evite colocar a resposta da pergunta nele,
+  senão o aluno não precisa pesquisar de verdade.
+- **Conexões**: ligam dois componentes entre si. Quando um aluno acerta a
+  pergunta de um componente, todos os componentes conectados a ele são
+  desbloqueados no mapa. Sem nenhum nó inicial ou sem conexões suficientes, o
+  mapa fica com componentes inacessíveis — vale conferir o mapa como aluno
+  depois de editar.
+- **Progresso dos alunos**: mostra cada tentativa de resposta (certa ou
+  errada) registrada por aluno/grupo e turma.
+
+Assim como as perguntas do escape room, o gabarito de cada componente nunca é
+enviado ao navegador do aluno.
+
+### Créditos das imagens
+
+As fotos dos 11 componentes iniciais (`public/images/hardware/`) vêm do
+Wikimedia Commons, sob licença Creative Commons (atribuição obrigatória
+nas CC BY-SA e "Attribution") ou domínio público:
+
+| Componente | Arquivo original | Autor | Licença |
+| --- | --- | --- | --- |
+| Placa-mãe | [Computer-motherboard.jpg](https://commons.wikimedia.org/wiki/File:Computer-motherboard.jpg) | Marcin Wieclaw (pcsite.co.uk) | CC BY-SA 4.0 |
+| Processador (CPU) | [Cpu-processor.jpg](https://commons.wikimedia.org/wiki/File:Cpu-processor.jpg) | Fx Mehdi | CC BY-SA 4.0 |
+| Cooler | [AMD_Wraith_Spire_cooler.jpg](https://commons.wikimedia.org/wiki/File:AMD_Wraith_Spire_cooler.jpg) | Ilya Plekhanov | CC BY-SA 4.0 |
+| Memória RAM | [RAM_Module_(SDRAM-DDR4).jpg](<https://commons.wikimedia.org/wiki/File:RAM_Module_(SDRAM-DDR4).jpg>) | ElooKoN | CC BY-SA 4.0 |
+| Armazenamento (HD/SSD) | [Super_Talent_2.5in_SATA_SSD_SAM64GM25S.jpg](https://commons.wikimedia.org/wiki/File:Super_Talent_2.5in_SATA_SSD_SAM64GM25S.jpg) | Qurren | CC BY-SA 3.0 |
+| Placa de vídeo (GPU) | [ATI_Radeon_HD_4890_Graphics_Card.jpg](https://commons.wikimedia.org/wiki/File:ATI_Radeon_HD_4890_Graphics_Card.jpg) | Advanced Micro Devices, Inc. (AMD) | Attribution |
+| Monitor | [Computer_monitor.jpg](https://commons.wikimedia.org/wiki/File:Computer_monitor.jpg) | Zzubnik | Domínio público |
+| Fonte de Alimentação | [ATX_Computer_power_supply_unit.jpg](https://commons.wikimedia.org/wiki/File:ATX_Computer_power_supply_unit.jpg) | Dmitry Makeev | CC BY-SA 4.0 |
+| Gabinete | [Computer_case_-_Full_Tower.jpg](<https://commons.wikimedia.org/wiki/File:Computer_case_-_Full_Tower.jpg>) | Dmitry Makeev | CC BY-SA 4.0 |
+| Teclado | [Standard_white_computer_keyboard.jpg](https://commons.wikimedia.org/wiki/File:Standard_white_computer_keyboard.jpg) | Autor desconhecido | Domínio público |
+| Mouse | [Red_aopen_computer_optical_mouse.jpg](https://commons.wikimedia.org/wiki/File:Red_aopen_computer_optical_mouse.jpg) | Leon Brooks | Domínio público |
+
+Se for trocar alguma imagem pelo admin, prefira fotos com licença livre
+(Wikimedia Commons, Unsplash, Pexels) e mantenha o crédito em algum lugar
+acessível caso a licença exija atribuição.
 
 ## Gerenciando as perguntas
 
@@ -141,5 +204,8 @@ a área do professor.
 - Ao enviar, o aluno só vê uma confirmação de que as respostas foram
   registradas — não aparece pontuação nem quais perguntas acertou/errou, para
   evitar tentativa por chute.
+- No Mapa de Hardware o comportamento é diferente de propósito: o aluno vê na
+  hora se acertou ou errou cada componente, e pode tentar de novo sem limite
+  — o objetivo ali é a descoberta progressiva, não uma prova.
 - A área do professor é protegida só por uma senha simples (`ADMIN_PASSWORD`),
   suficiente para uso em sala de aula — não é um sistema de login robusto.

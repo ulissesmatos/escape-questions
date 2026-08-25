@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mapa de Hardware</title>
+  <link rel="stylesheet" href="hardware.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <h1>🗺️ Mapa de Hardware</h1>
+      <p>Pesquise sobre cada peça do computador e desbloqueie as próximas no mapa!</p>
+
+      <ol class="como-jogar">
+        <li>
+          <span class="passo-numero">1</span>
+          <span class="passo-texto"><strong>Clique</strong> em um componente desbloqueado</span>
+        </li>
+        <li>
+          <span class="passo-numero">2</span>
+          <span class="passo-texto"><strong>Pesquise</strong> e responda a pergunta</span>
+        </li>
+        <li>
+          <span class="passo-numero">3</span>
+          <span class="passo-texto"><strong>Descubra</strong> os componentes vizinhos</span>
+        </li>
+      </ol>
+    </header>
+
+    <div class="identificacao" id="identificacao">
+      <div>
+        <label for="participantes">Nome do aluno ou nomes do grupo</label>
+        <input type="text" id="participantes" placeholder="Ex: Ana, Bruno e Carlos" autocomplete="off" />
+      </div>
+      <div>
+        <label for="turma">Turma</label>
+        <input type="text" id="turma" placeholder="Ex: 7º Ano B" autocomplete="off" />
+      </div>
+      <button type="button" id="btn-comecar">Começar exploração</button>
+      <div class="erro-msg" id="erro-identificacao"></div>
+    </div>
+
+    <div id="area-mapa" style="display:none">
+      <div class="progresso-wrap" id="progresso-wrap">
+        <div class="progresso-info">
+          <span id="progresso-texto">0 de 0 componentes descobertos</span>
+          <span id="progresso-percent">0%</span>
+        </div>
+        <div class="progresso-trilha">
+          <div class="progresso-barra" id="progresso-barra"></div>
+        </div>
+      </div>
+
+      <div class="mapa-wrap">
+        <svg id="mapa-svg" class="mapa-svg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+        <div id="mapa-nos" class="mapa-nos"></div>
+      </div>
+
+      <p class="dica-mapa">🔒 = ainda bloqueado · 🟡 = desbloqueado, clique para responder · ✅ = descoberto</p>
+    </div>
+
+    <p class="carregando" id="carregando" style="display:none">Carregando mapa...</p>
+
+    <footer>
+      <a href="index.html">← Escape Room</a>
+      ·
+      <a href="admin.html">Área do professor</a>
+    </footer>
+  </div>
+
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-cabecalho">
+        <div id="modal-figura" class="modal-figura">
+          <img id="modal-imagem" class="modal-imagem" alt="" style="display:none" />
+          <span id="modal-icone" class="modal-icone">🔧</span>
+        </div>
+        <h2 id="modal-nome">Componente</h2>
+        <button type="button" id="modal-fechar" class="modal-fechar" aria-label="Fechar">✕</button>
+      </div>
+
+      <div class="secao secao-contexto">
+        <span class="secao-titulo">🔎 Pesquise antes de responder</span>
+        <p id="modal-enunciado"></p>
+      </div>
+
+      <div class="secao secao-pergunta">
+        <span class="secao-titulo">❓ Sua missão</span>
+        <p id="modal-pergunta"></p>
+      </div>
+
+      <div class="zona-resposta">
+        <span class="zona-resposta-titulo">✏️ Escolha sua resposta aqui</span>
+        <div id="modal-opcoes" class="opcoes-lista"></div>
+      </div>
+
+      <div class="erro-msg" id="modal-erro"></div>
+      <div class="modal-sucesso" id="modal-sucesso"></div>
+
+      <button type="button" id="modal-confirmar">Confirmar resposta</button>
+    </div>
+  </div>
+
+  <script src="hardware.js"></script>
+</body>
+</html>
