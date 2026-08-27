@@ -319,8 +319,8 @@ const COMPONENTES_HW_INICIAIS = [
     nome: 'Placa de vídeo (GPU)',
     icone: '🎮',
     imagem: '/images/hardware/gpu.jpg',
-    posX: 82,
-    posY: 60,
+    posX: 80,
+    posY: 68,
     tipo: 'multipla_escolha',
     enunciado: 'Pesquise para que serve a Placa de Vídeo (GPU) no computador.',
     pergunta: 'Qual é a principal função da placa de vídeo (GPU)?',
@@ -335,8 +335,8 @@ const COMPONENTES_HW_INICIAIS = [
     nome: 'Monitor',
     icone: '🖼️',
     imagem: '/images/hardware/monitor.jpg',
-    posX: 94,
-    posY: 40,
+    posX: 97,
+    posY: 34,
     tipo: 'verdadeiro_falso',
     enunciado: 'Pesquise se o Monitor é um dispositivo de entrada (que manda informação PARA o computador) ou de saída (que MOSTRA informação do computador).',
     pergunta: 'O monitor é um dispositivo de saída (output), pois mostra as informações processadas pelo computador.',
@@ -1399,6 +1399,14 @@ async function adicionarPerguntasDificeis() {
   }
 }
 
+// GPU e Monitor ficavam com as bolhas quase coladas no mapa (posições
+// originais do seed inicial). Reaplica coordenadas mais espaçadas nesses 2
+// componentes — idempotente, seguro rodar em todo start do servidor.
+async function afastarBolhasGpuMonitor() {
+  await pool.query(`UPDATE hw_components SET pos_x=80, pos_y=68 WHERE nome='Placa de vídeo (GPU)'`);
+  await pool.query(`UPDATE hw_components SET pos_x=97, pos_y=34 WHERE nome='Monitor'`);
+}
+
 function checarAdmin(req, res, next) {
   const senha = req.get('x-admin-password') || req.query.senha;
   if (senha !== ADMIN_PASSWORD) {
@@ -2267,6 +2275,7 @@ ensureSchema()
   .then(() => seedHardwareIfEmpty())
   .then(() => expandirMapaHardwareParaNiveis())
   .then(() => adicionarPerguntasDificeis())
+  .then(() => afastarBolhasGpuMonitor())
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Servidor rodando em http://localhost:${PORT}`);
