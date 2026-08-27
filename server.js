@@ -1167,6 +1167,238 @@ async function expandirMapaHardwareParaNiveis() {
   }
 }
 
+// Duas perguntas mais difíceis para o Nível 1 (só nesses 2 componentes — o
+// resto do nível fica como estava). Chave = nome do componente.
+const PERGUNTAS_DIFICEIS_NIVEL_1 = {
+  'Placa-mãe': {
+    tipo: 'multipla_escolha',
+    enunciado: "Pesquise o que é o 'chipset' de uma placa-mãe e por que ele determina quais outras peças você pode usar.",
+    pergunta: 'Por que nem toda placa-mãe é compatível com qualquer processador ou memória RAM?',
+    opcoes: [
+      { texto: 'Porque o chipset e o soquete da placa-mãe só suportam determinados modelos e tipos de peça', correta: true },
+      { texto: 'Porque as placas-mãe mais caras funcionam com qualquer peça', correta: false },
+      { texto: 'Porque isso depende só da cor da placa-mãe', correta: false },
+      { texto: 'Porque todas as placas-mãe são sempre compatíveis entre si', correta: false },
+    ],
+  },
+  'Processador (CPU)': {
+    tipo: 'multipla_escolha',
+    enunciado: "Pesquise o que significa um processador ter 'múltiplos núcleos' (multi-core) e por que isso importa.",
+    pergunta: 'O que significa dizer que um processador tem, por exemplo, 4 núcleos (quad-core)?',
+    opcoes: [
+      { texto: 'Ele tem 4 unidades de processamento dentro do mesmo chip, podendo executar tarefas em paralelo', correta: true },
+      { texto: 'Ele funciona 4 vezes mais devagar', correta: false },
+      { texto: 'Ele precisa de 4 placas-mãe para funcionar', correta: false },
+      { texto: 'Ele só liga se tiver 4 pentes de memória RAM instalados', correta: false },
+    ],
+  },
+};
+
+// Uma pergunta levemente mais difícil a mais para cada componente dos
+// Níveis 2 e 3 — um degrau só acima das 2 perguntas mais básicas que cada
+// um já tem, não perguntas de trivia obscura.
+const PERGUNTAS_MEDIAS_NIVEL_2_3 = {
+  'Porta USB': {
+    tipo: 'multipla_escolha',
+    enunciado: 'Pesquise a diferença de velocidade entre USB 2.0 e USB 3.0.',
+    pergunta: 'O que geralmente diferencia o USB 3.0 do USB 2.0?',
+    opcoes: [
+      { texto: 'O USB 3.0 transfere dados muito mais rápido', correta: true },
+      { texto: 'O USB 3.0 só serve para carregar bateria', correta: false },
+      { texto: 'O USB 3.0 não aceita pen drive', correta: false },
+      { texto: 'O USB 3.0 é mais lento que o 2.0', correta: false },
+    ],
+  },
+  'Pen Drive': {
+    tipo: 'multipla_escolha',
+    enunciado: 'Pesquise que tipo de memória (sem partes móveis) o pen drive usa para guardar os dados.',
+    pergunta: 'O pen drive guarda os dados em qual tipo de memória?',
+    opcoes: [
+      { texto: 'Memória flash (sem partes móveis)', correta: true },
+      { texto: 'Fita magnética', correta: false },
+      { texto: 'Disco óptico, como um CD', correta: false },
+      { texto: 'Memória RAM', correta: false },
+    ],
+  },
+  Impressora: {
+    tipo: 'multipla_escolha',
+    enunciado: 'Pesquise o que a resolução de impressão, medida em DPI, indica.',
+    pergunta: 'O que a sigla DPI (usada para medir a qualidade de impressão) significa?',
+    opcoes: [
+      { texto: 'Dots Per Inch (pontos por polegada) — indica a nitidez da imagem impressa', correta: true },
+      { texto: 'Data Print Index', correta: false },
+      { texto: 'Digital Photo Interface', correta: false },
+      { texto: 'Document Page Info', correta: false },
+    ],
+  },
+  Scanner: {
+    tipo: 'multipla_escolha',
+    enunciado: 'Pesquise o que é o OCR (Reconhecimento Óptico de Caracteres) e como ele se relaciona com o scanner.',
+    pergunta: 'O que a tecnologia OCR permite fazer com um documento escaneado?',
+    opcoes: [
+      { texto: 'Transformar o texto da imagem escaneada em texto editável no computador', correta: true },
+      { texto: 'Deixar a imagem colorida automaticamente', correta: false },
+      { texto: 'Aumentar a velocidade de impressão', correta: false },
+      { texto: 'Conectar o scanner à internet', correta: false },
+    ],
+  },
+  Webcam: {
+    tipo: 'multipla_escolha',
+    enunciado: 'Pesquise o que a resolução de vídeo, como 720p ou 1080p (Full HD), indica na qualidade de uma webcam.',
+    pergunta: 'O que uma resolução maior (como 1080p) numa webcam costuma indicar?',
+    opcoes: [
+      { texto: 'Uma imagem mais nítida e detalhada', correta: true },
+      { texto: 'Um microfone mais potente', correta: false },
+      { texto: 'Uma conexão Wi-Fi mais rápida', correta: false },
+      { texto: 'Uma bateria que dura mais', correta: false },
+    ],
+  },
+  Headset: {
+    tipo: 'multipla_escolha',
+    enunciado: 'Pesquise a diferença entre um headset com fio e um headset sem fio (Bluetooth).',
+    pergunta: 'Qual é uma vantagem comum de um headset com fio em relação a um sem fio?',
+    opcoes: [
+      { texto: 'Não depende de bateria e tem menos atraso (latência) no som', correta: true },
+      { texto: 'É sempre mais bonito', correta: false },
+      { texto: 'Só funciona com celular', correta: false },
+      { texto: 'Não pode ser usado para jogos', correta: false },
+    ],
+  },
+  'Caixa de Som': {
+    tipo: 'multipla_escolha',
+    enunciado: 'Pesquise o que a potência de uma caixa de som, medida em watts (W), indica.',
+    pergunta: 'O que a potência (em watts) de uma caixa de som geralmente indica?',
+    opcoes: [
+      { texto: 'O quão alto e forte o som pode ficar', correta: true },
+      { texto: 'A quantidade de músicas que ela guarda', correta: false },
+      { texto: 'A velocidade da internet dela', correta: false },
+      { texto: 'A cor da luz que ela emite', correta: false },
+    ],
+  },
+  'Leitor de Cartão SD': {
+    tipo: 'multipla_escolha',
+    enunciado: 'Pesquise a diferença entre um cartão SD comum e um cartão microSD.',
+    pergunta: 'Qual é a principal diferença entre um cartão SD e um cartão microSD?',
+    opcoes: [
+      { texto: 'O microSD é bem menor fisicamente, mas pode ter a mesma capacidade de armazenamento', correta: true },
+      { texto: 'O microSD não guarda fotos, só vídeos', correta: false },
+      { texto: 'O SD comum é mais rápido em todos os casos', correta: false },
+      { texto: 'O microSD só funciona em impressoras', correta: false },
+    ],
+  },
+  'Roteador Wi-Fi': {
+    tipo: 'multipla_escolha',
+    enunciado: 'Pesquise a diferença entre as frequências de Wi-Fi 2,4 GHz e 5 GHz.',
+    pergunta: 'O que costuma diferenciar a rede Wi-Fi de 5 GHz da de 2,4 GHz?',
+    opcoes: [
+      { texto: 'A de 5 GHz costuma ser mais rápida, mas alcança menos distância', correta: true },
+      { texto: 'A de 5 GHz não funciona com celular', correta: false },
+      { texto: 'A de 2,4 GHz é sempre mais rápida', correta: false },
+      { texto: 'Não existe diferença nenhuma entre elas', correta: false },
+    ],
+  },
+  Modem: {
+    tipo: 'multipla_escolha',
+    enunciado: 'Pesquise os diferentes tipos de conexão que um modem pode converter (por exemplo, internet a cabo, fibra óptica ou linha telefônica).',
+    pergunta: 'Por que existem diferentes tipos de modem?',
+    opcoes: [
+      { texto: 'Porque cada tipo de conexão de internet (fibra, cabo, linha telefônica) usa uma tecnologia diferente de sinal', correta: true },
+      { texto: 'Porque cada marca de computador precisa de um modem diferente', correta: false },
+      { texto: 'Porque o modem muda de tipo dependendo da cor do cabo', correta: false },
+      { texto: 'Não existem tipos diferentes de modem', correta: false },
+    ],
+  },
+  'Provedor de Internet (ISP)': {
+    tipo: 'multipla_escolha',
+    enunciado: 'Pesquise o que a velocidade de um plano de internet, medida em Mbps (Megabits por segundo), representa.',
+    pergunta: 'O que a velocidade contratada com o provedor de internet (em Mbps) indica?',
+    opcoes: [
+      { texto: 'A quantidade de dados que pode ser transferida por segundo', correta: true },
+      { texto: 'O número de dispositivos que podem se conectar', correta: false },
+      { texto: 'O tamanho da tela dos dispositivos conectados', correta: false },
+      { texto: 'A quantidade de e-mails que podem ser enviados por dia', correta: false },
+    ],
+  },
+  'Cabo de Rede (Ethernet)': {
+    tipo: 'multipla_escolha',
+    enunciado: 'Pesquise se existem diferentes categorias de cabo de rede (como Cat5e, Cat6) e o que elas indicam.',
+    pergunta: 'O que as categorias de cabo de rede (como Cat5e ou Cat6) costumam indicar?',
+    opcoes: [
+      { texto: 'A velocidade máxima de internet que o cabo suporta', correta: true },
+      { texto: 'A cor que o cabo deve ter', correta: false },
+      { texto: 'O tamanho do conector RJ-45', correta: false },
+      { texto: 'O fabricante do cabo', correta: false },
+    ],
+  },
+  'Endereço IP': {
+    tipo: 'multipla_escolha',
+    enunciado: 'Pesquise a diferença entre um endereço IP público e um endereço IP privado (local).',
+    pergunta: 'Qual é a diferença entre um IP público e um IP privado?',
+    opcoes: [
+      { texto: 'O IP público identifica o dispositivo na internet; o IP privado, só dentro da rede local (como a de casa)', correta: true },
+      { texto: 'O IP público é usado só por empresas grandes', correta: false },
+      { texto: 'O IP privado nunca muda', correta: false },
+      { texto: 'Não existe diferença, é o mesmo tipo de IP', correta: false },
+    ],
+  },
+  'Nuvem (Cloud)': {
+    tipo: 'multipla_escolha',
+    enunciado: 'Pesquise por que guardar arquivos na nuvem é considerado mais seguro contra perda de dados do que guardar só no computador.',
+    pergunta: 'Por que guardar arquivos na nuvem ajuda a evitar a perda deles?',
+    opcoes: [
+      { texto: 'Porque ficam salvos em servidores externos, protegidos mesmo se o computador quebrar ou for perdido', correta: true },
+      { texto: 'Porque a nuvem nunca pode ser hackeada', correta: false },
+      { texto: 'Porque arquivos na nuvem não ocupam espaço nenhum', correta: false },
+      { texto: 'Porque a internet nunca cai', correta: false },
+    ],
+  },
+  Firewall: {
+    tipo: 'multipla_escolha',
+    enunciado: 'Pesquise se um firewall pode ser um programa (software) ou também um aparelho físico (hardware).',
+    pergunta: 'Um firewall pode existir de quais formas?',
+    opcoes: [
+      { texto: 'Tanto como um programa instalado no computador quanto como um aparelho de rede dedicado', correta: true },
+      { texto: 'Só como um aparelho físico, nunca como programa', correta: false },
+      { texto: 'Só como um programa, nunca como aparelho', correta: false },
+      { texto: 'Um firewall é sempre uma pessoa, não uma tecnologia', correta: false },
+    ],
+  },
+};
+
+// Acrescenta as perguntas mais difíceis acima aos componentes já existentes,
+// uma vez por componente (guardado pelo total de perguntas que ele já tem —
+// funciona mesmo que o servidor reinicie várias vezes).
+async function adicionarPerguntasDificeis() {
+  const todas = { ...PERGUNTAS_DIFICEIS_NIVEL_1, ...PERGUNTAS_MEDIAS_NIVEL_2_3 };
+
+  for (const [nome, pergunta] of Object.entries(todas)) {
+    const { rows: componentes } = await pool.query('SELECT id FROM hw_components WHERE nome = $1', [nome]);
+    if (componentes.length === 0) continue;
+    const componentId = componentes[0].id;
+
+    const { rows: contagem } = await pool.query(
+      'SELECT COUNT(*)::int AS total FROM hw_component_perguntas WHERE component_id = $1',
+      [componentId]
+    );
+    if (contagem[0].total >= 3) continue;
+
+    const { rows: perguntaRows } = await pool.query(
+      `INSERT INTO hw_component_perguntas (component_id, tipo, enunciado, pergunta, ordem)
+       VALUES ($1, $2, $3, $4, 2) RETURNING id`,
+      [componentId, pergunta.tipo, pergunta.enunciado, pergunta.pergunta]
+    );
+    const perguntaId = perguntaRows[0].id;
+
+    for (let i = 0; i < pergunta.opcoes.length; i++) {
+      const o = pergunta.opcoes[i];
+      await pool.query(
+        `INSERT INTO hw_pergunta_opcoes (pergunta_id, texto, correta, ordem) VALUES ($1, $2, $3, $4)`,
+        [perguntaId, o.texto, o.correta, i]
+      );
+    }
+  }
+}
+
 function checarAdmin(req, res, next) {
   const senha = req.get('x-admin-password') || req.query.senha;
   if (senha !== ADMIN_PASSWORD) {
@@ -2034,6 +2266,7 @@ ensureSchema()
   .then(() => seedQuestionsIfEmpty())
   .then(() => seedHardwareIfEmpty())
   .then(() => expandirMapaHardwareParaNiveis())
+  .then(() => adicionarPerguntasDificeis())
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Servidor rodando em http://localhost:${PORT}`);
