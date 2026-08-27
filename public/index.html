@@ -3,71 +3,60 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Escape Room - Banco de Pistas</title>
-  <link rel="stylesheet" href="quiz.css" />
+  <title>Atividades da Turma</title>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="hub.css" />
 </head>
-<body>
+<body data-page="hub">
+  <div id="site-header"></div>
+  <script src="js/site-header.js"></script>
+
   <div class="container">
     <header class="hero">
-      <h1>🔎 Escape Room Digital</h1>
-      <p>Pesquise, descubra e responda cada pista para avançar na investigação!</p>
-
-      <ol class="como-jogar">
-        <li>
-          <span class="passo-numero">1</span>
-          <span class="passo-texto"><strong>Leia</strong> a pista e pesquise na internet</span>
-        </li>
-        <li>
-          <span class="passo-numero">2</span>
-          <span class="passo-texto"><strong>Descubra</strong> a resposta certa</span>
-        </li>
-        <li>
-          <span class="passo-numero">3</span>
-          <span class="passo-texto"><strong>Escreva</strong> a resposta na área amarela de cada pista</span>
-        </li>
-      </ol>
+      <h1>🎮 Atividades da Turma</h1>
+      <p>Escolha uma atividade para começar</p>
     </header>
 
-    <div class="progresso-wrap" id="progresso-wrap">
-      <div class="progresso-info">
-        <span id="progresso-texto">0 de 0 pistas respondidas</span>
-        <span id="progresso-percent">0%</span>
+    <div class="grid-atividades">
+      <a href="escape-room.html" class="card-atividade">
+        <span class="card-icone">🔎</span>
+        <h2>Escape Room</h2>
+        <p>Pesquise, descubra e responda cada pista para avançar na investigação.</p>
+        <span class="card-badge">10 pistas</span>
+      </a>
+
+      <a href="hardware.html" class="card-atividade">
+        <span class="card-icone">🗺️</span>
+        <h2>Mapa de Hardware</h2>
+        <p>Explore os componentes do computador e desbloqueie o mapa.</p>
+        <span class="card-badge">10 componentes</span>
+      </a>
+
+      <div class="card-atividade card-em-breve" aria-disabled="true">
+        <span class="card-icone">🧩</span>
+        <h2>Pareamento</h2>
+        <p>Combine cada termo com sua definição.</p>
+        <span class="card-badge card-badge-bloqueado">Em breve</span>
       </div>
-      <div class="progresso-trilha">
-        <div class="progresso-barra" id="progresso-barra"></div>
+
+      <div class="card-atividade card-em-breve" aria-disabled="true">
+        <span class="card-icone">✏️</span>
+        <h2>Complete a Frase</h2>
+        <p>Preencha as lacunas com o termo certo.</p>
+        <span class="card-badge card-badge-bloqueado">Em breve</span>
+      </div>
+
+      <div class="card-atividade card-em-breve" aria-disabled="true">
+        <span class="card-icone">🔢</span>
+        <h2>Ordenar / Classificar</h2>
+        <p>Organize os itens na ordem ou categoria correta.</p>
+        <span class="card-badge card-badge-bloqueado">Em breve</span>
       </div>
     </div>
 
-    <form id="quiz-form">
-      <div class="identificacao">
-        <div>
-          <label for="participantes">Nome do aluno ou nomes do grupo</label>
-          <input type="text" id="participantes" name="participantes" placeholder="Ex: Ana, Bruno e Carlos" required />
-        </div>
-        <div>
-          <label for="turma">Turma</label>
-          <input type="text" id="turma" name="turma" placeholder="Ex: 7º Ano B" required />
-        </div>
-      </div>
-
-      <div class="erro-msg" id="erro-msg"></div>
-
-      <div id="perguntas-container">
-        <p class="carregando">Carregando perguntas...</p>
-      </div>
-
-      <button type="submit" id="btn-enviar">Enviar respostas</button>
-    </form>
-
-    <div id="resultado"></div>
-
     <footer>
-      <a href="hardware.html">🗺️ Mapa de Hardware</a>
-      ·
       <a href="admin.html">Área do professor</a>
     </footer>
   </div>
-
-  <script src="script.js"></script>
 </body>
 </html>

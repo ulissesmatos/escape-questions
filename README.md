@@ -1,9 +1,10 @@
 # Escape Room Digital
 
-Site com duas atividades para os alunos. Todo o conteúdo fica no banco (não
-no código) e o professor gerencia tudo pela área `/admin.html`.
+Site com duas atividades para os alunos, acessadas a partir de um hub inicial
+(`/`). Todo o conteúdo fica no banco (não no código) e o professor gerencia
+tudo pela área `/admin.html`.
 
-- **Escape Room** (`/`): os alunos respondem perguntas de três tipos —
+- **Escape Room** (`/escape-room.html`): os alunos respondem perguntas de três tipos —
   dígito (pesquisa + resposta numérica, como as pistas originais), múltipla
   escolha e verdadeiro/falso. As respostas são corrigidas automaticamente e
   salvas junto com o nome do aluno (ou do grupo) e a turma.
@@ -24,8 +25,10 @@ Tudo roda em um banco PostgreSQL.
   consulta das respostas. Cria as tabelas automaticamente se não existirem e
   semeia as 10 perguntas originais e os 11 componentes iniciais do mapa de
   hardware na primeira execução (só se o banco estiver vazio).
-- `public/index.html` + `public/script.js` — formulário do aluno do escape
-  room, que busca as perguntas ativas em `/api/questions` e monta o
+- `public/index.html` — hub inicial com os cards das atividades disponíveis
+  (e futuras).
+- `public/escape-room.html` + `public/script.js` — formulário do aluno do
+  escape room, que busca as perguntas ativas em `/api/questions` e monta o
   formulário dinamicamente (campo de texto + dígito, ou múltipla escolha /
   verdadeiro-falso, conforme o tipo de cada pergunta).
 - `public/hardware.html` + `public/hardware.js` — mapa de hardware do aluno:
@@ -35,6 +38,9 @@ Tudo roda em um banco PostgreSQL.
 - `public/admin.html` — área do professor: abas para gerenciar as perguntas
   do escape room, ver as respostas salvas, e gerenciar o mapa de hardware
   (componentes, conexões entre eles e progresso dos alunos).
+- `public/css/base.css` + `public/js/site-header.js` — design system e
+  cabeçalho de navegação compartilhados entre o hub, o escape room e o mapa
+  de hardware.
 - `docker-compose.yml` — sobe um PostgreSQL localmente.
 - `Dockerfile` — build da aplicação para deploy (ex: Coolify).
 
@@ -79,7 +85,8 @@ npm start
 
 ### 4. Acessar
 
-- Alunos (Escape Room): http://localhost:3000
+- Hub de atividades: http://localhost:3000
+- Alunos (Escape Room): http://localhost:3000/escape-room.html
 - Alunos (Mapa de Hardware): http://localhost:3000/hardware.html
 - Professor (ver respostas salvas): http://localhost:3000/admin.html
 

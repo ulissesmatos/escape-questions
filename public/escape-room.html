@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Escape Room - Banco de Pistas</title>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="quiz.css" />
+</head>
+<body data-page="escape-room">
+  <div id="site-header"></div>
+  <script src="js/site-header.js"></script>
+
+  <div class="container">
+    <header class="hero">
+      <h1>🔎 Escape Room Digital</h1>
+      <p>Pesquise, descubra e responda cada pista para avançar na investigação!</p>
+
+      <ol class="como-jogar">
+        <li>
+          <span class="passo-numero">1</span>
+          <span class="passo-texto"><strong>Leia</strong> a pista e pesquise na internet</span>
+        </li>
+        <li>
+          <span class="passo-numero">2</span>
+          <span class="passo-texto"><strong>Descubra</strong> a resposta certa</span>
+        </li>
+        <li>
+          <span class="passo-numero">3</span>
+          <span class="passo-texto"><strong>Escreva</strong> a resposta na área amarela de cada pista</span>
+        </li>
+      </ol>
+    </header>
+
+    <div class="progresso-wrap" id="progresso-wrap">
+      <div class="progresso-info">
+        <span id="progresso-texto">0 de 0 pistas respondidas</span>
+        <span id="progresso-percent">0%</span>
+      </div>
+      <div class="progresso-trilha">
+        <div class="progresso-barra" id="progresso-barra"></div>
+      </div>
+    </div>
+
+    <form id="quiz-form">
+      <div class="identificacao">
+        <div>
+          <label for="participantes">Nome do aluno ou nomes do grupo</label>
+          <input type="text" id="participantes" name="participantes" placeholder="Ex: Ana, Bruno e Carlos" required />
+        </div>
+        <div>
+          <label for="turma">Turma</label>
+          <input type="text" id="turma" name="turma" placeholder="Ex: 7º Ano B" required />
+        </div>
+      </div>
+
+      <div class="erro-msg" id="erro-msg"></div>
+
+      <div id="perguntas-container">
+        <p class="carregando">Carregando perguntas...</p>
+      </div>
+
+      <button type="submit" id="btn-enviar">Enviar respostas</button>
+    </form>
+
+    <div id="resultado"></div>
+
+    <footer>
+      <a href="admin.html">Área do professor</a>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
