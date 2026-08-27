@@ -1,3 +1,30 @@
+/* ---------- Seleção de nível ---------- */
+
+.nivel-atual-wrap {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.link-discreto {
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 4px 0;
+  text-decoration: underline;
+}
+
+.link-discreto:hover {
+  color: var(--primary-dark);
+}
+
+#nivel-atual-nome {
+  margin: 4px 0 0;
+  font-size: 1.1rem;
+  color: var(--text);
+}
+
 /* ---------- Identificação: ajustes específicos do Mapa de Hardware ---------- */
 
 .identificacao {

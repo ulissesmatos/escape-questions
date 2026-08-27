@@ -10,9 +10,12 @@ tudo pela área `/admin.html`.
   salvas junto com o nome do aluno (ou do grupo) e a turma.
 - **Mapa de Hardware** (`/hardware.html`): os alunos exploram um mapa de
   componentes de computador conectados entre si (ex: Placa-mãe → CPU → RAM →
-  ...). Só a Placa-mãe começa visível; acertar a pergunta de um componente
-  libera os componentes vizinhos conectados a ele no mapa, incentivando o
-  aluno a pesquisar cada peça para "desbloquear" as próximas.
+  ...), organizado em **3 níveis sequenciais** (Componentes Básicos →
+  Periféricos → Redes e Internet) — um nível só é liberado depois que o
+  anterior é 100% descoberto. Em cada nível, só o nó inicial começa visível;
+  acertar a pergunta de um componente libera os vizinhos conectados a ele no
+  mapa. Cada componente tem um **banco de perguntas** (não só uma fixa) — uma
+  é sorteada a cada clique, para dificultar decorar a resposta.
 
 Tudo roda em um banco PostgreSQL.
 
@@ -21,10 +24,13 @@ Tudo roda em um banco PostgreSQL.
 - `server.js` — backend Express: API pública das perguntas (`/api/questions`,
   sem gabarito), correção e salvamento das respostas (`/api/submit`), API do
   mapa de hardware (`/api/hardware/*`, também sem gabarito), e API de
-  administração (`/api/admin/*`) para o CRUD de perguntas/componentes e
-  consulta das respostas. Cria as tabelas automaticamente se não existirem e
-  semeia as 10 perguntas originais e os 11 componentes iniciais do mapa de
-  hardware na primeira execução (só se o banco estiver vazio).
+  administração (`/api/admin/*`) para o CRUD de perguntas/componentes/níveis
+  e consulta das respostas. Cria as tabelas automaticamente se não existirem,
+  semeia as 10 perguntas originais e os componentes iniciais do mapa de
+  hardware na primeira execução (só se o banco estiver vazio), e migra o mapa
+  de hardware para o formato com níveis/banco de perguntas automaticamente
+  (`expandirMapaHardwareParaNiveis()`) na primeira vez que sobe depois dessa
+  mudança — sem apagar nada de quem já tinha o mapa antigo.
 - `public/index.html` — hub inicial com os cards das atividades disponíveis
   (e futuras).
 - `public/escape-room.html` + `public/script.js` — formulário do aluno do
@@ -94,25 +100,33 @@ npm start
 
 Pela área do professor (`/admin.html`, aba "Hardware"):
 
+- **Níveis**: nome, descrição, ordem (define a sequência) e se está ativo.
+  Um nível só aparece desbloqueado para o aluno depois que ele descobre 100%
+  dos componentes do nível anterior. Excluir um nível não apaga os
+  componentes dele — eles só ficam "sem nível" até serem reatribuídos.
 - **Componentes**: cada componente tem um nome, ícone (emoji, usado se não
   houver imagem), uma imagem opcional (caminho ou URL — os componentes
-  iniciais usam fotos reais salvas em `public/images/hardware/`), pergunta
-  fechada (múltipla escolha ou verdadeiro/falso, sempre com gabarito) e uma
-  posição no mapa (`0` a `100`, tanto na horizontal quanto na vertical).
+  iniciais usam fotos reais salvas em `public/images/hardware/`), um nível, e
+  uma posição no mapa (`0` a `100`, tanto na horizontal quanto na vertical).
   Marcar um componente como **nó inicial** faz ele aparecer desbloqueado
-  desde o começo para os alunos — normalmente só um componente (o ponto de
-  partida do mapa) precisa disso. O enunciado de cada componente é só uma
-  dica de "por onde pesquisar" — evite colocar a resposta da pergunta nele,
-  senão o aluno não precisa pesquisar de verdade.
-- **Conexões**: ligam dois componentes entre si. Quando um aluno acerta a
-  pergunta de um componente, todos os componentes conectados a ele são
-  desbloqueados no mapa. Sem nenhum nó inicial ou sem conexões suficientes, o
-  mapa fica com componentes inacessíveis — vale conferir o mapa como aluno
-  depois de editar.
+  desde o começo para os alunos — normalmente só um componente por nível (o
+  ponto de partida do mapa daquele nível) precisa disso.
+- **Perguntas do componente**: cada componente tem uma lista de perguntas
+  (múltipla escolha ou verdadeiro/falso, sempre com gabarito) em vez de uma
+  única fixa — o aluno recebe uma sorteada a cada clique no componente, o que
+  dificulta decorar a resposta certa. O enunciado de cada pergunta é só uma
+  dica de "por onde pesquisar" — evite colocar a resposta nele, senão o aluno
+  não precisa pesquisar de verdade.
+- **Conexões**: ligam dois componentes entre si (o seletor mostra o nível de
+  cada um, para evitar conectar componentes de níveis diferentes por engano).
+  Quando um aluno acerta uma pergunta de um componente, todos os componentes
+  conectados a ele são desbloqueados no mapa. Sem nenhum nó inicial ou sem
+  conexões suficientes, um nível fica com componentes inacessíveis — vale
+  conferir o mapa como aluno depois de editar.
 - **Progresso dos alunos**: mostra cada tentativa de resposta (certa ou
   errada) registrada por aluno/grupo e turma.
 
-Assim como as perguntas do escape room, o gabarito de cada componente nunca é
+Assim como as perguntas do escape room, o gabarito de cada pergunta nunca é
 enviado ao navegador do aluno.
 
 ### Créditos das imagens

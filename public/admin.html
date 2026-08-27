@@ -202,7 +202,8 @@
       flex-shrink: 0;
     }
     #btn-add-opcao,
-    #btn-add-opcao-hw {
+    #btn-add-pergunta-hw,
+    .btn-add-opcao-inline {
       padding: 8px 14px;
       border-radius: 6px;
       border: 1px dashed #475569;
@@ -211,6 +212,34 @@
       cursor: pointer;
       font-size: 0.85rem;
       margin-top: 4px;
+    }
+    .bloco-pergunta-hw {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .bloco-pergunta-cabecalho {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .bloco-pergunta-cabecalho strong {
+      color: #cbd5e1;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .bloco-pergunta-cabecalho button {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: #2a1616;
+      color: #fca5a5;
+      cursor: pointer;
+      font-size: 0.8rem;
     }
     .dica-opcoes {
       font-size: 0.8rem;
@@ -388,6 +417,39 @@
       </div>
 
       <div id="tab-hardware" class="tab-conteudo">
+        <h2 class="secao-admin">🗂️ Níveis</h2>
+        <button type="button" id="btn-novo-nivel">+ Novo nível</button>
+
+        <div id="lista-niveis"></div>
+
+        <div id="form-nivel-wrap" style="display:none">
+          <h2 id="form-nivel-titulo">Novo nível</h2>
+          <form id="form-nivel">
+            <input type="hidden" id="nivel-id" />
+
+            <label for="nivel-nome">Nome do nível</label>
+            <input type="text" id="nivel-nome" placeholder="Ex: Nível 2 — Periféricos" required />
+
+            <label for="nivel-descricao">Descrição</label>
+            <textarea id="nivel-descricao" rows="2"></textarea>
+
+            <label for="nivel-ordem">Ordem (menor número aparece primeiro)</label>
+            <input type="number" id="nivel-ordem" value="0" />
+
+            <label class="checkbox-label">
+              <input type="checkbox" id="nivel-ativo" checked />
+              Nível ativo (visível para os alunos)
+            </label>
+
+            <div class="erro-msg" id="erro-form-nivel"></div>
+
+            <div class="form-botoes">
+              <button type="submit" id="btn-salvar-nivel">Salvar</button>
+              <button type="button" id="btn-cancelar-nivel">Cancelar</button>
+            </div>
+          </form>
+        </div>
+
         <h2 class="secao-admin">🧩 Componentes do mapa</h2>
         <button type="button" id="btn-novo-componente">+ Novo componente</button>
 
@@ -407,24 +469,13 @@
             <label for="componente-imagem">Imagem (caminho ou URL, opcional)</label>
             <input type="text" id="componente-imagem" placeholder="Ex: /images/hardware/gpu.jpg" />
 
-            <label for="componente-tipo">Tipo de pergunta</label>
-            <select id="componente-tipo">
-              <option value="multipla_escolha">Múltipla escolha</option>
-              <option value="verdadeiro_falso">Verdadeiro ou Falso</option>
-            </select>
+            <label for="componente-nivel">Nível</label>
+            <select id="componente-nivel"></select>
 
-            <label for="componente-enunciado">Enunciado / o que pesquisar</label>
-            <textarea id="componente-enunciado" rows="3"></textarea>
-
-            <label for="componente-pergunta">Pergunta</label>
-            <textarea id="componente-pergunta" rows="2"></textarea>
-
-            <div id="campo-opcoes-hw">
-              <label>Opções de resposta (marque a correta)</label>
-              <p class="dica-opcoes">Use o botão de marcar (à esquerda) para indicar qual opção é a correta.</p>
-              <div id="lista-opcoes-hw"></div>
-              <button type="button" id="btn-add-opcao-hw">+ Adicionar opção</button>
-            </div>
+            <label>Perguntas deste componente</label>
+            <p class="dica-opcoes">O aluno recebe uma pergunta sorteada dessa lista a cada vez que clica no componente.</p>
+            <div id="lista-perguntas-hw"></div>
+            <button type="button" id="btn-add-pergunta-hw">+ Adicionar pergunta</button>
 
             <label for="componente-pos-x">Posição no mapa — horizontal (0 a 100)</label>
             <input type="number" id="componente-pos-x" min="0" max="100" value="50" />
@@ -776,11 +827,8 @@
     // ---------- Hardware ----------
     let componentesCache = [];
     let conexoesCache = [];
-
-    const TIPOS_LABEL_HW = {
-      multipla_escolha: 'Múltipla escolha',
-      verdadeiro_falso: 'Verdadeiro ou Falso',
-    };
+    let niveisCache = [];
+    let contadorGrupoOpcao = 0;
 
     const listaComponentes = document.getElementById('lista-componentes');
     const formComponenteWrap = document.getElementById('form-componente-wrap');
@@ -790,11 +838,9 @@
     const nomeInputHw = document.getElementById('componente-nome');
     const iconeInputHw = document.getElementById('componente-icone');
     const imagemInputHw = document.getElementById('componente-imagem');
-    const tipoSelectHw = document.getElementById('componente-tipo');
-    const enunciadoInputHw = document.getElementById('componente-enunciado');
-    const perguntaInputHw = document.getElementById('componente-pergunta');
-    const listaOpcoesHw = document.getElementById('lista-opcoes-hw');
-    const btnAddOpcaoHw = document.getElementById('btn-add-opcao-hw');
+    const nivelSelectHw = document.getElementById('componente-nivel');
+    const listaPerguntasHw = document.getElementById('lista-perguntas-hw');
+    const btnAddPerguntaHw = document.getElementById('btn-add-pergunta-hw');
     const posXInput = document.getElementById('componente-pos-x');
     const posYInput = document.getElementById('componente-pos-y');
     const inicialInput = document.getElementById('componente-inicial');
@@ -807,15 +853,129 @@
     const listaConexoes = document.getElementById('lista-conexoes');
 
     async function carregarHardware() {
+      await carregarNiveis();
       await carregarComponentes();
       await carregarConexoes();
       await carregarRespostasHardware();
     }
 
+    // ---------- Níveis ----------
+    const listaNiveis = document.getElementById('lista-niveis');
+    const formNivelWrap = document.getElementById('form-nivel-wrap');
+    const formNivel = document.getElementById('form-nivel');
+    const formNivelTitulo = document.getElementById('form-nivel-titulo');
+    const campoNivelId = document.getElementById('nivel-id');
+    const nivelNomeInput = document.getElementById('nivel-nome');
+    const nivelDescricaoInput = document.getElementById('nivel-descricao');
+    const nivelOrdemInput = document.getElementById('nivel-ordem');
+    const nivelAtivoInput = document.getElementById('nivel-ativo');
+    const erroFormNivel = document.getElementById('erro-form-nivel');
+
+    async function carregarNiveis() {
+      niveisCache = await chamarApi('/api/admin/hardware/niveis');
+      renderizarListaNiveis();
+      preencherSelectNivel();
+    }
+
+    function renderizarListaNiveis() {
+      listaNiveis.innerHTML = '';
+      if (niveisCache.length === 0) {
+        listaNiveis.appendChild(criarEl('p', { texto: 'Nenhum nível cadastrado ainda.' }));
+        return;
+      }
+      niveisCache.forEach((n) => {
+        const info = criarEl('div', { classe: 'info' }, [
+          criarEl('span', { classe: `badge${n.ativo ? '' : ' inativa'}`, texto: `ordem ${n.ordem}` }),
+          criarEl('strong', { texto: n.nome }),
+        ]);
+        const btnEditar = criarEl('button', { type: 'button', texto: 'Editar', onclick: () => abrirFormEdicaoNivel(n) });
+        const btnExcluir = criarEl('button', { type: 'button', texto: 'Excluir', onclick: () => excluirNivel(n) });
+        const acoes = criarEl('div', { classe: 'acoes' }, [btnEditar, btnExcluir]);
+        listaNiveis.appendChild(criarEl('div', { classe: 'pergunta-item' }, [info, acoes]));
+      });
+    }
+
+    function preencherSelectNivel() {
+      nivelSelectHw.innerHTML = niveisCache
+        .map((n) => `<option value="${n.id}">${n.nome}</option>`)
+        .join('');
+    }
+
+    document.getElementById('btn-novo-nivel').addEventListener('click', () => {
+      formNivelTitulo.textContent = 'Novo nível';
+      campoNivelId.value = '';
+      nivelNomeInput.value = '';
+      nivelDescricaoInput.value = '';
+      nivelOrdemInput.value = niveisCache.length + 1;
+      nivelAtivoInput.checked = true;
+      erroFormNivel.classList.remove('mostrar');
+      formNivelWrap.style.display = 'block';
+      formNivelWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+
+    function abrirFormEdicaoNivel(nivel) {
+      formNivelTitulo.textContent = 'Editar nível';
+      campoNivelId.value = nivel.id;
+      nivelNomeInput.value = nivel.nome;
+      nivelDescricaoInput.value = nivel.descricao || '';
+      nivelOrdemInput.value = nivel.ordem;
+      nivelAtivoInput.checked = nivel.ativo;
+      erroFormNivel.classList.remove('mostrar');
+      formNivelWrap.style.display = 'block';
+      formNivelWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    document.getElementById('btn-cancelar-nivel').addEventListener('click', () => {
+      formNivelWrap.style.display = 'none';
+    });
+
+    async function excluirNivel(nivel) {
+      if (!confirm(`Excluir o nível "${nivel.nome}"? Os componentes dele ficam sem nível (não excluídos).`)) return;
+      try {
+        await chamarApi(`/api/admin/hardware/niveis/${nivel.id}`, { method: 'DELETE' });
+        await carregarHardware();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    formNivel.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      erroFormNivel.classList.remove('mostrar');
+
+      const payload = {
+        nome: nivelNomeInput.value.trim(),
+        descricao: nivelDescricaoInput.value.trim(),
+        ordem: Number(nivelOrdemInput.value),
+        ativo: nivelAtivoInput.checked,
+      };
+
+      const id = campoNivelId.value;
+
+      try {
+        if (id) {
+          await chamarApi(`/api/admin/hardware/niveis/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+        } else {
+          await chamarApi('/api/admin/hardware/niveis', { method: 'POST', body: JSON.stringify(payload) });
+        }
+        formNivelWrap.style.display = 'none';
+        await carregarHardware();
+      } catch (err) {
+        erroFormNivel.textContent = err.message;
+        erroFormNivel.classList.add('mostrar');
+      }
+    });
+
+    // ---------- Componentes ----------
     async function carregarComponentes() {
       componentesCache = await chamarApi('/api/admin/hardware/components');
       renderizarListaComponentes();
       preencherSelectsConexao();
+    }
+
+    function nomeNivel(nivelId) {
+      const nivel = niveisCache.find((n) => n.id === nivelId);
+      return nivel ? nivel.nome : 'sem nível';
     }
 
     function renderizarListaComponentes() {
@@ -826,11 +986,13 @@
       }
 
       componentesCache.forEach((c) => {
+        const totalPerguntas = (c.perguntas || []).length;
         const badges = [
           criarEl('span', {
             classe: `badge${c.ativo ? '' : ' inativa'}`,
-            texto: c.ativo ? TIPOS_LABEL_HW[c.tipo] : `${TIPOS_LABEL_HW[c.tipo]} · inativo`,
+            texto: c.ativo ? nomeNivel(c.nivel_id) : `${nomeNivel(c.nivel_id)} · inativo`,
           }),
+          criarEl('span', { classe: 'badge', texto: `🎯 ${totalPerguntas} pergunta${totalPerguntas === 1 ? '' : 's'}` }),
         ];
         if (c.inicial) badges.push(criarEl('span', { classe: 'badge', texto: '🚩 inicial' }));
 
@@ -850,13 +1012,13 @@
       });
     }
 
-    function criarLinhaOpcaoHw(texto, correta) {
+    function criarLinhaOpcaoHw(texto, correta, nomeGrupo, container) {
       const linha = document.createElement('div');
       linha.className = 'opcao-row';
 
       const radio = document.createElement('input');
       radio.type = 'radio';
-      radio.name = 'hw-opcao-correta';
+      radio.name = nomeGrupo;
       radio.checked = Boolean(correta);
 
       const textoInput = document.createElement('input');
@@ -868,7 +1030,7 @@
       btnRemover.type = 'button';
       btnRemover.textContent = 'Remover';
       btnRemover.addEventListener('click', () => {
-        if (listaOpcoesHw.querySelectorAll('.opcao-row').length <= 2) return;
+        if (container.querySelectorAll('.opcao-row').length <= 2) return;
         linha.remove();
       });
 
@@ -876,47 +1038,113 @@
       return linha;
     }
 
-    btnAddOpcaoHw.addEventListener('click', () => {
-      listaOpcoesHw.appendChild(criarLinhaOpcaoHw('', false));
-    });
+    // Cada pergunta do componente é um bloco com tipo + enunciado + pergunta
+    // + sua própria lista de opções (com grupo de rádio único, pra marcar
+    // "correta" de um bloco não desmarcar a de outro).
+    function criarBlocoPerguntaHw(pergunta) {
+      contadorGrupoOpcao += 1;
+      const nomeGrupo = `hw-opcao-correta-${contadorGrupoOpcao}`;
 
-    tipoSelectHw.addEventListener('change', () => aplicarTipoNoFormHw(tipoSelectHw.value));
+      const bloco = document.createElement('div');
+      bloco.className = 'bloco-pergunta-hw';
 
-    function aplicarTipoNoFormHw(tipo, opcoesExistentes) {
-      listaOpcoesHw.innerHTML = '';
+      const cabecalho = document.createElement('div');
+      cabecalho.className = 'bloco-pergunta-cabecalho';
+      cabecalho.appendChild(criarEl('strong', { texto: 'Pergunta' }));
+      const btnRemoverPergunta = document.createElement('button');
+      btnRemoverPergunta.type = 'button';
+      btnRemoverPergunta.textContent = '🗑 Remover pergunta';
+      btnRemoverPergunta.addEventListener('click', () => {
+        if (listaPerguntasHw.querySelectorAll('.bloco-pergunta-hw').length <= 1) return;
+        bloco.remove();
+      });
+      cabecalho.appendChild(btnRemoverPergunta);
 
-      if (opcoesExistentes && opcoesExistentes.length > 0) {
-        opcoesExistentes.forEach((o) => listaOpcoesHw.appendChild(criarLinhaOpcaoHw(o.texto, o.correta)));
-      } else if (tipo === 'verdadeiro_falso') {
-        listaOpcoesHw.appendChild(criarLinhaOpcaoHw('Verdadeiro', true));
-        listaOpcoesHw.appendChild(criarLinhaOpcaoHw('Falso', false));
-      } else {
-        listaOpcoesHw.appendChild(criarLinhaOpcaoHw('', false));
-        listaOpcoesHw.appendChild(criarLinhaOpcaoHw('', false));
+      const tipoLabel = criarEl('label', { texto: 'Tipo de pergunta' });
+      const tipoSelect = document.createElement('select');
+      tipoSelect.className = 'bloco-pergunta-tipo';
+      tipoSelect.innerHTML =
+        '<option value="multipla_escolha">Múltipla escolha</option><option value="verdadeiro_falso">Verdadeiro ou Falso</option>';
+
+      const enunciadoLabel = criarEl('label', { texto: 'Enunciado / o que pesquisar' });
+      const enunciadoInput = document.createElement('textarea');
+      enunciadoInput.rows = 3;
+      enunciadoInput.className = 'bloco-pergunta-enunciado';
+      enunciadoInput.value = pergunta?.enunciado || '';
+
+      const perguntaLabel = criarEl('label', { texto: 'Pergunta' });
+      const perguntaInput = document.createElement('textarea');
+      perguntaInput.rows = 2;
+      perguntaInput.className = 'bloco-pergunta-pergunta';
+      perguntaInput.value = pergunta?.pergunta || '';
+
+      const opcoesLabel = criarEl('label', { texto: 'Opções de resposta (marque a correta)' });
+      const opcoesLista = document.createElement('div');
+      opcoesLista.className = 'bloco-pergunta-opcoes';
+
+      const btnAddOpcao = document.createElement('button');
+      btnAddOpcao.type = 'button';
+      btnAddOpcao.className = 'btn-add-opcao-inline';
+      btnAddOpcao.textContent = '+ Adicionar opção';
+      btnAddOpcao.addEventListener('click', () => {
+        opcoesLista.appendChild(criarLinhaOpcaoHw('', false, nomeGrupo, opcoesLista));
+      });
+
+      function aplicarTipo(tipo, opcoesExistentes) {
+        opcoesLista.innerHTML = '';
+        if (opcoesExistentes && opcoesExistentes.length > 0) {
+          opcoesExistentes.forEach((o) => opcoesLista.appendChild(criarLinhaOpcaoHw(o.texto, o.correta, nomeGrupo, opcoesLista)));
+        } else if (tipo === 'verdadeiro_falso') {
+          opcoesLista.appendChild(criarLinhaOpcaoHw('Verdadeiro', true, nomeGrupo, opcoesLista));
+          opcoesLista.appendChild(criarLinhaOpcaoHw('Falso', false, nomeGrupo, opcoesLista));
+        } else {
+          opcoesLista.appendChild(criarLinhaOpcaoHw('', false, nomeGrupo, opcoesLista));
+          opcoesLista.appendChild(criarLinhaOpcaoHw('', false, nomeGrupo, opcoesLista));
+        }
+        const permiteEditar = tipo === 'multipla_escolha';
+        btnAddOpcao.style.display = permiteEditar ? 'inline-block' : 'none';
+        opcoesLista.querySelectorAll('.opcao-row button').forEach((btn) => {
+          btn.style.display = permiteEditar ? 'inline-block' : 'none';
+        });
       }
 
-      const permiteEditarOpcoes = tipo === 'multipla_escolha';
-      btnAddOpcaoHw.style.display = permiteEditarOpcoes ? 'inline-block' : 'none';
-      listaOpcoesHw.querySelectorAll('.opcao-row button').forEach((btn) => {
-        btn.style.display = permiteEditarOpcoes ? 'inline-block' : 'none';
-      });
+      tipoSelect.value = pergunta?.tipo || 'multipla_escolha';
+      tipoSelect.addEventListener('change', () => aplicarTipo(tipoSelect.value));
+      aplicarTipo(tipoSelect.value, pergunta?.opcoes);
+
+      bloco.append(
+        cabecalho,
+        tipoLabel,
+        tipoSelect,
+        enunciadoLabel,
+        enunciadoInput,
+        perguntaLabel,
+        perguntaInput,
+        opcoesLabel,
+        opcoesLista,
+        btnAddOpcao
+      );
+      return bloco;
     }
+
+    btnAddPerguntaHw.addEventListener('click', () => {
+      listaPerguntasHw.appendChild(criarBlocoPerguntaHw());
+    });
 
     document.getElementById('btn-novo-componente').addEventListener('click', () => {
       formComponenteTitulo.textContent = 'Novo componente';
       campoComponenteId.value = '';
-      tipoSelectHw.value = 'multipla_escolha';
       nomeInputHw.value = '';
       iconeInputHw.value = '';
       imagemInputHw.value = '';
-      enunciadoInputHw.value = '';
-      perguntaInputHw.value = '';
+      if (niveisCache.length > 0) nivelSelectHw.value = niveisCache[0].id;
+      listaPerguntasHw.innerHTML = '';
+      listaPerguntasHw.appendChild(criarBlocoPerguntaHw());
       posXInput.value = 50;
       posYInput.value = 50;
       inicialInput.checked = false;
       ativoInputHw.checked = true;
       erroFormComponente.classList.remove('mostrar');
-      aplicarTipoNoFormHw('multipla_escolha');
       formComponenteWrap.style.display = 'block';
       formComponenteWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
@@ -924,18 +1152,18 @@
     function abrirFormEdicaoComponente(componente) {
       formComponenteTitulo.textContent = 'Editar componente';
       campoComponenteId.value = componente.id;
-      tipoSelectHw.value = componente.tipo;
       nomeInputHw.value = componente.nome;
       iconeInputHw.value = componente.icone || '';
       imagemInputHw.value = componente.imagem || '';
-      enunciadoInputHw.value = componente.enunciado || '';
-      perguntaInputHw.value = componente.pergunta || '';
+      if (componente.nivel_id) nivelSelectHw.value = componente.nivel_id;
+      listaPerguntasHw.innerHTML = '';
+      const perguntas = componente.perguntas && componente.perguntas.length ? componente.perguntas : [null];
+      perguntas.forEach((p) => listaPerguntasHw.appendChild(criarBlocoPerguntaHw(p)));
       posXInput.value = componente.pos_x;
       posYInput.value = componente.pos_y;
       inicialInput.checked = componente.inicial;
       ativoInputHw.checked = componente.ativo;
       erroFormComponente.classList.remove('mostrar');
-      aplicarTipoNoFormHw(componente.tipo, componente.opcoes);
       formComponenteWrap.style.display = 'block';
       formComponenteWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
@@ -958,21 +1186,26 @@
       event.preventDefault();
       erroFormComponente.classList.remove('mostrar');
 
+      const perguntas = Array.from(listaPerguntasHw.querySelectorAll('.bloco-pergunta-hw')).map((bloco) => ({
+        tipo: bloco.querySelector('.bloco-pergunta-tipo').value,
+        enunciado: bloco.querySelector('.bloco-pergunta-enunciado').value.trim(),
+        pergunta: bloco.querySelector('.bloco-pergunta-pergunta').value.trim(),
+        opcoes: Array.from(bloco.querySelectorAll('.opcao-row')).map((linha) => ({
+          texto: linha.querySelector('input[type="text"]').value.trim(),
+          correta: linha.querySelector('input[type="radio"]').checked,
+        })),
+      }));
+
       const payload = {
-        tipo: tipoSelectHw.value,
         nome: nomeInputHw.value.trim(),
         icone: iconeInputHw.value.trim(),
         imagem: imagemInputHw.value.trim(),
-        enunciado: enunciadoInputHw.value.trim(),
-        pergunta: perguntaInputHw.value.trim(),
+        nivelId: Number(nivelSelectHw.value) || null,
+        perguntas,
         posX: Number(posXInput.value),
         posY: Number(posYInput.value),
         inicial: inicialInput.checked,
         ativo: ativoInputHw.checked,
-        opcoes: Array.from(listaOpcoesHw.querySelectorAll('.opcao-row')).map((linha) => ({
-          texto: linha.querySelector('input[type="text"]').value.trim(),
-          correta: linha.querySelector('input[type="radio"]').checked,
-        })),
       };
 
       const id = campoComponenteId.value;
@@ -994,7 +1227,7 @@
     // ---------- Conexões ----------
     function preencherSelectsConexao() {
       const opcoesHtml = componentesCache
-        .map((c) => `<option value="${c.id}">${c.icone} ${c.nome}</option>`)
+        .map((c) => `<option value="${c.id}">${nomeNivel(c.nivel_id)} · ${c.icone} ${c.nome}</option>`)
         .join('');
       selectDe.innerHTML = opcoesHtml;
       selectPara.innerHTML = opcoesHtml;

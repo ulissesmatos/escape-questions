@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mapa de Hardware</title>
   <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="cards.css" />
   <link rel="stylesheet" href="hardware.css" />
 </head>
 <body data-page="hardware">
@@ -45,7 +46,16 @@
       <div class="erro-msg" id="erro-identificacao"></div>
     </div>
 
+    <div id="area-niveis" style="display:none">
+      <div class="grid-atividades" id="grid-niveis"></div>
+    </div>
+
     <div id="area-mapa" style="display:none">
+      <div class="nivel-atual-wrap">
+        <button type="button" id="btn-trocar-nivel" class="link-discreto">← Trocar de nível</button>
+        <h2 id="nivel-atual-nome"></h2>
+      </div>
+
       <div class="progresso-wrap" id="progresso-wrap">
         <div class="progresso-info">
           <span id="progresso-texto">0 de 0 componentes descobertos</span>

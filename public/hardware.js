@@ -4,8 +4,13 @@ const turmaInput = document.getElementById('turma');
 const btnComecar = document.getElementById('btn-comecar');
 const erroIdentificacao = document.getElementById('erro-identificacao');
 
+const areaNiveis = document.getElementById('area-niveis');
+const gridNiveis = document.getElementById('grid-niveis');
+
 const areaMapa = document.getElementById('area-mapa');
 const carregandoEl = document.getElementById('carregando');
+const nivelAtualNome = document.getElementById('nivel-atual-nome');
+const btnTrocarNivel = document.getElementById('btn-trocar-nivel');
 const nosContainer = document.getElementById('mapa-nos');
 const svg = document.getElementById('mapa-svg');
 const progressoTexto = document.getElementById('progresso-texto');
@@ -26,11 +31,13 @@ const modalFechar = document.getElementById('modal-fechar');
 
 let participantes = '';
 let turma = '';
+let nivelAtualId = null;
 let mapaData = { componentes: [], conexoes: [] };
 let componentesPorId = {};
 let vizinhosPorComponente = {};
 let descobertos = new Set();
 let componenteAberto = null;
+let perguntaAtual = null;
 let enviandoResposta = false;
 
 function el(tag, props = {}, filhos = []) {
@@ -68,7 +75,75 @@ btnComecar.addEventListener('click', async () => {
   identificacaoDiv.style.display = 'none';
   carregandoEl.style.display = 'block';
 
+  await carregarNiveis();
+});
+
+// ---------- Seleção de nível ----------
+
+async function carregarNiveis() {
+  try {
+    const resp = await fetch('/api/hardware/niveis', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ participantes, turma }),
+    });
+    if (!resp.ok) throw new Error('Falha ao carregar os níveis.');
+    const niveis = await resp.json();
+
+    renderizarNiveis(niveis);
+    carregandoEl.style.display = 'none';
+    areaMapa.style.display = 'none';
+    areaNiveis.style.display = 'block';
+  } catch (err) {
+    carregandoEl.textContent = 'Não foi possível carregar os níveis. Recarregue a página.';
+  }
+}
+
+function renderizarNiveis(niveis) {
+  gridNiveis.innerHTML = '';
+
+  niveis.forEach((nivel) => {
+    const badgeTexto = nivel.desbloqueado
+      ? `${nivel.descobertos} de ${nivel.total} componentes`
+      : 'Complete o nível anterior';
+    const badge = el('span', {
+      classe: `card-badge${nivel.desbloqueado ? '' : ' card-badge-bloqueado'}`,
+      texto: badgeTexto,
+    });
+
+    const filhos = [
+      el('span', { classe: 'card-icone', texto: nivel.desbloqueado ? '🗺️' : '🔒' }),
+      el('h2', { texto: nivel.nome }),
+      el('p', { texto: nivel.descricao || '' }),
+      badge,
+    ];
+
+    if (nivel.desbloqueado) {
+      const card = el('a', { classe: 'card-atividade', href: '#' }, filhos);
+      card.addEventListener('click', (event) => {
+        event.preventDefault();
+        selecionarNivel(nivel);
+      });
+      gridNiveis.appendChild(card);
+    } else {
+      const card = el('div', { classe: 'card-atividade card-em-breve', 'aria-disabled': 'true' }, filhos);
+      gridNiveis.appendChild(card);
+    }
+  });
+}
+
+async function selecionarNivel(nivel) {
+  nivelAtualId = nivel.id;
+  areaNiveis.style.display = 'none';
+  carregandoEl.style.display = 'block';
+  nivelAtualNome.textContent = nivel.nome;
   await iniciarExploracao();
+}
+
+btnTrocarNivel.addEventListener('click', async () => {
+  areaMapa.style.display = 'none';
+  carregandoEl.style.display = 'block';
+  await carregarNiveis();
 });
 
 // ---------- Carregamento do mapa e progresso ----------
@@ -76,11 +151,11 @@ btnComecar.addEventListener('click', async () => {
 async function iniciarExploracao() {
   try {
     const [mapaResp, progressoResp] = await Promise.all([
-      fetch('/api/hardware/mapa'),
+      fetch(`/api/hardware/mapa?nivelId=${nivelAtualId}`),
       fetch('/api/hardware/progresso', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ participantes, turma }),
+        body: JSON.stringify({ participantes, turma, nivelId: nivelAtualId }),
       }),
     ]);
 
@@ -192,8 +267,9 @@ function atualizarProgresso() {
 
 // ---------- Modal de pergunta ----------
 
-function abrirModal(componente, estado) {
+async function abrirModal(componente, estado) {
   componenteAberto = componente;
+  perguntaAtual = null;
   modalErro.classList.remove('mostrar');
   modalErro.textContent = '';
   modalSucesso.classList.remove('mostrar');
@@ -210,10 +286,24 @@ function abrirModal(componente, estado) {
     modalIcone.textContent = componente.icone;
   }
   modalNome.textContent = componente.nome;
-  modalEnunciado.textContent = componente.enunciado || 'Pesquise sobre esse componente.';
-  modalPergunta.textContent = componente.pergunta || '';
-
+  modalEnunciado.textContent = 'Carregando...';
+  modalPergunta.textContent = '';
   modalOpcoes.innerHTML = '';
+  modalOpcoes.style.display = 'none';
+  modalConfirmar.style.display = 'none';
+  modalOverlay.classList.add('mostrar');
+
+  try {
+    const resp = await fetch(`/api/hardware/pergunta/${componente.id}`);
+    if (!resp.ok) throw new Error('Falha ao buscar a pergunta.');
+    perguntaAtual = await resp.json();
+  } catch (err) {
+    modalEnunciado.textContent = 'Não foi possível carregar a pergunta. Feche e tente de novo.';
+    return;
+  }
+
+  modalEnunciado.textContent = perguntaAtual.enunciado || 'Pesquise sobre esse componente.';
+  modalPergunta.textContent = perguntaAtual.pergunta || '';
 
   if (estado === 'descoberto') {
     modalOpcoes.style.display = 'none';
@@ -226,19 +316,18 @@ function abrirModal(componente, estado) {
     modalConfirmar.disabled = false;
     modalConfirmar.textContent = 'Confirmar resposta';
 
-    (componente.opcoes || []).forEach((opcao) => {
+    (perguntaAtual.opcoes || []).forEach((opcao) => {
       const radio = el('input', { type: 'radio', name: 'modal-opcao', value: opcao.id });
       const label = el('label', { classe: 'opcao' }, [radio, el('span', { texto: opcao.texto })]);
       modalOpcoes.appendChild(label);
     });
   }
-
-  modalOverlay.classList.add('mostrar');
 }
 
 function fecharModal() {
   modalOverlay.classList.remove('mostrar');
   componenteAberto = null;
+  perguntaAtual = null;
 }
 
 modalFechar.addEventListener('click', fecharModal);
@@ -247,7 +336,7 @@ modalOverlay.addEventListener('click', (event) => {
 });
 
 modalConfirmar.addEventListener('click', async () => {
-  if (!componenteAberto || enviandoResposta) return;
+  if (!componenteAberto || !perguntaAtual || enviandoResposta) return;
 
   const selecionado = modalOpcoes.querySelector('input[name="modal-opcao"]:checked');
   if (!selecionado) {
@@ -269,6 +358,7 @@ modalConfirmar.addEventListener('click', async () => {
         participantes,
         turma,
         componentId: componenteAberto.id,
+        perguntaId: perguntaAtual.perguntaId,
         opcaoId: selecionado.value,
       }),
     });
