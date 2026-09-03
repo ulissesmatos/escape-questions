@@ -316,6 +316,20 @@ const PC_MISSOES_INICIAIS = [
     necessidade: 'Precisa rodar os softwares de acessibilidade sem travar, com um orçamento bem enxuto — é dinheiro público.',
     orcamentoCentavos: 200000,
   },
+  {
+    emoji: '🎙️',
+    personaNome: 'Diego quer ser streamer',
+    personaDescricao: 'Diego transmite ao vivo pra internet enquanto joga — o PC precisa jogar e transmitir ao mesmo tempo, sem travar nem cair a live.',
+    necessidade: 'Precisa de um processador forte (jogo + transmissão rodando juntos) e uma placa de vídeo boa de verdade, não só "razoável".',
+    orcamentoCentavos: 480000,
+  },
+  {
+    emoji: '🎨',
+    personaNome: 'Estúdio de animação 3D da escola',
+    personaDescricao: 'A escola quer montar um PC pro laboratório de arte digital, pra alunos criarem e renderizarem modelos 3D e animações nas aulas.',
+    necessidade: 'Renderizar 3D pesa muito no processador e na placa de vídeo — as duas peças precisam ser bem mais fortes que o normal, e vale caprichar também na memória RAM.',
+    orcamentoCentavos: 600000,
+  },
 ];
 
 async function seedPcBuildIfEmpty() {

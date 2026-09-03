@@ -36,7 +36,7 @@ Tudo roda em um banco PostgreSQL.
   automático), e API de administração (`/api/admin/*`) para o CRUD de
   perguntas/componentes/níveis/missões e consulta das respostas/propostas.
   Cria as tabelas automaticamente se não existirem, semeia as 10 perguntas
-  originais, os componentes iniciais do mapa de hardware e as 5 missões
+  originais, os componentes iniciais do mapa de hardware e as 7 missões
   iniciais do Monte o PC na primeira execução (só se as tabelas estiverem
   vazias), e migra o mapa de hardware para o formato com níveis/banco de
   perguntas automaticamente (`expandirMapaHardwareParaNiveis()`) na primeira
@@ -179,10 +179,11 @@ Pela área do professor (`/admin.html`, aba "Monte o PC"):
 - **Missões**: cada missão é uma persona fictícia (emoji, nome, descrição,
   necessidade e orçamento em reais). A necessidade é só uma dica de "pra que
   serve esse PC" — evite entregar a lista de peças pronta, senão o aluno não
-  precisa pesquisar/julgar de verdade. As 5 missões iniciais cobrem
-  necessidades bem diferentes de propósito (jogos, criação de conteúdo, home
-  office, produção musical, acessibilidade), pra não restringir o interesse
-  só a quem gosta de jogos.
+  precisa pesquisar/julgar de verdade. As 7 missões iniciais cobrem
+  necessidades bem diferentes de propósito e faixas de orçamento variadas, de
+  R$ 1.500 a R$ 6.000 (jogos, criação de conteúdo, home office, produção
+  musical, acessibilidade, streaming e animação 3D), pra não restringir o
+  interesse só a quem gosta de jogos nem só a orçamentos apertados.
 - **Categorias de peça**: as 6 categorias obrigatórias (Placa-mãe,
   Processador, Memória RAM, Armazenamento, Fonte de Alimentação, Gabinete) e
   as opcionais (GPU, Cooler, Monitor, Teclado, Mouse, Outro) são fixas no
