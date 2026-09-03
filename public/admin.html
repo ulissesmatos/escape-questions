@@ -151,7 +151,11 @@
     #form-componente input[type="text"],
     #form-componente input[type="number"],
     #form-componente textarea,
-    #form-componente select {
+    #form-componente select,
+    #form-missao input[type="text"],
+    #form-missao input[type="number"],
+    #form-missao textarea,
+    #form-missao select {
       width: 100%;
       padding: 8px 10px;
       border-radius: 8px;
@@ -163,8 +167,59 @@
       font-family: inherit;
     }
     #form-pergunta textarea,
-    #form-componente textarea {
+    #form-componente textarea,
+    #form-missao textarea {
       resize: vertical;
+    }
+    .submissao-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+    .submissao-card .info {
+      margin-bottom: 10px;
+    }
+    .lista-itens-submissao {
+      margin: 0 0 10px;
+      padding-left: 18px;
+      color: #cbd5e1;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+    .justificativa-submissao {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #cbd5e1;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin: 0 0 10px;
+    }
+    .submissao-card textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #f8fafc;
+      font-size: 0.9rem;
+      font-family: inherit;
+      resize: vertical;
+      margin-bottom: 8px;
+    }
+    .submissao-card > button {
+      margin-top: 4px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: none;
+      background: #6366f1;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
     }
     .checkbox-label {
       display: flex;
@@ -341,6 +396,7 @@
         <button type="button" class="tab-btn ativo" data-tab="perguntas">Perguntas</button>
         <button type="button" class="tab-btn" data-tab="respostas">Respostas dos alunos</button>
         <button type="button" class="tab-btn" data-tab="hardware">Hardware</button>
+        <button type="button" class="tab-btn" data-tab="pcbuild">Monte o PC</button>
       </div>
 
       <div id="tab-perguntas" class="tab-conteudo ativo">
@@ -534,6 +590,59 @@
           </table>
         </div>
       </div>
+
+      <div id="tab-pcbuild" class="tab-conteudo">
+        <h2 class="secao-admin">🎯 Missões (personas)</h2>
+        <button type="button" id="btn-nova-missao-admin">+ Nova missão</button>
+
+        <div id="lista-missoes"></div>
+
+        <div id="form-missao-wrap" style="display:none">
+          <h2 id="form-missao-titulo">Nova missão</h2>
+          <form id="form-missao">
+            <input type="hidden" id="missao-id" />
+
+            <label for="missao-emoji-input">Emoji</label>
+            <input type="text" id="missao-emoji-input" maxlength="4" placeholder="Ex: 🎮" />
+
+            <label for="missao-persona-nome">Nome da persona</label>
+            <input type="text" id="missao-persona-nome" placeholder="Ex: Enzo quer jogar" required />
+
+            <label for="missao-persona-descricao">Descrição da persona</label>
+            <textarea id="missao-persona-descricao" rows="2" placeholder="Quem é o cliente e o que ele faz no dia a dia"></textarea>
+
+            <label for="missao-necessidade">Necessidade (o que o PC precisa fazer)</label>
+            <textarea id="missao-necessidade" rows="2" placeholder="Dica pra guiar as escolhas do aluno, sem entregar a resposta pronta"></textarea>
+
+            <label for="missao-orcamento">Orçamento (R$)</label>
+            <input type="number" id="missao-orcamento" min="0" step="0.01" />
+
+            <label for="missao-ordem">Ordem de exibição</label>
+            <input type="number" id="missao-ordem" value="0" />
+
+            <label class="checkbox-label">
+              <input type="checkbox" id="missao-ativa" checked />
+              Missão ativa (visível para os alunos)
+            </label>
+
+            <div class="erro-msg" id="erro-form-missao"></div>
+
+            <div class="form-botoes">
+              <button type="submit" id="btn-salvar-missao">Salvar</button>
+              <button type="button" id="btn-cancelar-missao">Cancelar</button>
+            </div>
+          </form>
+        </div>
+
+        <h2 class="secao-admin">📋 Propostas dos alunos</h2>
+        <div class="conexao-form">
+          <div>
+            <label for="filtro-missao-submissoes">Filtrar por missão</label>
+            <select id="filtro-missao-submissoes"><option value="">Todas as missões</option></select>
+          </div>
+        </div>
+        <div id="lista-submissoes-pc"></div>
+      </div>
     </div>
   </div>
 
@@ -583,7 +692,7 @@
         await chamarApi('/api/admin/questions');
         loginBox.style.display = 'none';
         painel.style.display = 'block';
-        await Promise.all([carregarPerguntas(), carregarRespostas(), carregarHardware()]);
+        await Promise.all([carregarPerguntas(), carregarRespostas(), carregarHardware(), carregarPcBuild()]);
       } catch (err) {
         senhaAdmin = '';
         erroLogin.textContent = err.message;
@@ -1309,6 +1418,214 @@
       });
 
       tabela.style.display = 'table';
+    }
+
+    // ---------- Monte o PC Ideal ----------
+    let missoesPcCache = [];
+
+    const listaMissoesPc = document.getElementById('lista-missoes');
+    const formMissaoWrap = document.getElementById('form-missao-wrap');
+    const formMissao = document.getElementById('form-missao');
+    const formMissaoTitulo = document.getElementById('form-missao-titulo');
+    const campoMissaoId = document.getElementById('missao-id');
+    const missaoEmojiInput = document.getElementById('missao-emoji-input');
+    const missaoPersonaNomeInput = document.getElementById('missao-persona-nome');
+    const missaoPersonaDescricaoInput = document.getElementById('missao-persona-descricao');
+    const missaoNecessidadeInput = document.getElementById('missao-necessidade');
+    const missaoOrcamentoInput = document.getElementById('missao-orcamento');
+    const missaoOrdemInput = document.getElementById('missao-ordem');
+    const missaoAtivaInput = document.getElementById('missao-ativa');
+    const erroFormMissao = document.getElementById('erro-form-missao');
+    const filtroMissaoSubmissoes = document.getElementById('filtro-missao-submissoes');
+    const listaSubmissoesPc = document.getElementById('lista-submissoes-pc');
+
+    function formatarReaisAdmin(centavos) {
+      return (centavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    async function carregarPcBuild() {
+      missoesPcCache = await chamarApi('/api/admin/pcbuild/missoes');
+      renderizarListaMissoesPc();
+      preencherFiltroMissoes();
+      await carregarSubmissoesPc();
+    }
+
+    function renderizarListaMissoesPc() {
+      listaMissoesPc.innerHTML = '';
+      if (missoesPcCache.length === 0) {
+        listaMissoesPc.appendChild(criarEl('p', { texto: 'Nenhuma missão cadastrada ainda.' }));
+        return;
+      }
+      missoesPcCache.forEach((m) => {
+        const info = criarEl('div', { classe: 'info' }, [
+          criarEl('span', { texto: m.emoji }),
+          criarEl('span', { classe: `badge${m.ativa ? '' : ' inativa'}`, texto: `ordem ${m.ordem}` }),
+          criarEl('strong', { texto: m.personaNome }),
+          criarEl('span', { classe: 'badge', texto: formatarReaisAdmin(m.orcamentoCentavos) }),
+        ]);
+        const btnEditar = criarEl('button', { type: 'button', texto: 'Editar', onclick: () => abrirFormEdicaoMissao(m) });
+        const btnExcluir = criarEl('button', { type: 'button', texto: 'Excluir', onclick: () => excluirMissao(m) });
+        const acoes = criarEl('div', { classe: 'acoes' }, [btnEditar, btnExcluir]);
+        listaMissoesPc.appendChild(criarEl('div', { classe: 'pergunta-item' }, [info, acoes]));
+      });
+    }
+
+    function preencherFiltroMissoes() {
+      filtroMissaoSubmissoes.innerHTML =
+        '<option value="">Todas as missões</option>' +
+        missoesPcCache.map((m) => `<option value="${m.id}">${m.emoji} ${m.personaNome}</option>`).join('');
+    }
+
+    document.getElementById('btn-nova-missao-admin').addEventListener('click', () => {
+      formMissaoTitulo.textContent = 'Nova missão';
+      campoMissaoId.value = '';
+      missaoEmojiInput.value = '';
+      missaoPersonaNomeInput.value = '';
+      missaoPersonaDescricaoInput.value = '';
+      missaoNecessidadeInput.value = '';
+      missaoOrcamentoInput.value = '';
+      missaoOrdemInput.value = missoesPcCache.length + 1;
+      missaoAtivaInput.checked = true;
+      erroFormMissao.classList.remove('mostrar');
+      formMissaoWrap.style.display = 'block';
+      formMissaoWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+
+    function abrirFormEdicaoMissao(m) {
+      formMissaoTitulo.textContent = 'Editar missão';
+      campoMissaoId.value = m.id;
+      missaoEmojiInput.value = m.emoji;
+      missaoPersonaNomeInput.value = m.personaNome;
+      missaoPersonaDescricaoInput.value = m.personaDescricao || '';
+      missaoNecessidadeInput.value = m.necessidade || '';
+      missaoOrcamentoInput.value = (m.orcamentoCentavos / 100).toFixed(2);
+      missaoOrdemInput.value = m.ordem;
+      missaoAtivaInput.checked = m.ativa;
+      erroFormMissao.classList.remove('mostrar');
+      formMissaoWrap.style.display = 'block';
+      formMissaoWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    document.getElementById('btn-cancelar-missao').addEventListener('click', () => {
+      formMissaoWrap.style.display = 'none';
+    });
+
+    async function excluirMissao(m) {
+      if (!confirm(`Excluir a missão "${m.personaNome}"? As propostas dos alunos pra essa missão também serão excluídas.`)) return;
+      try {
+        await chamarApi(`/api/admin/pcbuild/missoes/${m.id}`, { method: 'DELETE' });
+        await carregarPcBuild();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    formMissao.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      erroFormMissao.classList.remove('mostrar');
+
+      const payload = {
+        emoji: missaoEmojiInput.value.trim() || '💻',
+        personaNome: missaoPersonaNomeInput.value.trim(),
+        personaDescricao: missaoPersonaDescricaoInput.value.trim(),
+        necessidade: missaoNecessidadeInput.value.trim(),
+        orcamentoCentavos: Math.round(Number(missaoOrcamentoInput.value) * 100) || 0,
+        ordem: Number(missaoOrdemInput.value),
+        ativa: missaoAtivaInput.checked,
+      };
+
+      const id = campoMissaoId.value;
+
+      try {
+        if (id) {
+          await chamarApi(`/api/admin/pcbuild/missoes/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+        } else {
+          await chamarApi('/api/admin/pcbuild/missoes', { method: 'POST', body: JSON.stringify(payload) });
+        }
+        formMissaoWrap.style.display = 'none';
+        await carregarPcBuild();
+      } catch (err) {
+        erroFormMissao.textContent = err.message;
+        erroFormMissao.classList.add('mostrar');
+      }
+    });
+
+    filtroMissaoSubmissoes.addEventListener('change', () => carregarSubmissoesPc());
+
+    async function carregarSubmissoesPc() {
+      const missaoId = filtroMissaoSubmissoes.value;
+      const url = missaoId ? `/api/admin/pcbuild/submissoes?missaoId=${missaoId}` : '/api/admin/pcbuild/submissoes';
+      const submissoes = await chamarApi(url);
+      renderizarSubmissoesPc(submissoes);
+    }
+
+    function renderizarSubmissoesPc(submissoes) {
+      listaSubmissoesPc.innerHTML = '';
+      if (submissoes.length === 0) {
+        listaSubmissoesPc.appendChild(criarEl('p', { texto: 'Nenhuma proposta enviada ainda.' }));
+        return;
+      }
+
+      submissoes.forEach((s) => {
+        const cabecalho = criarEl('div', { classe: 'info' }, [
+          criarEl('span', { texto: s.missaoEmoji }),
+          criarEl('strong', { texto: `${s.participantes} — ${s.turma}` }),
+          criarEl('span', { classe: 'badge', texto: s.missaoNome }),
+          criarEl('span', {
+            classe: `badge${s.dentroOrcamento ? '' : ' inativa'}`,
+            texto: `${formatarReaisAdmin(s.totalCentavos)}${s.dentroOrcamento ? ' (dentro)' : ' (estourou)'}`,
+          }),
+          criarEl('span', { classe: 'badge', texto: s.revisado ? '✅ revisado' : '⏳ pendente' }),
+        ]);
+
+        const listaItens = criarEl(
+          'ul',
+          { classe: 'lista-itens-submissao' },
+          s.itens.map((item) =>
+            criarEl('li', {
+              texto: `${item.categoria}: ${item.nomePeca} — ${formatarReaisAdmin(item.precoCentavos)}${item.link ? ` (${item.link})` : ''}`,
+            })
+          )
+        );
+
+        const justificativa = criarEl('p', { classe: 'justificativa-submissao', texto: `💬 ${s.justificativa}` });
+
+        const feedbackInput = criarEl('textarea', { rows: '2', placeholder: 'Feedback pro aluno (opcional)' });
+        feedbackInput.value = s.feedbackProfessor || '';
+
+        const revisadoCheckbox = criarEl('input', { type: 'checkbox' });
+        revisadoCheckbox.checked = s.revisado;
+        const revisadoLabel = criarEl('label', { classe: 'checkbox-label' }, [
+          revisadoCheckbox,
+          document.createTextNode('Marcar como revisado'),
+        ]);
+
+        const btnSalvarFeedback = criarEl('button', {
+          type: 'button',
+          texto: 'Salvar feedback',
+          onclick: async () => {
+            try {
+              await chamarApi(`/api/admin/pcbuild/submissoes/${s.id}`, {
+                method: 'PUT',
+                body: JSON.stringify({ feedbackProfessor: feedbackInput.value, revisado: revisadoCheckbox.checked }),
+              });
+              await carregarSubmissoesPc();
+            } catch (err) {
+              alert(err.message);
+            }
+          },
+        });
+
+        const card = criarEl('div', { classe: 'submissao-card' }, [
+          cabecalho,
+          listaItens,
+          justificativa,
+          feedbackInput,
+          revisadoLabel,
+          btnSalvarFeedback,
+        ]);
+        listaSubmissoesPc.appendChild(card);
+      });
     }
   </script>
 </body>

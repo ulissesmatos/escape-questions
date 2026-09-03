@@ -1,6 +1,6 @@
 # Escape Room Digital
 
-Site com duas atividades para os alunos, acessadas a partir de um hub inicial
+Site com três atividades para os alunos, acessadas a partir de um hub inicial
 (`/`). Todo o conteúdo fica no banco (não no código) e o professor gerencia
 tudo pela área `/admin.html`.
 
@@ -16,6 +16,14 @@ tudo pela área `/admin.html`.
   acertar a pergunta de um componente libera os vizinhos conectados a ele no
   mapa. Cada componente tem um **banco de perguntas** (não só uma fixa) — uma
   é sorteada a cada clique, para dificultar decorar a resposta.
+- **Monte o PC Ideal** (`/monta-pc.html`): sem gabarito e sem perguntas de
+  múltipla escolha — o aluno escolhe uma **missão** (uma persona fictícia com
+  uma necessidade e um orçamento fixo, ex: "Enzo quer jogar, orçamento
+  R$ 2.500"), **pesquisa peças reais** em sites de loja de informática de
+  verdade, e monta uma proposta de computador dentro do orçamento,
+  justificando por que as peças escolhidas são compatíveis entre si. A
+  correção é por critério, feita pelo professor (atendeu a necessidade? é
+  compatível? coube no orçamento?), não automática.
 
 Tudo roda em um banco PostgreSQL.
 
@@ -23,14 +31,17 @@ Tudo roda em um banco PostgreSQL.
 
 - `server.js` — backend Express: API pública das perguntas (`/api/questions`,
   sem gabarito), correção e salvamento das respostas (`/api/submit`), API do
-  mapa de hardware (`/api/hardware/*`, também sem gabarito), e API de
-  administração (`/api/admin/*`) para o CRUD de perguntas/componentes/níveis
-  e consulta das respostas. Cria as tabelas automaticamente se não existirem,
-  semeia as 10 perguntas originais e os componentes iniciais do mapa de
-  hardware na primeira execução (só se o banco estiver vazio), e migra o mapa
-  de hardware para o formato com níveis/banco de perguntas automaticamente
-  (`expandirMapaHardwareParaNiveis()`) na primeira vez que sobe depois dessa
-  mudança — sem apagar nada de quem já tinha o mapa antigo.
+  mapa de hardware (`/api/hardware/*`, também sem gabarito), API do Monte o
+  PC Ideal (`/api/pcbuild/*`, sem gabarito — não tem "certo ou errado"
+  automático), e API de administração (`/api/admin/*`) para o CRUD de
+  perguntas/componentes/níveis/missões e consulta das respostas/propostas.
+  Cria as tabelas automaticamente se não existirem, semeia as 10 perguntas
+  originais, os componentes iniciais do mapa de hardware e as 5 missões
+  iniciais do Monte o PC na primeira execução (só se as tabelas estiverem
+  vazias), e migra o mapa de hardware para o formato com níveis/banco de
+  perguntas automaticamente (`expandirMapaHardwareParaNiveis()`) na primeira
+  vez que sobe depois dessa mudança — sem apagar nada de quem já tinha o mapa
+  antigo.
 - `public/index.html` — hub inicial com os cards das atividades disponíveis
   (e futuras).
 - `public/escape-room.html` + `public/script.js` — formulário do aluno do
@@ -41,12 +52,19 @@ Tudo roda em um banco PostgreSQL.
   busca o mapa em `/api/hardware/mapa`, calcula quais componentes estão
   desbloqueados (com base nas conexões e no progresso salvo) e mostra a
   pergunta de cada componente clicado em um modal.
+- `public/monta-pc.html` + `public/monta-pc.js` — Monte o PC Ideal do aluno:
+  busca as missões em `/api/pcbuild/missoes`, monta o formulário de proposta
+  (6 peças obrigatórias + itens extras opcionais, cada um com nome, preço
+  pesquisado e link), calcula o total em tempo real comparando com o
+  orçamento da missão, e envia tudo (peças + justificativa de compatibilidade)
+  em `/api/pcbuild/submissoes`.
 - `public/admin.html` — área do professor: abas para gerenciar as perguntas
-  do escape room, ver as respostas salvas, e gerenciar o mapa de hardware
-  (componentes, conexões entre eles e progresso dos alunos).
+  do escape room, ver as respostas salvas, gerenciar o mapa de hardware
+  (componentes, conexões entre eles e progresso dos alunos), e gerenciar o
+  Monte o PC Ideal (missões e propostas enviadas pelos alunos).
 - `public/css/base.css` + `public/js/site-header.js` — design system e
-  cabeçalho de navegação compartilhados entre o hub, o escape room e o mapa
-  de hardware.
+  cabeçalho de navegação compartilhados entre o hub, o escape room, o mapa de
+  hardware e o Monte o PC Ideal.
 - `docker-compose.yml` — sobe um PostgreSQL localmente.
 - `Dockerfile` — build da aplicação para deploy (ex: Coolify).
 
@@ -94,6 +112,7 @@ npm start
 - Hub de atividades: http://localhost:3000
 - Alunos (Escape Room): http://localhost:3000/escape-room.html
 - Alunos (Mapa de Hardware): http://localhost:3000/hardware.html
+- Alunos (Monte o PC Ideal): http://localhost:3000/monta-pc.html
 - Professor (ver respostas salvas): http://localhost:3000/admin.html
 
 ## Gerenciando o Mapa de Hardware
@@ -152,6 +171,37 @@ nas CC BY-SA e "Attribution") ou domínio público:
 Se for trocar alguma imagem pelo admin, prefira fotos com licença livre
 (Wikimedia Commons, Unsplash, Pexels) e mantenha o crédito em algum lugar
 acessível caso a licença exija atribuição.
+
+## Gerenciando o Monte o PC Ideal
+
+Pela área do professor (`/admin.html`, aba "Monte o PC"):
+
+- **Missões**: cada missão é uma persona fictícia (emoji, nome, descrição,
+  necessidade e orçamento em reais). A necessidade é só uma dica de "pra que
+  serve esse PC" — evite entregar a lista de peças pronta, senão o aluno não
+  precisa pesquisar/julgar de verdade. As 5 missões iniciais cobrem
+  necessidades bem diferentes de propósito (jogos, criação de conteúdo, home
+  office, produção musical, acessibilidade), pra não restringir o interesse
+  só a quem gosta de jogos.
+- **Categorias de peça**: as 6 categorias obrigatórias (Placa-mãe,
+  Processador, Memória RAM, Armazenamento, Fonte de Alimentação, Gabinete) e
+  as opcionais (GPU, Cooler, Monitor, Teclado, Mouse, Outro) são fixas no
+  código (`OBRIGATORIAS`/`OPCIONAIS` em `public/monta-pc.js`), pensadas pra
+  bater com os nomes dos componentes do Mapa de Hardware — não precisam ser
+  cadastradas no admin.
+- **Propostas dos alunos**: cada proposta mostra o aluno/grupo, a turma, a
+  missão escolhida, todas as peças com nome/preço/link pesquisados, o total
+  gasto (com aviso se estourou o orçamento da missão) e a justificativa de
+  compatibilidade escrita pelo aluno. O professor pode escrever um feedback e
+  marcar a proposta como revisada — isso não afeta o aluno na hora (não tem
+  tela de nota), é só um controle pro professor acompanhar quem já foi
+  avaliado.
+- É possível filtrar as propostas por missão no seletor no topo da lista.
+
+Diferente do Escape Room e do Mapa de Hardware, aqui não existe gabarito
+automático: a "correção" é sempre manual, por critério (atendeu a
+necessidade? é compatível? coube no orçamento?), porque o aluno está
+pesquisando peças reais e de preço variável — não tem resposta fixa possível.
 
 ## Gerenciando as perguntas
 
@@ -228,5 +278,9 @@ a área do professor.
 - No Mapa de Hardware o comportamento é diferente de propósito: o aluno vê na
   hora se acertou ou errou cada componente, e pode tentar de novo sem limite
   — o objetivo ali é a descoberta progressiva, não uma prova.
+- No Monte o PC Ideal o aluno também não vê "certo ou errado" ao enviar — só
+  a confirmação de que a proposta foi registrada e se ficou dentro do
+  orçamento. A avaliação de verdade (atendeu a necessidade, é compatível)
+  acontece depois, pelo professor.
 - A área do professor é protegida só por uma senha simples (`ADMIN_PASSWORD`),
   suficiente para uso em sala de aula — não é um sistema de login robusto.

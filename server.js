@@ -148,6 +148,50 @@ async function ensureSchema() {
     );
   `);
   await pool.query(`ALTER TABLE hw_answers ADD COLUMN IF NOT EXISTS pergunta_id INTEGER REFERENCES hw_component_perguntas(id) ON DELETE SET NULL;`);
+
+  // Monte o PC Ideal: cada "missão" é um cliente fictício com uma
+  // necessidade e um orçamento fixo. O aluno pesquisa peças reais (em sites
+  // de verdade) e monta uma proposta de computador — não tem gabarito
+  // automático, o professor avalia se a proposta atende a necessidade, cabe
+  // no orçamento e é compatível.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS pc_missoes (
+      id SERIAL PRIMARY KEY,
+      emoji TEXT NOT NULL DEFAULT '💻',
+      persona_nome TEXT NOT NULL,
+      persona_descricao TEXT NOT NULL DEFAULT '',
+      necessidade TEXT NOT NULL DEFAULT '',
+      orcamento_centavos INTEGER NOT NULL DEFAULT 0,
+      ordem INTEGER NOT NULL DEFAULT 0,
+      ativa BOOLEAN NOT NULL DEFAULT TRUE,
+      criado_em TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS pc_submissoes (
+      id SERIAL PRIMARY KEY,
+      missao_id INTEGER NOT NULL REFERENCES pc_missoes(id) ON DELETE CASCADE,
+      participantes TEXT NOT NULL,
+      turma TEXT NOT NULL,
+      justificativa TEXT NOT NULL DEFAULT '',
+      total_centavos INTEGER NOT NULL DEFAULT 0,
+      dentro_orcamento BOOLEAN NOT NULL DEFAULT TRUE,
+      feedback_professor TEXT NOT NULL DEFAULT '',
+      revisado BOOLEAN NOT NULL DEFAULT FALSE,
+      criado_em TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS pc_submissao_itens (
+      id SERIAL PRIMARY KEY,
+      submissao_id INTEGER NOT NULL REFERENCES pc_submissoes(id) ON DELETE CASCADE,
+      categoria TEXT NOT NULL,
+      nome_peca TEXT NOT NULL,
+      preco_centavos INTEGER NOT NULL DEFAULT 0,
+      link TEXT NOT NULL DEFAULT '',
+      ordem INTEGER NOT NULL DEFAULT 0
+    );
+  `);
 }
 
 // Perguntas originais do escape room, usadas só para popular o banco na
@@ -227,6 +271,63 @@ async function seedQuestionsIfEmpty() {
       `INSERT INTO questions (ordem, tipo, titulo, enunciado, pergunta, resposta_digito)
        VALUES ($1, 'digito', $2, $3, $4, $5)`,
       [i, p.titulo, p.enunciado, p.pergunta, p.respostaDigito]
+    );
+  }
+}
+
+// Missões iniciais do "Monte o PC Ideal", usadas só para popular o banco na
+// primeira vez que o servidor roda (tabela "pc_missoes" ainda vazia). Cada
+// persona representa uma necessidade diferente (não só jogos!) para atrair
+// um público mais amplo de alunos. Depois disso, tudo é editável pelo
+// professor em /admin.html, aba "Monte o PC".
+const PC_MISSOES_INICIAIS = [
+  {
+    emoji: '🎮',
+    personaNome: 'Enzo quer jogar',
+    personaDescricao: 'Enzo, 14 anos, quer um PC pra jogar com os amigos depois da escola. A família não pode gastar muito.',
+    necessidade: 'Precisa rodar jogos leves e moderados sem travar. Vai precisar de uma placa de vídeo, mesmo que simples.',
+    orcamentoCentavos: 250000,
+  },
+  {
+    emoji: '🎬',
+    personaNome: 'Marina cria conteúdo',
+    personaDescricao: 'Marina tem um canal de vídeos e edita tudo em casa — cortes, efeitos e exportação em alta qualidade.',
+    necessidade: 'Precisa de um processador rápido e bastante memória RAM pra não travar editando vídeo. Placa de vídeo ajuda, mas não é o mais importante.',
+    orcamentoCentavos: 320000,
+  },
+  {
+    emoji: '🏠',
+    personaNome: 'Professor Ricardo, home office',
+    personaDescricao: 'Ricardo dá aula online, usa planilhas, PDF e videochamada o dia todo. Não joga nem edita vídeo.',
+    necessidade: 'Não precisa de placa de vídeo dedicada nem de peças caras — o importante é não gastar dinheiro à toa em algo que ele não vai usar.',
+    orcamentoCentavos: 150000,
+  },
+  {
+    emoji: '🎵',
+    personaNome: 'Beatriz produz música',
+    personaDescricao: 'Beatriz grava e mixa músicas em casa, com vários instrumentos e faixas de áudio abertos ao mesmo tempo.',
+    necessidade: 'Precisa de processador rápido e bastante armazenamento pra guardar os projetos e as gravações.',
+    orcamentoCentavos: 280000,
+  },
+  {
+    emoji: '♿',
+    personaNome: 'Laboratório de inclusão da escola',
+    personaDescricao: 'A escola quer montar um PC pro laboratório de inclusão, usado com leitor de tela e outros softwares de acessibilidade.',
+    necessidade: 'Precisa rodar os softwares de acessibilidade sem travar, com um orçamento bem enxuto — é dinheiro público.',
+    orcamentoCentavos: 200000,
+  },
+];
+
+async function seedPcBuildIfEmpty() {
+  const { rows } = await pool.query('SELECT COUNT(*)::int AS total FROM pc_missoes');
+  if (rows[0].total > 0) return;
+
+  for (let i = 0; i < PC_MISSOES_INICIAIS.length; i++) {
+    const m = PC_MISSOES_INICIAIS[i];
+    await pool.query(
+      `INSERT INTO pc_missoes (emoji, persona_nome, persona_descricao, necessidade, orcamento_centavos, ordem)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [m.emoji, m.personaNome, m.personaDescricao, m.necessidade, m.orcamentoCentavos, i]
     );
   }
 }
@@ -2270,12 +2371,277 @@ app.get('/api/admin/hardware/respostas', checarAdmin, async (req, res) => {
   }
 });
 
+// ---------- Monte o PC Ideal: API pública ----------
+//
+// Não tem gabarito: o aluno pesquisa peças reais em sites de verdade e monta
+// uma proposta de computador pra uma persona/necessidade, dentro de um
+// orçamento. A correção é por critério (atendeu a necessidade? compatível?
+// dentro do orçamento?), feita pelo professor em /admin.html.
+
+app.get('/api/pcbuild/missoes', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, emoji, persona_nome, persona_descricao, necessidade, orcamento_centavos
+       FROM pc_missoes WHERE ativa = TRUE ORDER BY ordem, id`
+    );
+    res.json(
+      rows.map((m) => ({
+        id: m.id,
+        emoji: m.emoji,
+        personaNome: m.persona_nome,
+        personaDescricao: m.persona_descricao,
+        necessidade: m.necessidade,
+        orcamentoCentavos: m.orcamento_centavos,
+      }))
+    );
+  } catch (err) {
+    console.error('Erro ao buscar missões do Monte o PC:', err);
+    res.status(500).json({ erro: 'Erro ao buscar as missões.' });
+  }
+});
+
+app.post('/api/pcbuild/submissoes', async (req, res) => {
+  const { participantes, turma, missaoId, itens, justificativa } = req.body || {};
+
+  if (typeof participantes !== 'string' || !participantes.trim()) {
+    return res.status(400).json({ erro: 'Informe o nome do aluno ou os nomes do grupo.' });
+  }
+  if (typeof turma !== 'string' || !turma.trim()) {
+    return res.status(400).json({ erro: 'Informe a turma.' });
+  }
+  const missId = Number(missaoId);
+  if (!Number.isInteger(missId)) {
+    return res.status(400).json({ erro: 'Missão inválida.' });
+  }
+  if (!Array.isArray(itens) || itens.length === 0) {
+    return res.status(400).json({ erro: 'Adicione pelo menos uma peça na proposta.' });
+  }
+  const itensValidos = itens.every(
+    (item) =>
+      item &&
+      typeof item.categoria === 'string' &&
+      item.categoria.trim() &&
+      typeof item.nomePeca === 'string' &&
+      item.nomePeca.trim() &&
+      Number.isFinite(Number(item.precoCentavos)) &&
+      Number(item.precoCentavos) >= 0
+  );
+  if (!itensValidos) {
+    return res.status(400).json({ erro: 'Cada peça precisa de categoria, nome e preço válidos.' });
+  }
+  if (typeof justificativa !== 'string' || !justificativa.trim()) {
+    return res.status(400).json({ erro: 'Explique por que as peças escolhidas são compatíveis entre si.' });
+  }
+
+  try {
+    const { rows: missoes } = await pool.query(
+      `SELECT id, orcamento_centavos FROM pc_missoes WHERE id = $1 AND ativa = TRUE`,
+      [missId]
+    );
+    if (missoes.length === 0) {
+      return res.status(404).json({ erro: 'Missão não encontrada.' });
+    }
+    const missao = missoes[0];
+
+    const totalCentavos = itens.reduce((soma, item) => soma + Math.round(Number(item.precoCentavos)), 0);
+    const dentroOrcamento = totalCentavos <= missao.orcamento_centavos;
+
+    const { rows: inseridas } = await pool.query(
+      `INSERT INTO pc_submissoes (missao_id, participantes, turma, justificativa, total_centavos, dentro_orcamento)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      [missId, participantes.trim(), turma.trim(), justificativa.trim(), totalCentavos, dentroOrcamento]
+    );
+    const submissaoId = inseridas[0].id;
+
+    for (let i = 0; i < itens.length; i++) {
+      const item = itens[i];
+      await pool.query(
+        `INSERT INTO pc_submissao_itens (submissao_id, categoria, nome_peca, preco_centavos, link, ordem)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [submissaoId, item.categoria.trim(), item.nomePeca.trim(), Math.round(Number(item.precoCentavos)), (item.link || '').trim(), i]
+      );
+    }
+
+    res.status(201).json({ id: submissaoId, totalCentavos, dentroOrcamento });
+  } catch (err) {
+    console.error('Erro ao salvar proposta do Monte o PC:', err);
+    res.status(500).json({ erro: 'Erro ao salvar a proposta.' });
+  }
+});
+
+// ---------- Monte o PC Ideal: API do professor ----------
+
+app.get('/api/admin/pcbuild/missoes', checarAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query(`SELECT * FROM pc_missoes ORDER BY ordem, id`);
+    res.json(
+      rows.map((m) => ({
+        id: m.id,
+        emoji: m.emoji,
+        personaNome: m.persona_nome,
+        personaDescricao: m.persona_descricao,
+        necessidade: m.necessidade,
+        orcamentoCentavos: m.orcamento_centavos,
+        ordem: m.ordem,
+        ativa: m.ativa,
+      }))
+    );
+  } catch (err) {
+    console.error('Erro ao buscar missões (admin):', err);
+    res.status(500).json({ erro: 'Erro ao buscar as missões.' });
+  }
+});
+
+app.post('/api/admin/pcbuild/missoes', checarAdmin, async (req, res) => {
+  const { emoji, personaNome, personaDescricao, necessidade, orcamentoCentavos, ordem, ativa } = req.body || {};
+  if (typeof personaNome !== 'string' || !personaNome.trim()) {
+    return res.status(400).json({ erro: 'Informe o nome da persona.' });
+  }
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO pc_missoes (emoji, persona_nome, persona_descricao, necessidade, orcamento_centavos, ordem, ativa)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+      [
+        (emoji || '💻').trim(),
+        personaNome.trim(),
+        (personaDescricao || '').trim(),
+        (necessidade || '').trim(),
+        Math.round(Number(orcamentoCentavos)) || 0,
+        Number(ordem) || 0,
+        ativa !== false,
+      ]
+    );
+    res.status(201).json({ id: rows[0].id });
+  } catch (err) {
+    console.error('Erro ao criar missão:', err);
+    res.status(500).json({ erro: 'Erro ao criar a missão.' });
+  }
+});
+
+app.put('/api/admin/pcbuild/missoes/:id', checarAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ erro: 'ID inválido.' });
+  }
+  const { emoji, personaNome, personaDescricao, necessidade, orcamentoCentavos, ordem, ativa } = req.body || {};
+  if (typeof personaNome !== 'string' || !personaNome.trim()) {
+    return res.status(400).json({ erro: 'Informe o nome da persona.' });
+  }
+  try {
+    await pool.query(
+      `UPDATE pc_missoes SET emoji=$1, persona_nome=$2, persona_descricao=$3, necessidade=$4,
+              orcamento_centavos=$5, ordem=$6, ativa=$7
+       WHERE id=$8`,
+      [
+        (emoji || '💻').trim(),
+        personaNome.trim(),
+        (personaDescricao || '').trim(),
+        (necessidade || '').trim(),
+        Math.round(Number(orcamentoCentavos)) || 0,
+        Number(ordem) || 0,
+        ativa !== false,
+        id,
+      ]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Erro ao atualizar missão:', err);
+    res.status(500).json({ erro: 'Erro ao atualizar a missão.' });
+  }
+});
+
+app.delete('/api/admin/pcbuild/missoes/:id', checarAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ erro: 'ID inválido.' });
+  }
+  try {
+    await pool.query('DELETE FROM pc_missoes WHERE id=$1', [id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Erro ao excluir missão:', err);
+    res.status(500).json({ erro: 'Erro ao excluir a missão.' });
+  }
+});
+
+app.get('/api/admin/pcbuild/submissoes', checarAdmin, async (req, res) => {
+  try {
+    const missaoId = Number(req.query.missaoId) || null;
+    const { rows: submissoes } = await pool.query(
+      missaoId
+        ? `SELECT s.*, m.persona_nome, m.emoji FROM pc_submissoes s
+           JOIN pc_missoes m ON m.id = s.missao_id
+           WHERE s.missao_id = $1 ORDER BY s.criado_em DESC`
+        : `SELECT s.*, m.persona_nome, m.emoji FROM pc_submissoes s
+           JOIN pc_missoes m ON m.id = s.missao_id
+           ORDER BY s.criado_em DESC`,
+      missaoId ? [missaoId] : []
+    );
+    const ids = submissoes.map((s) => s.id);
+    const { rows: itens } = ids.length
+      ? await pool.query(
+          `SELECT * FROM pc_submissao_itens WHERE submissao_id = ANY($1::int[]) ORDER BY submissao_id, ordem, id`,
+          [ids]
+        )
+      : { rows: [] };
+    const itensPorSubmissao = {};
+    itens.forEach((item) => {
+      (itensPorSubmissao[item.submissao_id] ||= []).push({
+        categoria: item.categoria,
+        nomePeca: item.nome_peca,
+        precoCentavos: item.preco_centavos,
+        link: item.link,
+      });
+    });
+
+    res.json(
+      submissoes.map((s) => ({
+        id: s.id,
+        missaoId: s.missao_id,
+        missaoNome: s.persona_nome,
+        missaoEmoji: s.emoji,
+        participantes: s.participantes,
+        turma: s.turma,
+        justificativa: s.justificativa,
+        totalCentavos: s.total_centavos,
+        dentroOrcamento: s.dentro_orcamento,
+        feedbackProfessor: s.feedback_professor,
+        revisado: s.revisado,
+        criadoEm: s.criado_em,
+        itens: itensPorSubmissao[s.id] || [],
+      }))
+    );
+  } catch (err) {
+    console.error('Erro ao buscar propostas do Monte o PC:', err);
+    res.status(500).json({ erro: 'Erro ao buscar as propostas.' });
+  }
+});
+
+app.put('/api/admin/pcbuild/submissoes/:id', checarAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ erro: 'ID inválido.' });
+  }
+  const { feedbackProfessor, revisado } = req.body || {};
+  try {
+    await pool.query(
+      `UPDATE pc_submissoes SET feedback_professor=$1, revisado=$2 WHERE id=$3`,
+      [(feedbackProfessor || '').trim(), Boolean(revisado), id]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Erro ao atualizar proposta:', err);
+    res.status(500).json({ erro: 'Erro ao atualizar a proposta.' });
+  }
+});
+
 ensureSchema()
   .then(() => seedQuestionsIfEmpty())
   .then(() => seedHardwareIfEmpty())
   .then(() => expandirMapaHardwareParaNiveis())
   .then(() => adicionarPerguntasDificeis())
   .then(() => afastarBolhasGpuMonitor())
+  .then(() => seedPcBuildIfEmpty())
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Servidor rodando em http://localhost:${PORT}`);
