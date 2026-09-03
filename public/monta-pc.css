@@ -1,0 +1,361 @@
+/* ---------- Identificação: ajustes específicos do Monte o PC ---------- */
+
+.identificacao-pc {
+  padding: 18px;
+}
+
+@media (min-width: 560px) {
+  .identificacao-pc {
+    grid-template-columns: 1fr 1fr auto;
+    align-items: end;
+  }
+  .identificacao-pc .erro-msg {
+    grid-column: 1 / -1;
+  }
+}
+
+#btn-comecar,
+#btn-enviar-proposta,
+#btn-nova-missao {
+  padding: 11px 18px;
+  font-size: 0.98rem;
+  font-weight: 700;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
+}
+
+#btn-comecar:hover,
+#btn-enviar-proposta:hover,
+#btn-nova-missao:hover {
+  transform: translateY(-1px);
+}
+
+#btn-enviar-proposta {
+  width: 100%;
+  margin-top: 16px;
+  padding: 13px;
+  font-size: 1rem;
+}
+
+#btn-enviar-proposta:disabled {
+  background: var(--bloqueado);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* ---------- Seções genéricas ---------- */
+
+.titulo-secao {
+  font-size: 1.1rem;
+  color: var(--text);
+  margin: 26px 0 4px;
+}
+
+.subtitulo-secao {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin: 0 0 12px;
+}
+
+/* ---------- Brief da missão ---------- */
+
+.missao-brief {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: var(--sombra);
+  margin-bottom: 14px;
+}
+
+.missao-brief-emoji {
+  font-size: 2.2rem;
+  flex-shrink: 0;
+}
+
+.missao-brief h2 {
+  margin: 0 0 6px;
+  font-size: 1.15rem;
+  color: var(--text);
+}
+
+.missao-brief p {
+  margin: 0 0 6px;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.missao-necessidade {
+  color: var(--text) !important;
+  font-weight: 600;
+}
+
+.missao-orcamento {
+  display: inline-block;
+  margin-top: 4px;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.dica-pesquisa {
+  background: #f6f7fb;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
+.dica-pesquisa strong {
+  color: var(--text);
+}
+
+/* ---------- Lista de peças por categoria ---------- */
+
+.lista-categorias {
+  display: grid;
+  gap: 10px;
+}
+
+.categoria-item {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: var(--sombra);
+}
+
+@media (min-width: 720px) {
+  .categoria-item {
+    grid-template-columns: 170px 1.4fr 130px 1.1fr;
+    align-items: center;
+  }
+  .categoria-item-extra {
+    grid-template-columns: 170px 1.4fr 130px 1.1fr 34px;
+  }
+}
+
+.categoria-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.categoria-icone {
+  font-size: 1.1rem;
+}
+
+.campo-nome-peca,
+.campo-link-peca,
+.campo-categoria-extra {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: #fbfcfe;
+  color: var(--text);
+  font-size: 0.92rem;
+}
+
+.campo-nome-peca:focus,
+.campo-link-peca:focus,
+.campo-categoria-extra:focus,
+.campo-preco-peca:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: white;
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.campo-preco-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: #fbfcfe;
+  padding: 0 10px;
+}
+
+.campo-preco-wrap:focus-within {
+  border-color: var(--primary);
+  background: white;
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.prefixo-real {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.campo-preco-peca {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.92rem;
+}
+
+.campo-preco-peca:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.categoria-item-extra {
+  border-style: dashed;
+}
+
+.btn-remover-item {
+  border: none;
+  background: var(--erro-bg);
+  color: #991b1b;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.85rem;
+  justify-self: center;
+}
+
+.btn-remover-item:hover {
+  background: #fecaca;
+}
+
+.btn-secundario {
+  margin-top: 10px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1.5px dashed var(--primary);
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.btn-secundario:hover {
+  background: #e0e4ff;
+}
+
+/* ---------- Resumo de orçamento ---------- */
+
+.orcamento-resumo {
+  position: sticky;
+  bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-top: 20px;
+  box-shadow: var(--sombra-media);
+  font-weight: 700;
+}
+
+#orcamento-total-texto {
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.orcamento-resumo.orcamento-ok {
+  border-color: var(--sucesso);
+}
+
+.orcamento-resumo.orcamento-ok #orcamento-status {
+  color: var(--sucesso);
+}
+
+.orcamento-resumo.orcamento-estourado {
+  border-color: var(--erro);
+}
+
+.orcamento-resumo.orcamento-estourado #orcamento-status {
+  color: var(--erro);
+}
+
+#orcamento-status {
+  font-size: 0.9rem;
+}
+
+/* ---------- Justificativa ---------- */
+
+textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--resposta-border);
+  background: white;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: var(--resposta-border-focus);
+  box-shadow: 0 0 0 3px rgba(224, 168, 0, 0.15);
+}
+
+/* ---------- Sucesso ---------- */
+
+.sucesso-card {
+  text-align: center;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 36px 24px;
+  box-shadow: var(--sombra);
+}
+
+.sucesso-emoji {
+  font-size: 2.6rem;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.sucesso-card h2 {
+  margin: 0 0 10px;
+  color: var(--text);
+}
+
+.sucesso-card p {
+  margin: 0 0 8px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.sucesso-dica {
+  font-size: 0.85rem !important;
+  margin-bottom: 20px !important;
+}

@@ -3,6 +3,7 @@
     { pagina: "hub", href: "index.html", texto: "Início" },
     { pagina: "escape-room", href: "escape-room.html", texto: "🔎 Escape Room" },
     { pagina: "hardware", href: "hardware.html", texto: "🗺️ Mapa de Hardware" },
+    { pagina: "monta-pc", href: "monta-pc.html", texto: "🛒 Monte o PC Ideal" },
   ];
 
   var paginaAtual = document.body.dataset.page;

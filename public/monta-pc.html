@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monte o PC Ideal</title>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="cards.css" />
+  <link rel="stylesheet" href="monta-pc.css" />
+</head>
+<body data-page="monta-pc">
+  <div id="site-header"></div>
+  <script src="js/site-header.js"></script>
+
+  <div class="container">
+    <header class="hero">
+      <h1>🛒 Monte o PC Ideal</h1>
+      <p>Pesquise peças de verdade na internet e monte a proposta perfeita pra cada cliente!</p>
+
+      <ol class="como-jogar">
+        <li>
+          <span class="passo-numero">1</span>
+          <span class="passo-texto"><strong>Escolha</strong> uma missão (cliente + necessidade + orçamento)</span>
+        </li>
+        <li>
+          <span class="passo-numero">2</span>
+          <span class="passo-texto"><strong>Pesquise</strong> peças reais e monte sua proposta</span>
+        </li>
+        <li>
+          <span class="passo-numero">3</span>
+          <span class="passo-texto"><strong>Envie</strong> e explique por que as peças são compatíveis</span>
+        </li>
+      </ol>
+    </header>
+
+    <div class="identificacao identificacao-pc" id="identificacao">
+      <div>
+        <label for="participantes">Nome do aluno ou nomes do grupo</label>
+        <input type="text" id="participantes" placeholder="Ex: Ana, Bruno e Carlos" autocomplete="off" />
+      </div>
+      <div>
+        <label for="turma">Turma</label>
+        <input type="text" id="turma" placeholder="Ex: 8º Ano B" autocomplete="off" />
+      </div>
+      <button type="button" id="btn-comecar">Ver as missões</button>
+      <div class="erro-msg" id="erro-identificacao"></div>
+    </div>
+
+    <div id="area-missoes" style="display:none">
+      <h2 class="titulo-secao">Escolha uma missão</h2>
+      <div class="grid-atividades" id="grid-missoes"></div>
+    </div>
+
+    <div id="area-montagem" style="display:none">
+      <button type="button" id="btn-trocar-missao" class="link-discreto">← Escolher outra missão</button>
+
+      <div class="missao-brief" id="missao-brief">
+        <span class="missao-brief-emoji" id="missao-emoji"></span>
+        <div>
+          <h2 id="missao-nome"></h2>
+          <p id="missao-descricao"></p>
+          <p class="missao-necessidade" id="missao-necessidade"></p>
+          <span class="missao-orcamento" id="missao-orcamento"></span>
+        </div>
+      </div>
+
+      <div class="dica-pesquisa">
+        🔎 <strong>Onde pesquisar:</strong> use sites reais de loja de informática
+        (ex: KaBuM, Terabyte, Pichau, MeuPC.net ou outra loja que vocês conheçam)
+        pra ver peças, preços e fotos de verdade.
+      </div>
+
+      <h2 class="titulo-secao">🧩 Peças obrigatórias</h2>
+      <p class="subtitulo-secao">Toda montagem de PC precisa dessas 6 peças. Pesquise uma de cada.</p>
+      <div id="lista-obrigatorias" class="lista-categorias"></div>
+
+      <h2 class="titulo-secao">➕ Peças extras (opcional)</h2>
+      <p class="subtitulo-secao">Se sobrar orçamento, adicione placa de vídeo, monitor, teclado, mouse etc.</p>
+      <div id="lista-extras" class="lista-categorias"></div>
+      <button type="button" id="btn-add-extra" class="btn-secundario">+ Adicionar item extra</button>
+
+      <div class="orcamento-resumo" id="orcamento-resumo">
+        <span id="orcamento-total-texto">Total gasto: R$ 0,00</span>
+        <span id="orcamento-status"></span>
+      </div>
+
+      <h2 class="titulo-secao">✏️ Justifique a compatibilidade</h2>
+      <div class="zona-resposta">
+        <span class="zona-resposta-titulo">Por que essas peças combinam entre si?</span>
+        <textarea id="justificativa" rows="4" placeholder="Ex: escolhi essa placa-mãe porque o soquete é compatível com esse processador, a memória RAM é do tipo certo pra essa placa-mãe, e a fonte tem watts suficientes pra essa placa de vídeo..."></textarea>
+      </div>
+
+      <div class="erro-msg" id="erro-montagem"></div>
+
+      <button type="button" id="btn-enviar-proposta">Enviar proposta</button>
+    </div>
+
+    <div id="area-sucesso" style="display:none">
+      <div class="sucesso-card">
+        <span class="sucesso-emoji">🎉</span>
+        <h2>Proposta enviada!</h2>
+        <p id="sucesso-resumo"></p>
+        <p class="sucesso-dica">O professor vai avaliar se a proposta atende à necessidade do cliente, se é compatível e se coube no orçamento.</p>
+        <button type="button" id="btn-nova-missao">Escolher outra missão</button>
+      </div>
+    </div>
+
+    <p class="carregando" id="carregando" style="display:none">Carregando...</p>
+
+    <footer>
+      <a href="admin.html">Área do professor</a>
+    </footer>
+  </div>
+
+  <script src="monta-pc.js"></script>
+</body>
+</html>
