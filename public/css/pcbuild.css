@@ -1,0 +1,698 @@
+/* ---------- Cards de missão ---------- */
+
+.card-missao .card-icone {
+  font-size: 1.8rem;
+}
+
+.card-missao-necessidade {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin: -6px 0 16px;
+  line-height: 1.45;
+}
+
+.card-orcamento {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.card-orcamento small {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ---------- Layout da montagem ---------- */
+
+.montagem-layout {
+  display: grid;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (min-width: 960px) {
+  .montagem-layout {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+  .montagem-resumo {
+    position: sticky;
+    top: 16px;
+  }
+}
+
+.montagem-principal {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+
+/* ---------- Brief da missão ---------- */
+
+.missao-brief {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px 16px;
+  padding: 20px;
+}
+
+.missao-brief-emoji {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-light);
+  font-size: 2rem;
+}
+
+.missao-brief-rotulo {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  margin-bottom: 2px;
+}
+
+.missao-brief h2 {
+  margin: 0 0 4px;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.missao-brief-texto p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.missao-necessidade {
+  grid-column: 1 / -1;
+  background: var(--accent-light);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.missao-necessidade .missao-brief-rotulo {
+  color: var(--accent-dark);
+}
+
+.missao-necessidade p {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.97rem;
+}
+
+.dica-pesquisa {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--raio);
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.dica-pesquisa-icone {
+  font-size: 1.2rem;
+  line-height: 1.3;
+}
+
+.dica-pesquisa strong {
+  color: var(--text);
+}
+
+.dica-pesquisa a {
+  color: var(--accent-dark);
+  font-weight: 700;
+}
+
+/* ---------- Blocos numerados ---------- */
+
+.etapa-montagem {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--raio-lg);
+  padding: 20px;
+  box-shadow: var(--sombra);
+  scroll-margin-top: 16px;
+}
+
+.etapa-montagem-cabecalho {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.etapa-montagem-cabecalho > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.etapa-numero {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--text);
+  color: white;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+
+.etapa-montagem-cabecalho h3 {
+  margin: 0;
+  font-size: 1.12rem;
+  font-weight: 800;
+}
+
+.etapa-montagem-cabecalho p {
+  margin: 2px 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.contador-pecas {
+  flex-shrink: 0;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 5px 11px;
+  border-radius: 999px;
+}
+
+.contador-pecas.completo {
+  background: var(--sucesso-bg);
+  color: var(--sucesso);
+}
+
+/* ---------- Peças ---------- */
+
+.lista-pecas {
+  display: grid;
+  gap: 12px;
+}
+
+.lista-pecas:empty {
+  display: none;
+}
+
+.peca {
+  border: 1.5px solid var(--border);
+  border-radius: var(--raio);
+  padding: 14px;
+  background: var(--card-bg);
+  transition: border-color 0.2s ease, background 0.2s ease;
+  scroll-margin-top: 16px;
+}
+
+.peca.pronta {
+  border-color: var(--sucesso-border);
+  background: #fbfefc;
+}
+
+.peca.com-erro {
+  border-color: var(--erro);
+}
+
+.peca-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.peca-icone {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-2);
+  font-size: 1.25rem;
+}
+
+.peca.pronta .peca-icone {
+  background: var(--sucesso-bg);
+}
+
+.peca-titulo {
+  flex: 1;
+  min-width: 0;
+}
+
+.peca-titulo strong {
+  display: block;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.peca-dica {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.peca-status {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+.peca.pronta .peca-status {
+  background: var(--sucesso-bg);
+  color: var(--sucesso);
+}
+
+.peca.com-erro .peca-status {
+  background: var(--erro-bg);
+  color: var(--erro);
+}
+
+.peca-campos {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 560px) {
+  .peca-campos {
+    grid-template-columns: minmax(0, 1fr) 170px;
+  }
+  .peca-campo-nome {
+    grid-column: 1 / -1;
+  }
+  .peca-campo-link {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .peca-campo-preco {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}
+
+.peca-campos label {
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+}
+
+.campo-dinheiro {
+  position: relative;
+}
+
+.campo-dinheiro::before {
+  content: "R$";
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.95rem;
+  pointer-events: none;
+}
+
+.campo-dinheiro input {
+  padding-left: 44px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.btn-remover-peca {
+  flex-shrink: 0;
+  border: 1.5px solid var(--border-strong);
+  background: var(--card-bg);
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.82rem;
+  min-height: 36px;
+  padding: 4px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.btn-remover-peca:hover {
+  border-color: var(--erro);
+  color: var(--erro);
+  background: var(--erro-bg);
+}
+
+/* ---------- Chips de extras ---------- */
+
+.chips-extras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.chip-extra {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1.5px dashed var(--border-strong);
+  background: var(--card-bg);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.chip-extra:hover {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  color: var(--accent-dark);
+}
+
+.chip-extra .chip-mais {
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.chip-extra .chip-qtd {
+  background: var(--accent);
+  color: white;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  padding: 1px 7px;
+}
+
+.peca-extra-nova {
+  animation: aparecer 0.25s ease;
+}
+
+/* ---------- Justificativa ---------- */
+
+.guia-justificativa {
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.guia-justificativa li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.guia-justificativa li::before {
+  content: "?";
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  font-size: 0.7rem;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+
+.guia-justificativa strong {
+  color: var(--text);
+}
+
+.zona-resposta textarea {
+  border-color: var(--resposta-border);
+  min-height: 140px;
+}
+
+.zona-resposta textarea:focus {
+  border-color: var(--resposta-border-focus);
+  box-shadow: 0 0 0 4px rgba(217, 154, 0, 0.18);
+}
+
+.contador-texto {
+  display: block;
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--resposta-text);
+  margin-top: 6px;
+}
+
+.contador-texto.ok {
+  color: var(--sucesso);
+}
+
+/* ---------- Resumo (lateral) ---------- */
+
+.resumo-card {
+  padding: 20px;
+}
+
+.resumo-rotulo {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.resumo-total {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+.resumo-orcamento {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.resumo-orcamento strong {
+  color: var(--text);
+}
+
+.medidor {
+  height: 10px;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 14px 0 8px;
+}
+
+.medidor-barra {
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: var(--sucesso-forte);
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.medidor-barra.alerta {
+  background: #f59e0b;
+}
+
+.medidor-barra.estourado {
+  background: var(--erro);
+}
+
+.resumo-status {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-height: 1.4em;
+}
+
+.resumo-status.ok {
+  color: var(--sucesso);
+}
+
+.resumo-status.alerta {
+  color: #b45309;
+}
+
+.resumo-status.estourado {
+  color: var(--erro);
+}
+
+.resumo-checklist {
+  list-style: none;
+  padding: 14px 0 0;
+  margin: 14px 0 16px;
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 8px;
+}
+
+.resumo-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.check-icone {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: white;
+}
+
+.resumo-checklist li.ok .check-icone {
+  background: var(--sucesso-forte);
+  border-color: var(--sucesso-forte);
+}
+
+.resumo-checklist li.ok .check-icone::after {
+  content: "✓";
+}
+
+.check-texto {
+  flex: 1;
+}
+
+.check-valor {
+  font-weight: 800;
+  color: var(--text);
+}
+
+.resumo-card .erro-msg.mostrar {
+  margin-bottom: 12px;
+}
+
+.resumo-rascunho {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  text-align: center;
+}
+
+/* ---------- Barra fixa de total (celular/tablet) ---------- */
+
+.barra-total-movel {
+  display: none;
+}
+
+@media (max-width: 959px) {
+  #area-montagem {
+    padding-bottom: 76px;
+  }
+
+  .barra-total-movel {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 16px;
+    background: var(--text);
+    color: white;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(16, 18, 38, 0.3);
+  }
+
+  .barra-total-movel.escondida {
+    display: none;
+  }
+
+  .barra-total-movel-texto {
+    display: grid;
+    line-height: 1.2;
+  }
+
+  .barra-total-movel-rotulo {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.7;
+    font-weight: 700;
+  }
+
+  .barra-total-movel strong {
+    font-size: 1.1rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .barra-total-movel-status {
+    flex: 1;
+    font-size: 0.8rem;
+    font-weight: 700;
+    opacity: 0.85;
+    min-width: 0;
+  }
+
+  .barra-total-movel-status.estourado {
+    color: #fca5a5;
+    opacity: 1;
+  }
+
+  .barra-total-movel-status.ok {
+    color: #86efac;
+    opacity: 1;
+  }
+
+  .barra-total-movel-acao {
+    flex-shrink: 0;
+    background: var(--accent);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+}
+
+@media (max-width: 420px) {
+  .barra-total-movel-acao {
+    padding: 8px 10px;
+  }
+  .missao-brief {
+    padding: 16px;
+  }
+  .etapa-montagem {
+    padding: 16px;
+  }
+  .peca {
+    padding: 12px;
+  }
+}

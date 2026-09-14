@@ -1,0 +1,96 @@
+/* ---------- Cartão de pista ---------- */
+
+.pergunta-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--raio-lg);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--sombra);
+  opacity: 0;
+  transform: translateY(10px);
+  animation: entrarCard 0.4s ease forwards;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  scroll-margin-top: 120px; /* não fica atrás da barra de progresso fixa */
+}
+
+@keyframes entrarCard {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pergunta-card.respondida {
+  border-color: var(--sucesso-border);
+}
+
+.pergunta-card.pendente {
+  border-color: var(--erro);
+  box-shadow: 0 0 0 4px rgba(198, 40, 40, 0.1);
+}
+
+.pergunta-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.pista-numero {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  font-weight: 800;
+  font-size: 0.95rem;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+.pergunta-card.respondida .pista-numero {
+  background: var(--sucesso-forte);
+  color: white;
+}
+
+.pergunta-cabecalho-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.pista-rotulo {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.pergunta-card.respondida .pista-rotulo {
+  color: var(--sucesso);
+}
+
+.pergunta-card h2 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 1px 0 0;
+}
+
+/* ---------- Envio ---------- */
+
+.envio-final {
+  margin-top: 24px;
+  display: grid;
+  gap: 12px;
+}
+
+.envio-dica {
+  margin: 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}

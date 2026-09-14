@@ -3,18 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Escape Room - Banco de Pistas</title>
+  <title>Escape Room Digital</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔎</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap" />
   <link rel="stylesheet" href="css/base.css" />
-  <link rel="stylesheet" href="quiz.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/questions.css" />
+  <link rel="stylesheet" href="css/escape.css" />
+  <script type="module" src="js/pages/escape/main.js"></script>
 </head>
 <body data-page="escape-room">
-  <div id="site-header"></div>
-  <script src="js/site-header.js"></script>
+  <header id="site-header"></header>
 
-  <div class="container">
-    <header class="hero">
-      <h1>🔎 Escape Room Digital</h1>
-      <p>Pesquise, descubra e responda cada pista para avançar na investigação!</p>
+  <main class="container">
+    <section class="pagina-topo">
+      <span class="pagina-etiqueta"><span class="pagina-etiqueta-icone">🔎</span>Escape Room</span>
+      <h1>Escape Room Digital</h1>
+      <p>Pesquise, descubra e responda cada pista para completar a investigação.</p>
 
       <ol class="como-jogar">
         <li>
@@ -23,53 +30,20 @@
         </li>
         <li>
           <span class="passo-numero">2</span>
-          <span class="passo-texto"><strong>Descubra</strong> a resposta certa</span>
+          <span class="passo-texto"><strong>Descubra</strong> a palavra e o número pedidos</span>
         </li>
         <li>
           <span class="passo-numero">3</span>
-          <span class="passo-texto"><strong>Escreva</strong> a resposta na área amarela de cada pista</span>
+          <span class="passo-texto"><strong>Responda</strong> na área amarela e envie no final</span>
         </li>
       </ol>
-    </header>
+    </section>
 
-    <div class="progresso-wrap" id="progresso-wrap">
-      <div class="progresso-info">
-        <span id="progresso-texto">0 de 0 pistas respondidas</span>
-        <span id="progresso-percent">0%</span>
-      </div>
-      <div class="progresso-trilha">
-        <div class="progresso-barra" id="progresso-barra"></div>
-      </div>
-    </div>
-
-    <form id="quiz-form">
-      <div class="identificacao">
-        <div>
-          <label for="participantes">Nome do aluno ou nomes do grupo</label>
-          <input type="text" id="participantes" name="participantes" placeholder="Ex: Ana, Bruno e Carlos" required />
-        </div>
-        <div>
-          <label for="turma">Turma</label>
-          <input type="text" id="turma" name="turma" placeholder="Ex: 7º Ano B" required />
-        </div>
-      </div>
-
-      <div class="erro-msg" id="erro-msg"></div>
-
-      <div id="perguntas-container">
-        <p class="carregando">Carregando perguntas...</p>
-      </div>
-
-      <button type="submit" id="btn-enviar">Enviar respostas</button>
-    </form>
-
-    <div id="resultado"></div>
+    <div id="app"></div>
 
     <footer>
       <a href="admin.html">Área do professor</a>
     </footer>
-  </div>
-
-  <script src="script.js"></script>
+  </main>
 </body>
 </html>

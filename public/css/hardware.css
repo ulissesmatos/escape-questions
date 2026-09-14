@@ -1,0 +1,356 @@
+/* ---------- Níveis ---------- */
+
+.card-nivel .card-icone {
+  font-weight: 800;
+  font-size: 1.3rem;
+  color: var(--accent-dark);
+}
+
+.card-nivel-barra {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+  margin: -4px 0 16px;
+}
+
+.card-nivel-barra span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.card-nivel.completo .card-nivel-barra span {
+  background: var(--sucesso-forte);
+}
+
+/* ---------- Cabeçalho do mapa ---------- */
+
+.mapa-cabecalho {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mapa-cabecalho h2 {
+  margin: 0 0 4px;
+  font-size: clamp(1.3rem, 3.5vw, 1.7rem);
+  font-weight: 800;
+}
+
+.mapa-cabecalho p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+/* ---------- Aviso de nível completo ---------- */
+
+.nivel-completo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  background: var(--sucesso-bg);
+  border: 1px solid var(--sucesso-border);
+  border-radius: var(--raio-lg);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  animation: aparecer 0.3s ease;
+}
+
+.nivel-completo-icone {
+  font-size: 2rem;
+}
+
+.nivel-completo-texto {
+  flex: 1 1 200px;
+  display: grid;
+  color: #14532d;
+  font-size: 0.93rem;
+}
+
+.nivel-completo-texto strong {
+  font-size: 1.05rem;
+}
+
+.nivel-completo-acoes {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ---------- Mapa ---------- */
+
+.mapa-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3.3;
+  background-color: var(--card-bg);
+  background-image: radial-gradient(circle, #dfe3ee 1px, transparent 1.2px);
+  background-size: 22px 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--raio-lg);
+  box-shadow: var(--sombra);
+}
+
+/* Área interna com margem: as posições 0–100 do admin ficam dentro dela,
+   então peças na borda (ex: X=97) não saem do mapa. */
+.mapa-area {
+  position: absolute;
+  inset: 52px 64px 60px;
+}
+
+@media (max-width: 640px) {
+  .mapa-wrap {
+    aspect-ratio: 3 / 4.2;
+  }
+  .mapa-area {
+    inset: 40px 38px 50px;
+  }
+}
+
+.mapa-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.mapa-svg line {
+  vector-effect: non-scaling-stroke;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  transition: stroke 0.3s ease, opacity 0.3s ease;
+}
+
+.mapa-svg line.linha-oculta {
+  stroke: var(--bloqueado);
+  stroke-dasharray: 5 6;
+  opacity: 0.55;
+}
+
+.mapa-svg line.linha-ativa {
+  stroke: var(--resposta-border-focus);
+  opacity: 0.55;
+}
+
+.mapa-svg line.linha-completa {
+  stroke: var(--sucesso-forte);
+  opacity: 0.8;
+}
+
+.mapa-nos {
+  position: absolute;
+  inset: 0;
+}
+
+.no {
+  position: absolute;
+  transform: translate(-50%, -30px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 96px;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: center;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.no:focus-visible {
+  outline: none;
+}
+
+.no:focus-visible .no-bolha {
+  box-shadow: 0 0 0 5px var(--accent-ring);
+}
+
+.no-bolha {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 1.6rem;
+  background: var(--card-bg);
+  border: 3px solid var(--bloqueado);
+  box-shadow: var(--sombra-media);
+  position: relative;
+  transition: transform 0.15s ease, border-color 0.3s ease, background 0.3s ease;
+}
+
+.no-foto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.no-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.no-check {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--sucesso-forte);
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  border: 2px solid white;
+}
+
+.no-bloqueado {
+  cursor: not-allowed;
+}
+
+.no-bloqueado .no-bolha {
+  background: var(--bloqueado-bg);
+  border-style: dashed;
+  box-shadow: none;
+  font-size: 1.2rem;
+  filter: grayscale(1);
+  opacity: 0.8;
+}
+
+.no-bloqueado .no-label {
+  color: var(--text-soft);
+}
+
+.no-desbloqueado {
+  cursor: pointer;
+}
+
+.no-desbloqueado .no-bolha {
+  border-color: #f0b400;
+  background: var(--resposta-bg);
+  animation: pulsarNo 1.8s ease-in-out infinite;
+}
+
+.no-desbloqueado .no-label {
+  color: var(--resposta-text);
+  background: var(--resposta-bg);
+}
+
+.no-desbloqueado:hover .no-bolha,
+.no-descoberto:hover .no-bolha {
+  transform: scale(1.08);
+}
+
+@keyframes pulsarNo {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(240, 180, 0, 0.45); }
+  50% { box-shadow: 0 0 0 10px rgba(240, 180, 0, 0); }
+}
+
+.no-descoberto {
+  cursor: pointer;
+}
+
+.no-descoberto .no-bolha {
+  border-color: var(--sucesso-forte);
+  background: var(--sucesso-bg);
+}
+
+.no-descoberto .no-label {
+  color: var(--sucesso);
+}
+
+.no-novo .no-bolha {
+  animation: surgirNo 0.6s ease, pulsarNo 1.8s ease-in-out 0.6s infinite;
+}
+
+@keyframes surgirNo {
+  0% { transform: scale(0.4); opacity: 0; }
+  70% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 640px) {
+  .no {
+    width: 74px;
+    gap: 4px;
+    transform: translate(-50%, -23px);
+  }
+  .no-bolha {
+    width: 46px;
+    height: 46px;
+    font-size: 1.25rem;
+    border-width: 2.5px;
+  }
+  .no-label {
+    font-size: 0.64rem;
+    padding: 1px 4px;
+  }
+  .no-check {
+    width: 18px;
+    height: 18px;
+    font-size: 0.6rem;
+  }
+}
+
+/* ---------- Legenda ---------- */
+
+.legenda {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  padding: 0;
+  margin: 14px 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.legenda li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.legenda-bolinha {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2.5px solid;
+}
+
+.legenda-bloqueado {
+  border-color: var(--bloqueado);
+  border-style: dashed;
+  background: var(--bloqueado-bg);
+}
+
+.legenda-desbloqueado {
+  border-color: #f0b400;
+  background: var(--resposta-bg);
+}
+
+.legenda-descoberto {
+  border-color: var(--sucesso-forte);
+  background: var(--sucesso-bg);
+}
