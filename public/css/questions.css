@@ -1,0 +1,545 @@
+/* =========================================================
+   Formas de responder (views de pergunta) e painéis de resultado.
+   ========================================================= */
+
+.questao {
+  display: grid;
+}
+
+.zona-resposta.bloqueada {
+  opacity: 0.75;
+}
+
+.zona-resposta.tremer {
+  animation: tremer 0.35s ease;
+}
+
+.afirmacao {
+  margin: 0 0 12px;
+  padding: 14px 16px;
+  border-left: 4px solid var(--accent);
+  background: var(--card-bg);
+  border-radius: 0 12px 12px 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.5;
+  box-shadow: var(--sombra);
+}
+
+/* ---------- Múltipla escolha ---------- */
+
+.opcao-letra {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-weight: 800;
+  font-size: 0.8rem;
+}
+
+.opcao:has(input:checked) .opcao-letra {
+  background: var(--accent);
+  color: white;
+}
+
+.opcoes-vf .opcao {
+  justify-content: center;
+  font-weight: 700;
+}
+
+/* ---------- Texto ---------- */
+
+.resposta-texto {
+  display: grid;
+  gap: 6px;
+}
+
+.campo-resposta-texto {
+  font-size: 1.1rem !important;
+  font-weight: 700;
+  min-height: 52px !important;
+}
+
+.resposta-dica {
+  font-size: 0.8rem;
+  color: var(--resposta-text);
+}
+
+/* ---------- Slider ---------- */
+
+.resposta-slider {
+  display: grid;
+  gap: 10px;
+}
+
+.slider-visor-wrap {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+}
+
+.slider-visor {
+  font-size: 2.2rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.slider-unidade {
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.slider-linha {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider-passo {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-strong);
+  background: white;
+  font-size: 1.3rem;
+  font-weight: 800;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.slider-passo:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.resposta-slider input[type="range"] {
+  --preenchido: 0%;
+  flex: 1;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent) var(--preenchido), var(--border) var(--preenchido));
+  outline: none;
+  touch-action: pan-y;
+}
+
+.resposta-slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: white;
+  border: 4px solid var(--accent);
+  box-shadow: 0 2px 8px rgba(16, 18, 38, 0.2);
+  cursor: grab;
+}
+
+.resposta-slider input[type="range"]::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  border: 4px solid var(--accent);
+  cursor: grab;
+}
+
+.resposta-slider input[type="range"]:focus-visible {
+  box-shadow: 0 0 0 4px var(--accent-ring);
+}
+
+.slider-limites {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  font-weight: 700;
+}
+
+.slider-fino {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--resposta-text);
+  font-weight: 700;
+}
+
+.slider-numero {
+  width: 96px;
+  min-height: 36px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  border: 1.5px solid var(--resposta-border);
+  text-align: center;
+  font: inherit;
+  font-weight: 700;
+}
+
+/* ---------- Anagrama ---------- */
+
+.resposta-anagrama {
+  display: grid;
+  gap: 14px;
+  outline: none;
+}
+
+.anagrama-slots,
+.anagrama-banco {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.anagrama-slot,
+.anagrama-letra {
+  width: 42px;
+  height: 48px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 1.25rem;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+
+.anagrama-slot {
+  border: 2px solid var(--accent);
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  cursor: pointer;
+}
+
+.anagrama-slot.vazio {
+  border: 2px dashed var(--resposta-border);
+  background: white;
+  cursor: default;
+}
+
+.anagrama-letra {
+  border: 1.5px solid var(--border-strong);
+  border-bottom-width: 4px;
+  background: white;
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.anagrama-letra:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+
+.anagrama-letra:disabled {
+  opacity: 0.2;
+  cursor: default;
+}
+
+.anagrama-acoes {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.anagrama-acoes .resposta-dica {
+  margin-right: auto;
+}
+
+@media (max-width: 420px) {
+  .anagrama-slot,
+  .anagrama-letra {
+    width: 34px;
+    height: 42px;
+    font-size: 1.05rem;
+  }
+}
+
+/* ---------- Ligar pares ---------- */
+
+.resposta-ligar {
+  display: grid;
+  gap: 8px;
+}
+
+.ligar-colunas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.ligar-coluna {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.ligar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  min-height: 50px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-strong);
+  background: white;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.ligar-item:hover:not(:disabled) {
+  border-color: var(--resposta-border-focus);
+}
+
+.ligar-item.selecionado {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+  background: var(--accent-light);
+}
+
+.ligar-marcador {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px dashed var(--border-strong);
+  display: grid;
+  place-items: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: white;
+}
+
+.ligar-item.ligado .ligar-marcador {
+  border: none;
+  background: var(--cor-par);
+}
+
+.ligar-item.ligado {
+  border-color: var(--cor-par);
+}
+
+.cor-1 { --cor-par: #5046e5; }
+.cor-2 { --cor-par: #0d9488; }
+.cor-3 { --cor-par: #ea580c; }
+.cor-4 { --cor-par: #db2777; }
+.cor-5 { --cor-par: #0284c7; }
+.cor-6 { --cor-par: #65a30d; }
+
+.ligar-status {
+  margin: 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--resposta-text);
+  font-weight: 700;
+}
+
+@media (max-width: 420px) {
+  .ligar-item {
+    font-size: 0.82rem;
+    padding: 8px;
+  }
+}
+
+/* ---------- Dígito (Escape Room) ---------- */
+
+.resposta-campos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 104px;
+  align-items: start;
+  gap: 12px;
+}
+
+@media (max-width: 420px) {
+  .resposta-campos {
+    grid-template-columns: minmax(0, 1fr) 84px;
+  }
+}
+
+.campo-texto label,
+.campo-digito label {
+  color: var(--resposta-text);
+  font-size: 0.82rem;
+}
+
+.zona-resposta input[type="text"] {
+  border-color: var(--resposta-border);
+  background: white;
+}
+
+.zona-resposta input[type="text"]:focus {
+  border-color: var(--resposta-border-focus);
+  box-shadow: 0 0 0 4px rgba(217, 154, 0, 0.18);
+}
+
+.campo-digito-input {
+  height: 46px;
+  padding: 0 4px !important;
+  text-align: center;
+  font-size: 1.4rem !important;
+  font-weight: 800;
+}
+
+.campo-digito-input.preenchido {
+  border-color: var(--sucesso-forte) !important;
+  background: var(--sucesso-bg) !important;
+}
+
+.campo-digito-ajuda {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--resposta-text);
+  margin-top: 4px;
+}
+
+/* ---------- Painéis de resultado (modal de desafio) ---------- */
+
+.desafio-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-figura {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--accent-light);
+  display: grid;
+  place-items: center;
+  font-size: 1.6rem;
+}
+
+.modal-figura img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modal-titulo {
+  min-width: 0;
+}
+
+.modal-etiqueta {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.modal-etiqueta.descoberta {
+  color: var(--sucesso);
+}
+
+.desafio-selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.resultado {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 4px;
+  padding: 12px 8px 16px;
+}
+
+.resultado + .resultado {
+  border-top: 1px solid var(--border);
+}
+
+.resultado-icone {
+  font-size: 2.6rem;
+  line-height: 1.2;
+  animation: pular 0.5s ease;
+}
+
+@keyframes pular {
+  0% { transform: scale(0.4); opacity: 0; }
+  70% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+.resultado h3 {
+  margin: 4px 0 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.resultado p {
+  margin: 0;
+  color: var(--text-muted);
+  max-width: 420px;
+}
+
+.resultado-acerto h3 {
+  color: var(--sucesso);
+}
+
+.resultado-rapido h3 {
+  color: #b45309;
+}
+
+.evolucao {
+  margin-top: 8px !important;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+.evolucao-sobe {
+  background: #fff1e8;
+  color: #c2410c !important;
+}
+
+.evolucao-desce {
+  background: var(--surface-2);
+}
+
+.pausa-relogio {
+  margin-top: 8px;
+  font-size: 2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.secao-explicacao {
+  background: var(--sucesso-bg);
+  border: 1px solid var(--sucesso-border);
+}
+
+.secao-explicacao .secao-titulo {
+  color: var(--sucesso);
+}
+
+.secao-explicacao p {
+  margin: 0;
+  color: #14532d;
+  line-height: 1.55;
+}

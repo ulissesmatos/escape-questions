@@ -4,66 +4,98 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Atividades da Turma</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap" />
   <link rel="stylesheet" href="css/base.css" />
-  <link rel="stylesheet" href="cards.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <script type="module">
+    import { SiteHeader } from './js/components/SiteHeader.js';
+    SiteHeader.montarNaPagina();
+  </script>
 </head>
 <body data-page="hub">
-  <div id="site-header"></div>
-  <script src="js/site-header.js"></script>
+  <header id="site-header"></header>
 
-  <div class="container">
-    <header class="hero">
-      <h1>🎮 Atividades da Turma</h1>
-      <p>Escolha uma atividade para começar</p>
-    </header>
+  <main class="container">
+    <section class="pagina-topo">
+      <span class="pagina-etiqueta"><span class="pagina-etiqueta-icone">👋</span>Bem-vindo(a)!</span>
+      <h1>O que vamos aprender hoje?</h1>
+      <p>Escolha uma atividade. Em todas elas você vai pesquisar, pensar e mostrar o que descobriu.</p>
+    </section>
 
     <div class="grid-atividades">
-      <a href="escape-room.html" class="card-atividade">
-        <span class="card-icone">🔎</span>
+      <a href="escape-room.html" class="card-atividade card-cor-escape">
+        <div class="card-topo">
+          <span class="card-icone" aria-hidden="true">🔎</span>
+          <span class="card-badge card-badge-destaque">Pistas</span>
+        </div>
         <h2>Escape Room</h2>
-        <p>Pesquise, descubra e responda cada pista para avançar na investigação.</p>
-        <span class="card-badge">10 pistas</span>
+        <p>Pesquise na internet, descubra as respostas e resolva cada pista da investigação.</p>
+        <div class="card-rodape">
+          <span class="card-badge">🕵️ Investigação</span>
+          <span class="card-acao">Começar</span>
+        </div>
       </a>
 
-      <a href="hardware.html" class="card-atividade">
-        <span class="card-icone">🗺️</span>
+      <a href="hardware.html" class="card-atividade card-cor-hardware">
+        <div class="card-topo">
+          <span class="card-icone" aria-hidden="true">🗺️</span>
+          <span class="card-badge card-badge-destaque">Adaptativo</span>
+        </div>
         <h2>Mapa de Hardware</h2>
-        <p>Explore os componentes do computador e desbloqueie o mapa.</p>
-        <span class="card-badge">3 níveis</span>
+        <p>Descubra as peças do computador uma a uma. As perguntas ficam mais difíceis conforme você acerta!</p>
+        <div class="card-rodape">
+          <span class="card-badge">🧩 Níveis e desafios</span>
+          <span class="card-acao">Explorar</span>
+        </div>
       </a>
 
-      <a href="monta-pc.html" class="card-atividade">
-        <span class="card-icone">🛒</span>
+      <a href="monta-pc.html" class="card-atividade card-cor-pc">
+        <div class="card-topo">
+          <span class="card-icone" aria-hidden="true">🛒</span>
+          <span class="card-badge card-badge-destaque">Missões</span>
+        </div>
         <h2>Monte o PC Ideal</h2>
-        <p>Pesquise peças reais e monte a proposta de PC perfeita pra cada cliente, dentro do orçamento.</p>
-        <span class="card-badge">5 missões</span>
+        <p>Pesquise peças reais e monte o computador perfeito para cada cliente, sem estourar o orçamento.</p>
+        <div class="card-rodape">
+          <span class="card-badge">💰 Com orçamento</span>
+          <span class="card-acao">Montar</span>
+        </div>
       </a>
+    </div>
 
+    <h2 class="titulo-grupo">Em breve</h2>
+    <div class="grid-atividades grid-3">
       <div class="card-atividade card-em-breve" aria-disabled="true">
-        <span class="card-icone">🧩</span>
+        <div class="card-topo">
+          <span class="card-icone" aria-hidden="true">🧩</span>
+        </div>
         <h2>Pareamento</h2>
         <p>Combine cada termo com sua definição.</p>
-        <span class="card-badge card-badge-bloqueado">Em breve</span>
       </div>
 
       <div class="card-atividade card-em-breve" aria-disabled="true">
-        <span class="card-icone">✏️</span>
+        <div class="card-topo">
+          <span class="card-icone" aria-hidden="true">✏️</span>
+        </div>
         <h2>Complete a Frase</h2>
         <p>Preencha as lacunas com o termo certo.</p>
-        <span class="card-badge card-badge-bloqueado">Em breve</span>
       </div>
 
       <div class="card-atividade card-em-breve" aria-disabled="true">
-        <span class="card-icone">🔢</span>
-        <h2>Ordenar / Classificar</h2>
+        <div class="card-topo">
+          <span class="card-icone" aria-hidden="true">🔢</span>
+        </div>
+        <h2>Ordenar e Classificar</h2>
         <p>Organize os itens na ordem ou categoria correta.</p>
-        <span class="card-badge card-badge-bloqueado">Em breve</span>
       </div>
     </div>
 
     <footer>
       <a href="admin.html">Área do professor</a>
     </footer>
-  </div>
+  </main>
 </body>
 </html>

@@ -1,173 +1,535 @@
-:root {
-  --bg: #eef1f8;
-  --card-bg: #ffffff;
-  --text: #1e2333;
-  --text-muted: #64708a;
-  --border: #e2e6f0;
+/* =========================================================
+   Design system compartilhado (hub, Escape Room, Mapa de
+   Hardware e Monte o PC Ideal). Visual limpo e minimalista:
+   fundo claro, cartões brancos com borda suave, uma cor de
+   destaque por atividade (definida em body[data-page]).
+   ========================================================= */
 
-  --primary: #4f46e5;
-  --primary-dark: #4338ca;
-  --primary-light: #eef2ff;
+:root {
+  --bg: #f6f7fb;
+  --card-bg: #ffffff;
+  --surface-2: #f1f3f9;
+  --text: #171a33;
+  --text-muted: #5d6481;
+  --text-soft: #8a91ab;
+  --border: #e6e8f1;
+  --border-strong: #d4d8e6;
+
+  --primary: #5046e5;
+  --primary-dark: #3f36c9;
+  --primary-light: #eeedfd;
+  --primary-ring: rgba(80, 70, 229, 0.18);
+
+  /* Cor de destaque da atividade atual (sobrescrita por página) */
+  --accent: var(--primary);
+  --accent-dark: var(--primary-dark);
+  --accent-light: var(--primary-light);
+  --accent-ring: var(--primary-ring);
 
   --resposta-bg: #fffbeb;
-  --resposta-border: #f2c94c;
-  --resposta-border-focus: #e0a800;
-  --resposta-text: #7a5b00;
+  --resposta-border: #f5d77a;
+  --resposta-border-focus: #d99a00;
+  --resposta-text: #7a5700;
 
-  --sucesso: #16a34a;
-  --sucesso-bg: #f0fdf4;
-  --erro: #dc2626;
+  --sucesso: #15803d;
+  --sucesso-forte: #16a34a;
+  --sucesso-bg: #effcf3;
+  --sucesso-border: #a7e8bd;
+  --erro: #c62828;
   --erro-bg: #fef2f2;
+  --erro-border: #f9b4b4;
 
-  --bloqueado: #b6bccb;
-  --bloqueado-bg: #e4e7ef;
+  --bloqueado: #aeb4c7;
+  --bloqueado-bg: #eceef4;
 
-  --sombra: 0 2px 10px rgba(30, 35, 51, 0.06);
-  --sombra-media: 0 8px 24px rgba(30, 35, 51, 0.10);
+  --raio-sm: 10px;
+  --raio: 14px;
+  --raio-lg: 20px;
+
+  --sombra: 0 1px 2px rgba(23, 26, 51, 0.04), 0 2px 8px rgba(23, 26, 51, 0.04);
+  --sombra-media: 0 4px 12px rgba(23, 26, 51, 0.06), 0 12px 32px rgba(23, 26, 51, 0.08);
+
+  --fonte: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+body[data-page="escape-room"] {
+  --accent: #5046e5;
+  --accent-dark: #3f36c9;
+  --accent-light: #eeedfd;
+  --accent-ring: rgba(80, 70, 229, 0.18);
+}
+
+body[data-page="hardware"] {
+  --accent: #0d9488;
+  --accent-dark: #0b7a70;
+  --accent-light: #e6f7f5;
+  --accent-ring: rgba(13, 148, 136, 0.18);
+}
+
+body[data-page="monta-pc"] {
+  --accent: #ea580c;
+  --accent-dark: #c2410c;
+  --accent-light: #fff1e8;
+  --accent-ring: rgba(234, 88, 12, 0.18);
 }
 
 * {
   box-sizing: border-box;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--fonte);
+  font-size: 16px;
+  line-height: 1.5;
   background: var(--bg);
   color: var(--text);
-  padding: 0 16px 64px;
+  padding: 0 0 64px;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent-ring);
+  outline-offset: 2px;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 .container {
-  max-width: 760px;
+  max-width: 880px;
   margin: 0 auto;
+  padding: 0 20px;
+}
+
+.container-largo {
+  max-width: 1120px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }
 
 /* ---------- Navegação ---------- */
 
+#site-header {
+  display: block;
+  min-height: 59px; /* reserva o espaço antes do JS montar a navegação */
+}
+
+@media (max-width: 720px) {
+  #site-header {
+    min-height: 100px;
+  }
+}
+
+.site-topo {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: saturate(1.4) blur(8px);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+}
+
 .site-nav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-  max-width: 760px;
+  gap: 12px 24px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 14px 16px;
+  padding: 12px 20px;
 }
 
 .site-nav-marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   font-weight: 800;
   color: var(--text);
   text-decoration: none;
   font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.site-nav-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--text);
+  color: white;
+  font-size: 1.05rem;
 }
 
 .site-nav-links {
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 4px;
+  margin-left: auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.site-nav-links::-webkit-scrollbar {
+  display: none;
 }
 
 .site-nav-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--text-muted);
   text-decoration: none;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  padding: 6px 12px;
+  padding: 8px 14px;
   border-radius: 999px;
+  white-space: nowrap;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .site-nav-links a:hover {
-  background: var(--primary-light);
-  color: var(--primary-dark);
+  background: var(--surface-2);
+  color: var(--text);
 }
 
 .site-nav-links a.ativo {
-  background: var(--primary);
-  color: white;
+  background: var(--accent-light);
+  color: var(--accent-dark);
 }
 
-/* ---------- Header / hero ---------- */
-
-.hero {
-  text-align: center;
-  margin: 0 -16px 20px;
-  padding: 32px 16px 24px;
-  background: linear-gradient(160deg, var(--primary) 0%, #7c6ff0 100%);
-  color: white;
-  border-radius: 0 0 24px 24px;
-  box-shadow: var(--sombra-media);
+@media (max-width: 720px) {
+  .site-nav {
+    flex-wrap: wrap;
+    padding: 10px 16px 0;
+  }
+  .site-nav-links {
+    margin: 0 -16px;
+    padding: 0 16px 10px;
+    width: calc(100% + 32px);
+  }
+  .site-nav-links a {
+    font-size: 0.85rem;
+    padding: 7px 12px;
+  }
+  .site-nav-marca .site-nav-texto-longo {
+    display: none;
+  }
 }
 
-.hero h1 {
-  font-size: 1.7rem;
-  margin: 0 0 6px;
+/* ---------- Cabeçalho da página (substitui o antigo "hero") ---------- */
+
+.pagina-topo {
+  margin-bottom: 28px;
 }
 
-.hero p {
-  margin: 0 0 20px;
-  color: #e0e0ff;
-  font-size: 0.98rem;
+.pagina-etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 5px 12px 5px 6px;
+  border-radius: 999px;
+  margin-bottom: 14px;
 }
 
+.pagina-etiqueta-icone {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+}
+
+.pagina-topo h1 {
+  font-size: clamp(1.75rem, 4vw, 2.4rem);
+  font-weight: 800;
+  margin: 0 0 8px;
+}
+
+.pagina-topo > p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  max-width: 620px;
+}
+
+/* Passo a passo em linha, discreto */
 .como-jogar {
   list-style: none;
-  margin: 0 auto;
+  margin: 22px 0 0;
   padding: 0;
   display: grid;
   gap: 10px;
-  text-align: left;
-  max-width: 480px;
-}
-
-@media (min-width: 620px) {
-  .como-jogar {
-    grid-template-columns: repeat(3, 1fr);
-    text-align: center;
-  }
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  counter-reset: passo;
 }
 
 .como-jogar li {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.14);
-  border-radius: 10px;
-  padding: 10px 12px;
-}
-
-@media (min-width: 620px) {
-  .como-jogar li {
-    flex-direction: column;
-    gap: 6px;
-    padding: 14px 10px;
-  }
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--raio);
+  padding: 12px 14px;
 }
 
 .passo-numero {
   flex-shrink: 0;
   width: 26px;
   height: 26px;
-  border-radius: 50%;
-  background: white;
-  color: var(--primary-dark);
-  font-weight: 700;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 8px;
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  font-weight: 800;
+  font-size: 0.85rem;
+  display: grid;
+  place-items: center;
 }
 
 .passo-texto {
-  font-size: 0.85rem;
-  line-height: 1.3;
-  color: #f1f0ff;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+  padding-top: 2px;
 }
 
 .passo-texto strong {
+  color: var(--text);
+}
+
+@media (max-width: 640px) {
+  .como-jogar {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .como-jogar li {
+    padding: 10px 12px;
+    align-items: center;
+  }
+  .passo-texto {
+    padding-top: 0;
+  }
+}
+
+/* ---------- Botões ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 1.5px solid transparent;
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease,
+    transform 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.btn-primario {
+  background: var(--accent);
   color: white;
+  box-shadow: 0 1px 2px rgba(23, 26, 51, 0.12), 0 4px 14px var(--accent-ring);
+}
+
+.btn-primario:hover:not(:disabled) {
+  background: var(--accent-dark);
+}
+
+.btn-escuro {
+  background: var(--text);
+  color: white;
+}
+
+.btn-escuro:hover:not(:disabled) {
+  background: #2a2e4d;
+}
+
+.btn-contorno {
+  background: var(--card-bg);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.btn-contorno:hover:not(:disabled) {
+  border-color: var(--text);
+}
+
+.btn-suave {
+  background: var(--accent-light);
+  color: var(--accent-dark);
+}
+
+.btn-suave:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-light) 70%, var(--accent) 30%);
+}
+
+.btn-perigo {
+  background: var(--erro);
+  color: white;
+}
+
+.btn-perigo:hover:not(:disabled) {
+  background: #a51f1f;
+}
+
+.btn-perigo-contorno {
+  background: var(--card-bg);
+  color: var(--erro);
+  border-color: var(--erro-border);
+}
+
+.btn-perigo-contorno:hover:not(:disabled) {
+  background: var(--erro-bg);
+  border-color: var(--erro);
+}
+
+.btn-pequeno {
+  min-height: 36px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  border-radius: 10px;
+}
+
+.btn-mini {
+  min-height: 34px;
+  padding: 4px 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-strong);
+  background: white;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-mini:hover:not(:disabled) {
+  border-color: var(--text);
+}
+
+.btn-grande {
+  min-height: 54px;
+  padding: 14px 24px;
+  font-size: 1.05rem;
+  border-radius: 14px;
+}
+
+.btn-bloco {
+  width: 100%;
+}
+
+/* ---------- Barra "voltar" (usada no Mapa e no Monte o PC) ---------- */
+
+.barra-voltar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.btn-voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 16px 8px 12px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-strong);
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--sombra);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.btn-voltar:hover {
+  border-color: var(--text);
+}
+
+.btn-voltar-seta {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.migalhas {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 0.88rem;
+  color: var(--text-soft);
+  min-width: 0;
+}
+
+.migalhas strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* ---------- Cartão genérico ---------- */
+
+.cartao {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--raio-lg);
+  box-shadow: var(--sombra);
 }
 
 /* ---------- Barra de progresso ---------- */
@@ -175,94 +537,213 @@ body {
 .progresso-wrap {
   position: sticky;
   top: 0;
-  z-index: 10;
-  background: var(--bg);
-  padding: 10px 0 14px;
-  margin-bottom: 6px;
+  z-index: 20;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(6px);
+  padding: 12px 0 14px;
+  margin-bottom: 8px;
+}
+
+.progresso-wrap.progresso-solta {
+  position: static;
+  background: none;
+  backdrop-filter: none;
 }
 
 .progresso-info {
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
+  align-items: baseline;
+  font-size: 0.88rem;
   color: var(--text-muted);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   font-weight: 600;
 }
 
-#progresso-percent {
-  color: var(--primary-dark);
+.progresso-percent {
+  color: var(--accent-dark);
+  font-weight: 800;
 }
 
 .progresso-trilha {
-  height: 10px;
+  height: 8px;
   border-radius: 999px;
   background: var(--border);
   overflow: hidden;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .progresso-barra {
   height: 100%;
   width: 0%;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--primary), #22c55e);
-  transition: width 0.4s ease;
+  background: var(--accent);
+  transition: width 0.4s ease, background 0.3s ease;
 }
 
-/* ---------- Identificação (regras comuns; padding e a media query de colunas
-   ficam em cada página, pois divergem entre Escape Room e Mapa de Hardware) ---------- */
+.progresso-barra.completo {
+  background: var(--sucesso-forte);
+}
+
+/* ---------- Identificação ---------- */
 
 .identificacao {
   background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--raio-lg);
   margin-bottom: 20px;
+  padding: 20px;
   display: grid;
-  gap: 12px;
+  gap: 14px;
   box-shadow: var(--sombra);
 }
 
-label {
+.identificacao-titulo {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.identificacao-campos {
+  display: grid;
+  gap: 14px;
+}
+
+@media (min-width: 640px) {
+  .identificacao-campos {
+    grid-template-columns: 1fr 1fr;
+  }
+  .identificacao-com-botao .identificacao-campos {
+    grid-template-columns: 1.3fr 1fr auto;
+    align-items: end;
+  }
+}
+
+/* Chip "Jogando como ..." com opção de trocar */
+.jogador-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 6px 6px 14px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  max-width: 100%;
+}
+
+.jogador-chip strong {
+  color: var(--text);
+}
+
+.jogador-chip button {
+  border: none;
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.jogador-chip button:hover {
+  background: var(--border);
+}
+
+label,
+.rotulo {
   display: block;
   font-size: 0.85rem;
-  color: var(--text-muted);
-  font-weight: 600;
-  margin-bottom: 4px;
+  color: var(--text);
+  font-weight: 700;
+  margin-bottom: 6px;
 }
 
-input[type="text"] {
+.rotulo-opcional {
+  font-weight: 500;
+  color: var(--text-soft);
+}
+
+input[type="text"],
+input[type="url"],
+input[type="search"],
+select,
+textarea,
+.campo {
   width: 100%;
   min-width: 0;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1.5px solid var(--border);
-  background: #fbfcfe;
+  min-height: 46px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-strong);
+  background: var(--card-bg);
   color: var(--text);
   font-size: 1rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-input[type="text"]::placeholder {
-  color: #9aa4bd;
+textarea {
+  line-height: 1.5;
+  resize: vertical;
 }
 
-input[type="text"]:focus {
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-soft);
+}
+
+input[type="text"]:focus,
+input[type="url"]:focus,
+select:focus,
+textarea:focus,
+.campo:focus {
   outline: none;
-  border-color: var(--primary);
-  background: white;
-  box-shadow: 0 0 0 3px var(--primary-light);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-ring);
+}
+
+.campo-invalido,
+input.campo-invalido,
+textarea.campo-invalido {
+  border-color: var(--erro) !important;
+  background: var(--erro-bg);
 }
 
 .carregando {
   text-align: center;
   color: var(--text-muted);
-  padding: 24px 0;
+  padding: 32px 0;
 }
 
-/* ---------- Seções (usadas nos cartões de pergunta e no modal do mapa) ---------- */
+.carregando::before {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 28px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  animation: girar 0.8s linear infinite;
+}
+
+.carregando.sem-spinner::before {
+  display: none;
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Seções (cartões de pergunta e modal do mapa) ---------- */
 
 .secao {
-  border-radius: 10px;
+  border-radius: var(--raio-sm);
   padding: 12px 14px;
   margin-bottom: 12px;
 }
@@ -271,34 +752,49 @@ input[type="text"]:focus {
   display: block;
   font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
 
 .secao-contexto {
-  background: #f6f7fb;
-  border: 1px solid var(--border);
+  background: var(--surface-2);
 }
 
 .secao-contexto .secao-titulo {
-  color: var(--text-muted);
+  color: var(--text-soft);
 }
 
 .secao-contexto p {
   margin: 0;
   color: var(--text-muted);
-  font-size: 0.94rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.secao-pergunta {
+  background: var(--accent-light);
+}
+
+.secao-pergunta .secao-titulo {
+  color: var(--accent-dark);
+}
+
+.secao-pergunta p {
+  margin: 0;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 1rem;
   line-height: 1.55;
 }
 
-/* ---------- Zona de resposta (sempre a mesma cor em todo o site,
-   para o aluno aprender rápido: "é aqui que eu escrevo") ---------- */
+/* ---------- Zona de resposta (mesma cor em todo o site:
+   "é aqui que eu respondo") ---------- */
 
 .zona-resposta {
   background: var(--resposta-bg);
-  border: 2px dashed var(--resposta-border);
-  border-radius: 12px;
+  border: 1.5px solid var(--resposta-border);
+  border-radius: var(--raio);
   padding: 14px;
   margin-top: 4px;
 }
@@ -307,9 +803,9 @@ input[type="text"]:focus {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 800;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--resposta-text);
   margin-bottom: 10px;
@@ -323,67 +819,172 @@ input[type="text"]:focus {
   gap: 8px;
 }
 
+.opcoes-lista.opcoes-vf {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
 .opcao {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   background: white;
-  border: 1.5px solid var(--resposta-border);
-  border-radius: 10px;
-  padding: 11px 14px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 12px;
+  padding: 12px 14px;
+  min-height: 50px;
   cursor: pointer;
   margin-bottom: 0;
-  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  font-weight: 500;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 
 .opcao:hover {
-  transform: translateY(-1px);
   border-color: var(--resposta-border-focus);
 }
 
 .opcao:has(input:checked) {
-  border-color: var(--primary);
-  background: var(--primary-light);
+  border-color: var(--accent);
+  background: var(--accent-light);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+.opcao:has(input:focus-visible) {
+  box-shadow: 0 0 0 4px var(--accent-ring);
 }
 
 .opcao input {
-  accent-color: var(--primary);
-  width: 18px;
-  height: 18px;
+  accent-color: var(--accent);
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
+  margin: 0;
 }
 
 .opcao span {
   color: var(--text);
-  font-size: 0.95rem;
-  font-weight: 500;
+  font-size: 0.96rem;
+  line-height: 1.4;
 }
 
-/* ---------- Erro (regras comuns; margens ajustadas em cada página) ---------- */
+.opcao.opcao-errada {
+  border-color: var(--erro);
+  background: var(--erro-bg);
+  animation: tremer 0.35s ease;
+}
+
+@keyframes tremer {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* ---------- Mensagens ---------- */
 
 .erro-msg {
   color: #991b1b;
   background: var(--erro-bg);
-  border: 1px solid #fca5a5;
-  padding: 10px 14px;
-  border-radius: 10px;
+  border: 1px solid var(--erro-border);
+  padding: 12px 14px;
+  border-radius: 12px;
   display: none;
-  font-size: 0.92rem;
+  font-size: 0.93rem;
+  font-weight: 600;
 }
 
 .erro-msg.mostrar {
   display: block;
+  animation: aparecer 0.2s ease;
+}
+
+.sucesso-msg {
+  display: none;
+  background: var(--sucesso-bg);
+  border: 1px solid var(--sucesso-border);
+  color: #14532d;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.sucesso-msg.mostrar {
+  display: block;
+  animation: aparecer 0.2s ease;
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Tela de sucesso genérica ---------- */
+
+.tela-sucesso {
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.tela-sucesso-icone {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--sucesso-bg);
+  font-size: 2.2rem;
+}
+
+.tela-sucesso h2 {
+  margin: 0 0 8px;
+  font-size: 1.5rem;
+}
+
+.tela-sucesso p {
+  margin: 0 auto 8px;
+  color: var(--text-muted);
+  max-width: 460px;
+}
+
+.tela-sucesso .acoes {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 22px;
 }
 
 /* ---------- Rodapé ---------- */
 
 footer {
   text-align: center;
-  margin-top: 32px;
-  color: #9aa4bd;
-  font-size: 0.8rem;
+  margin-top: 48px;
+  color: var(--text-soft);
+  font-size: 0.82rem;
 }
 
 footer a {
+  color: var(--text-soft);
+  text-decoration: none;
+  border-bottom: 1px dashed currentColor;
+}
+
+footer a:hover {
   color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

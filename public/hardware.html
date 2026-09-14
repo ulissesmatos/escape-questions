@@ -4,116 +4,46 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mapa de Hardware</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap" />
   <link rel="stylesheet" href="css/base.css" />
-  <link rel="stylesheet" href="cards.css" />
-  <link rel="stylesheet" href="hardware.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/questions.css" />
+  <link rel="stylesheet" href="css/hardware.css" />
+  <script type="module" src="js/pages/hardware/main.js"></script>
 </head>
 <body data-page="hardware">
-  <div id="site-header"></div>
-  <script src="js/site-header.js"></script>
+  <header id="site-header"></header>
 
-  <div class="container">
-    <header class="hero">
-      <h1>🗺️ Mapa de Hardware</h1>
-      <p>Pesquise sobre cada peça do computador e desbloqueie as próximas no mapa!</p>
+  <main class="container">
+    <section class="pagina-topo" id="pagina-topo">
+      <span class="pagina-etiqueta"><span class="pagina-etiqueta-icone">🗺️</span>Mapa de Hardware</span>
+      <h1>Mapa de Hardware</h1>
+      <p>Pesquise sobre cada peça do computador e desbloqueie as próximas no mapa.</p>
 
       <ol class="como-jogar">
         <li>
           <span class="passo-numero">1</span>
-          <span class="passo-texto"><strong>Clique</strong> em um componente desbloqueado</span>
+          <span class="passo-texto"><strong>Toque</strong> em uma peça liberada (amarela)</span>
         </li>
         <li>
           <span class="passo-numero">2</span>
-          <span class="passo-texto"><strong>Pesquise</strong> e responda a pergunta</span>
+          <span class="passo-texto"><strong>Pesquise</strong> e responda com calma</span>
         </li>
         <li>
           <span class="passo-numero">3</span>
-          <span class="passo-texto"><strong>Descubra</strong> os componentes vizinhos</span>
+          <span class="passo-texto"><strong>Acertou?</strong> Vizinhas liberadas e o desafio sobe</span>
         </li>
       </ol>
-    </header>
+    </section>
 
-    <div class="identificacao" id="identificacao">
-      <div>
-        <label for="participantes">Nome do aluno ou nomes do grupo</label>
-        <input type="text" id="participantes" placeholder="Ex: Ana, Bruno e Carlos" autocomplete="off" />
-      </div>
-      <div>
-        <label for="turma">Turma</label>
-        <input type="text" id="turma" placeholder="Ex: 7º Ano B" autocomplete="off" />
-      </div>
-      <button type="button" id="btn-comecar">Começar exploração</button>
-      <div class="erro-msg" id="erro-identificacao"></div>
-    </div>
-
-    <div id="area-niveis" style="display:none">
-      <div class="grid-atividades" id="grid-niveis"></div>
-    </div>
-
-    <div id="area-mapa" style="display:none">
-      <div class="nivel-atual-wrap">
-        <button type="button" id="btn-trocar-nivel" class="link-discreto">← Trocar de nível</button>
-        <h2 id="nivel-atual-nome"></h2>
-      </div>
-
-      <div class="progresso-wrap" id="progresso-wrap">
-        <div class="progresso-info">
-          <span id="progresso-texto">0 de 0 componentes descobertos</span>
-          <span id="progresso-percent">0%</span>
-        </div>
-        <div class="progresso-trilha">
-          <div class="progresso-barra" id="progresso-barra"></div>
-        </div>
-      </div>
-
-      <div class="mapa-wrap">
-        <svg id="mapa-svg" class="mapa-svg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
-        <div id="mapa-nos" class="mapa-nos"></div>
-      </div>
-
-      <p class="dica-mapa">🔒 = ainda bloqueado · 🟡 = desbloqueado, clique para responder · ✅ = descoberto</p>
-    </div>
-
-    <p class="carregando" id="carregando" style="display:none">Carregando mapa...</p>
+    <div id="app"></div>
 
     <footer>
       <a href="admin.html">Área do professor</a>
     </footer>
-  </div>
-
-  <div class="modal-overlay" id="modal-overlay">
-    <div class="modal-card">
-      <div class="modal-cabecalho">
-        <div id="modal-figura" class="modal-figura">
-          <img id="modal-imagem" class="modal-imagem" alt="" style="display:none" />
-          <span id="modal-icone" class="modal-icone">🔧</span>
-        </div>
-        <h2 id="modal-nome">Componente</h2>
-        <button type="button" id="modal-fechar" class="modal-fechar" aria-label="Fechar">✕</button>
-      </div>
-
-      <div class="secao secao-contexto">
-        <span class="secao-titulo">🔎 Pesquise antes de responder</span>
-        <p id="modal-enunciado"></p>
-      </div>
-
-      <div class="secao secao-pergunta">
-        <span class="secao-titulo">❓ Sua missão</span>
-        <p id="modal-pergunta"></p>
-      </div>
-
-      <div class="zona-resposta">
-        <span class="zona-resposta-titulo">✏️ Escolha sua resposta aqui</span>
-        <div id="modal-opcoes" class="opcoes-lista"></div>
-      </div>
-
-      <div class="erro-msg" id="modal-erro"></div>
-      <div class="modal-sucesso" id="modal-sucesso"></div>
-
-      <button type="button" id="modal-confirmar">Confirmar resposta</button>
-    </div>
-  </div>
-
-  <script src="hardware.js"></script>
+  </main>
 </body>
 </html>
