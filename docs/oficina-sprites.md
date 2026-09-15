@@ -1,0 +1,125 @@
+# Sprites da Oficina de PCs (gerando no ChatGPT)
+
+O jogo já funciona com desenhos provisórios feitos por código. Cada imagem que
+você colocar em `public/images/oficina/` substitui o provisório de mesmo nome
+automaticamente. Não precisa mexer no fallback nem reiniciar o servidor: basta
+recarregar a página.
+
+## Arte final já incluída
+
+`public/images/oficina/` agora contém arte original nova para os 27 sprites. Os
+gabaritos em `docs/oficina-gabaritos/` foram usados somente como referência de
+composição — especialmente as posições de socket, RAM, PCIe e baias — e seguem
+intactos. A direção de arte usa uma paleta única, contorno consistente e blocos
+de pixel deliberados. Antes de entrar no jogo, cada imagem foi preparada para
+o tamanho lógico exato do Phaser; isso impede ícones gigantes, peças minúsculas
+e serrilhados irregulares de uma geração de IA usada diretamente em tamanho
+pequeno.
+
+`tools/preparar-arte-gerada-oficina.ps1` é o pipeline da arte final: ele reduz
+cada arquivo à dimensão declarada no manifesto, fixa a transparência real e
+remove o fundo xadrez falso caso uma placa gerada o contenha. O antigo
+`tools/normalizar-sprites-oficina.ps1` permanece disponível apenas para
+comparar/preparar gabaritos de escala inteira.
+
+## Editor visual de zonas
+
+Zonas são os retângulos onde cada peça encaixa sobre a arte (socket, slots de
+memória, M.2, PCI Express, conectores, baias do gabinete). Para ajustá-las:
+
+1. Rode o site localmente (`npm start`) e abra
+   `http://localhost:3000/oficina-zonas.html`. A página não aparece no menu dos
+   alunos.
+2. Escolha a placa-mãe ou o gabinete na faixa de cima.
+3. **Arraste** uma zona para mover e **puxe os cantos** para redimensionar. Os
+   valores são em pixels da arte (por exemplo, `72, 48 · 58×57`) e também podem
+   ser digitados. Setas movem 1 px (Shift: 10 px), Alt + setas mudam o tamanho,
+   Ctrl+Z desfaz e Ctrl+S salva.
+4. **Mostrar peças montadas** desenha processador, memórias, SSD, placa de vídeo,
+   fonte e discos exatamente como o jogo desenha, para você conferir o encaixe.
+5. Clique em **Salvar zonas**. O editor grava só o que mudou em
+   `public/images/oficina/zonas.json`. O jogo aplica esse arquivo por cima dos
+   valores padrão do manifesto ao abrir.
+6. **Testar no jogo** abre `oficina.html?zonas=1`: em ciano, as zonas do editor;
+   em rosa, a área (um pouco maior) onde a peça pode ser solta.
+7. Envie o `zonas.json` para o GitHub junto com as imagens. Assim as zonas valem
+   para todos os alunos.
+
+No servidor publicado (produção), o editor não grava arquivos, porque eles se
+perderiam a cada deploy. Nesse caso, use **Copiar JSON** e salve o conteúdo em
+`public/images/oficina/zonas.json` no repositório.
+
+As zonas que existem são fixas (a placa ATX tem 4 slots de memória, a Micro-ATX
+tem 2, e assim por diante), porque cada uma corresponde a uma regra do jogo.
+Para criar uma placa ou gabinete novo, é preciso também cadastrar a peça no
+catálogo (`regras/catalogo.js`) e o layout padrão no manifesto.
+
+## Passo a passo
+
+1. **Abra o ChatGPT** e cole o *prompt de estilo* (abaixo) uma vez no começo da
+   conversa. Assim todas as peças saem com o mesmo visual.
+2. **Peça uma imagem por vez** usando o texto da tabela. Para placas-mãe e
+   gabinetes, **anexe o gabarito** de `docs/oficina-gabaritos/<nome>.png` e diga
+   *"siga exatamente esta posição dos slots"*.
+3. **Baixe a imagem** (PNG com fundo transparente).
+4. **Ajuste o tamanho** para o tamanho da tabela (ou um múltiplo exato, como 2× ou 3×):
+   - No [Sprite Fusion Pixel Snapper](https://www.spritefusion.com/pixel-snapper)
+     (grátis), que "conserta" os pixels irregulares que a IA gera; ou
+   - No Photopea/Piskel, redimensionando com o modo **vizinho mais próximo**
+     (*nearest neighbor*).
+5. **Salve** como `public/images/oficina/<nome>.png`, com o nome exato da
+   coluna "Arquivo".
+6. **Recarregue** `oficina.html`. Se os slots da arte não baterem com os
+   encaixes, ajuste as zonas no **editor visual de zonas** (seção acima).
+
+## Prompt de estilo (cole primeiro)
+
+> Vou pedir vários sprites para um jogo educativo 2D de montar computadores,
+> para alunos de 11 a 14 anos. Estilo: **pixel art** de jogo mobile, contornos
+> escuros de 1 pixel, cores vivas mas realistas, sombreamento simples com 2 ou 3
+> tons, iluminação vindo do canto superior esquerdo. **Fundo 100% transparente**,
+> sem sombra projetada no chão, sem texto, sem marca registrada nem logotipo de
+> fabricante real. A peça deve lembrar o componente de verdade e ocupar a
+> imagem inteira, centralizada. Vou dizer o tamanho final em pixels de cada uma.
+
+## Lista de sprites
+
+| Arquivo | Tamanho (px) | O que pedir |
+| --- | --- | --- |
+| `placa-atx.png` | 240 × 300 | Placa-mãe ATX vista de cima, PCB verde escuro, socket AM5 prateado no centro-alto, 4 slots de memória verticais pretos à direita do socket, dissipadores em volta do socket, 2 slots M.2, slot PCI Express x16 comprido na parte de baixo, conector de 24 pinos branco na borda direita. **Anexe o gabarito.** |
+| `placa-matx.png` | 240 × 240 | Placa-mãe Micro-ATX quadrada vista de cima, PCB verde, socket AM4 bege com furinhos, 2 slots de memória verticais, 1 slot M.2, slot PCI Express embaixo. **Anexe o gabarito.** |
+| `placa-matx-intel.png` | 240 × 240 | Igual à anterior, mas PCB azul escuro e socket Intel LGA1700 retangular prateado com pinos dourados e alavanca de metal. **Anexe o gabarito.** |
+| `cpu-am4.png` | 44 × 44 | Processador visto de cima, tampa metálica prateada quadrada, **triângulo dourado no canto inferior esquerdo**. |
+| `cpu-am5.png` | 44 × 44 | Processador com tampa prateada recortada nas bordas (formato de "polvo"), **triângulo dourado no canto inferior esquerdo**. |
+| `cpu-intel.png` | 48 × 40 | Processador retangular com borda de placa verde e tampa prateada, **triângulo dourado no canto inferior esquerdo**. |
+| `pasta.png` | 52 × 20 | Seringa de pasta térmica cinza deitada, rótulo azul, tampa na ponta direita. |
+| `cooler-box.png` | 72 × 72 | Cooler box visto de cima: ventoinha preta redonda com pás, moldura quadrada de alumínio. |
+| `cooler-torre.png` | 80 × 80 | Cooler torre visto de cima: bloco de aletas de alumínio, ventoinha preta de um lado, pontas de heatpipes de cobre. |
+| `ram-ddr4.png` | 14 × 96 | Pente de memória **em pé**, placa verde com chips pretos, contatos dourados na lateral esquerda com um entalhe **no meio**. |
+| `ram-ddr5.png` | 14 × 96 | Pente de memória **em pé** com dissipador preto e faixa roxa, contatos dourados com entalhe **fora do centro**. |
+| `ssd-m2.png` | 60 × 16 | SSD M.2 deitado: placa comprida preta com chips e etiqueta, contatos dourados na ponta esquerda. |
+| `ssd-sata.png` | 48 × 32 | SSD SATA 2,5": caixa preta retangular com etiqueta azul. |
+| `hd.png` | 52 × 36 | HD 3,5" visto de cima: carcaça prateada com etiqueta e parafusos. |
+| `gpu-1.png` | 116 × 40 | Placa de vídeo pequena, 1 ventoinha, deitada, **contatos dourados embaixo** e **suporte metálico na ponta esquerda**. |
+| `gpu-2.png` | 136 × 42 | Placa de vídeo intermediária, 2 ventoinhas, mesmas regras da anterior. |
+| `gpu-3.png` | 164 × 46 | Placa de vídeo topo de linha enorme, 3 ventoinhas, faixa de LED colorido, mesmas regras. |
+| `fonte.png` | 88 × 56 | Fonte ATX preta com grade redonda da ventoinha e etiqueta amarela. |
+| `gabinete-mini.png` | 270 × 320 | Gabinete Mini Tower **aberto visto de lado**, interior vazio, ventoinha traseira, compartimento da fonte embaixo, baias de disco à direita. **Anexe o gabarito** (a área da placa-mãe precisa ficar vazia). |
+| `gabinete-mid.png` | 300 × 350 | Gabinete Mid Tower aberto visto de lado, mesmas regras, com ventoinhas no topo. **Anexe o gabarito.** |
+| `cliente-cida.png` | 56 × 56 | Retrato de uma senhora simpática de cabelo grisalho e óculos. |
+| `cliente-ricardo.png` | 56 × 56 | Retrato de um professor de barba curta e óculos. |
+| `cliente-enzo.png` | 56 × 56 | Retrato de um adolescente gamer com headset. |
+| `cliente-marina.png` | 56 × 56 | Retrato de uma jovem criadora de conteúdo com coque. |
+| `moeda.png` | 18 × 18 | Moeda dourada brilhante. |
+| `estrela.png` / `estrela-vazia.png` | 28 × 28 | Estrela dourada / estrela só com contorno cinza. |
+
+## Regras importantes para o jogo funcionar
+
+- **Triângulo do processador no canto inferior esquerdo.** O minigame de alinhar
+  considera essa posição como "certa".
+- **Memórias em pé** e **placas de vídeo deitadas com contatos embaixo**, porque é
+  assim que elas aparecem encaixadas na placa-mãe.
+- **Placas-mãe e gabinetes:** a posição dos slots, socket e baias precisa bater
+  com o gabarito. Confira com `?zonas=1`.
+- Se trocar uma imagem e ela ficar esticada, confira se a proporção
+  (largura × altura) é a mesma da tabela.

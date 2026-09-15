@@ -25,12 +25,13 @@ const { pcbuildRoutes } = require('./modules/pcbuild/pcbuildRoutes');
 const { semearMonteOPc } = require('./modules/pcbuild/seed');
 
 const adminRoutes = require('./modules/admin/adminRoutes');
+const { oficinaRoutes } = require('./modules/oficina/oficinaRoutes');
 
 /**
  * Monta a aplicação: dependências são criadas aqui uma única vez e injetadas
  * nos serviços/rotas (fica fácil trocar peças em testes).
  */
-function criarApp({ db, auth, tipos = registroPadrao }) {
+function criarApp({ db, auth, tipos = registroPadrao, oficina = {} }) {
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', 1); // atrás do proxy do Coolify, para req.ip ser o IP real
@@ -49,7 +50,14 @@ function criarApp({ db, auth, tipos = registroPadrao }) {
   app.use('/api/hardware', hardwareRoutes(jogoHardware));
   app.use('/api/pcbuild', pcbuildRoutes(new PcBuildService(db)));
   app.use('/api/admin', adminRoutes({ db, auth, tipos }));
+
+  app.use('/api/oficina', oficinaRoutes({ podeEditarZonas: !config.isProduction, ...oficina }));
+
   app.use('/api', (req, res, next) => next(HttpError.notFound('Rota não encontrada.')));
+
+  // Phaser vem do node_modules (versão fixada no package.json), sem cópia no repositório
+  const pastaPhaser = path.join(path.dirname(require.resolve('phaser/package.json')), 'dist');
+  app.use('/vendor/phaser', express.static(pastaPhaser, { maxAge: '7d' }));
 
   app.use(express.static(path.join(__dirname, '..', 'public'), { extensions: ['html'] }));
   app.use(errorHandler);

@@ -6,6 +6,7 @@ const PAGINAS = [
   { pagina: 'escape-room', href: 'escape-room.html', icone: '🔎', texto: 'Escape Room' },
   { pagina: 'hardware', href: 'hardware.html', icone: '🗺️', texto: 'Mapa de Hardware' },
   { pagina: 'monta-pc', href: 'monta-pc.html', icone: '🛒', texto: 'Monte o PC' },
+  { pagina: 'oficina', href: 'oficina.html', icone: '🔧', texto: 'Oficina de PCs' },
 ];
 
 /** Cabeçalho de navegação compartilhado. props: { paginaAtual } */
