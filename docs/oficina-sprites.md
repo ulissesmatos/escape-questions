@@ -2,8 +2,34 @@
 
 O jogo já funciona com desenhos provisórios feitos por código. Cada imagem que
 você colocar em `public/images/oficina/` substitui o provisório de mesmo nome
-automaticamente. Não precisa mexer em código nem reiniciar o servidor: basta
+automaticamente. Não precisa mexer no fallback nem reiniciar o servidor: basta
 recarregar a página.
+
+## Arte final já incluída
+
+Os gabaritos recebidos foram normalizados para `public/images/oficina/` com
+redução por **vizinho mais próximo** e escala inteira. Isso conserva o desenho
+manual e evita pixels intermediários/artefatos de IA. Os originais em
+`docs/oficina-gabaritos/` continuam intocados.
+
+Para repetir a operação depois de criar uma variação, atualize o gabarito e rode:
+
+```powershell
+.\tools\normalizar-sprites-oficina.ps1
+```
+
+O script falha de propósito se a imagem não for um múltiplo exato do tamanho do
+jogo. Adicione a nova chave e seu tamanho ao mapa `$tamanhos` do script e ao
+`SPRITES` em `manifesto.js`; assim versões futuras de placas, gabinetes e peças
+entram sem afetar as existentes.
+
+## Editor visual de zonas
+
+Abra `oficina-zonas.html` para calibrar socket, RAM, M.2, PCIe e baias sobre a
+arte real. As caixas podem ser movidas e redimensionadas; o editor também
+permite adicionar zonas, salvar no navegador, exportar e importar JSON. A
+Oficina lê essa calibração ao recarregar. Use **Restaurar padrão** para voltar
+imediatamente aos layouts do repositório.
 
 ## Passo a passo
 

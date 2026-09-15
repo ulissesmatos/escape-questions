@@ -120,6 +120,69 @@ export const LAYOUT_GABINETES = {
   },
 };
 
+// As zonas padrão ficam separadas das preferências locais. Assim uma arte nova
+// pode ser calibrada no editor sem alterar o código nem perder um fallback
+// seguro para testes.
+const copiar = (valor) => JSON.parse(JSON.stringify(valor));
+const congelarProfundo = (valor) => {
+  Object.values(valor).forEach((filho) => {
+    if (filho && typeof filho === 'object' && !Object.isFrozen(filho)) congelarProfundo(filho);
+  });
+  return Object.freeze(valor);
+};
+
+export const LAYOUTS_PADRAO = congelarProfundo({
+  placas: copiar(LAYOUT_PLACAS),
+  gabinetes: copiar(LAYOUT_GABINETES),
+});
+
+const CHAVE_LAYOUTS = 'oficina:layouts:v1';
+
+function storageDisponivel() {
+  return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
+}
+
+function aplicarLayouts(layouts) {
+  if (!layouts || typeof layouts !== 'object') return;
+  for (const [chave, layout] of Object.entries(layouts.placas || {})) {
+    if (layout && typeof layout === 'object') LAYOUT_PLACAS[chave] = copiar(layout);
+  }
+  for (const [chave, layout] of Object.entries(layouts.gabinetes || {})) {
+    if (layout && typeof layout === 'object') LAYOUT_GABINETES[chave] = copiar(layout);
+  }
+}
+
+/** Retorna uma cópia editável das zonas que estão sendo usadas neste navegador. */
+export function layoutsAtuais() {
+  return copiar({ placas: LAYOUT_PLACAS, gabinetes: LAYOUT_GABINETES });
+}
+
+/** Salva as zonas calibradas localmente. A Oficina passa a usá-las ao recarregar. */
+export function salvarLayoutsPersonalizados(layouts) {
+  if (!layouts || typeof layouts !== 'object') throw new Error('Formato de zonas inválido.');
+  if (storageDisponivel()) window.localStorage.setItem(CHAVE_LAYOUTS, JSON.stringify(layouts));
+  aplicarLayouts(layouts);
+}
+
+/** Remove a calibração local e volta ao conjunto que acompanha o jogo. */
+export function restaurarLayoutsPadrao() {
+  if (storageDisponivel()) window.localStorage.removeItem(CHAVE_LAYOUTS);
+  for (const chave of Object.keys(LAYOUT_PLACAS)) delete LAYOUT_PLACAS[chave];
+  for (const chave of Object.keys(LAYOUT_GABINETES)) delete LAYOUT_GABINETES[chave];
+  Object.assign(LAYOUT_PLACAS, copiar(LAYOUTS_PADRAO.placas));
+  Object.assign(LAYOUT_GABINETES, copiar(LAYOUTS_PADRAO.gabinetes));
+}
+
+// Importação protegida: testes em Node e renderização fora do navegador seguem
+// usando as zonas padrão, enquanto o jogador recebe sua calibração local.
+if (storageDisponivel()) {
+  try {
+    aplicarLayouts(JSON.parse(window.localStorage.getItem(CHAVE_LAYOUTS) || 'null'));
+  } catch {
+    window.localStorage.removeItem(CHAVE_LAYOUTS);
+  }
+}
+
 export function tamanhoSprite(chave) {
   const s = SPRITES[chave];
   if (!s) throw new Error(`Sprite sem manifesto: ${chave}`);
