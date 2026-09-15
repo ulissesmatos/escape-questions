@@ -87,7 +87,9 @@ export class Vista {
     zonas.push({ encaixe: 'cpu', ret: socket }, { encaixe: 'pasta', ret: socket });
     const cpu = montagem.processador();
     if (cpu) {
-      const img = this.imagemNoRetangulo(container, cpu.sprite, socket, 0.86);
+      // A arte final usa margem visual própria; ocupar levemente mais que o
+      // soquete evita que o processador pareça solto sobre o encaixe.
+      const img = this.imagemNoRetangulo(container, cpu.sprite, socket, 1.02);
       if (podeArrastar('cpu')) pecas.push({ encaixe: 'cpu', objeto: img });
     }
     const pasta = montagem.estado.pasta;
@@ -115,7 +117,7 @@ export class Vista {
       zonas.push({ encaixe: `ram-${i}`, ret: Phaser.Geom.Rectangle.Inflate(Phaser.Geom.Rectangle.Clone(ret), ret.width * 0.8, 0) });
       const ram = montagem.pecaNo(`ram-${i}`);
       if (ram) {
-        const img = this.imagem(container, ram.sprite, ret.centerX, ret.centerY, escala);
+        const img = this.imagem(container, ram.sprite, ret.centerX, ret.centerY, escala * 1.16);
         if (podeArrastar(`ram-${i}`)) pecas.push({ encaixe: `ram-${i}`, objeto: img });
       }
     });

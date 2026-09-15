@@ -11,14 +11,16 @@ recarregar a página.
 gabaritos em `docs/oficina-gabaritos/` foram usados somente como referência de
 composição — especialmente as posições de socket, RAM, PCIe e baias — e seguem
 intactos. A direção de arte usa uma paleta única, contorno consistente e blocos
-de pixel deliberados; as imagens são carregadas em alta resolução e reduzidas
-pelo Phaser no tamanho lógico do jogo, o que evita os serrilhados irregulares
-de uma geração de IA usada diretamente em tamanho pequeno.
+de pixel deliberados. Antes de entrar no jogo, cada imagem foi preparada para
+o tamanho lógico exato do Phaser; isso impede ícones gigantes, peças minúsculas
+e serrilhados irregulares de uma geração de IA usada diretamente em tamanho
+pequeno.
 
-O script `tools/normalizar-sprites-oficina.ps1` permanece disponível para
-comparar ou preparar os gabaritos, mas não deve ser executado sobre a pasta de
-arte final sem revisar o resultado: ele foi pensado para fontes com escala
-inteira.
+`tools/preparar-arte-gerada-oficina.ps1` é o pipeline da arte final: ele reduz
+cada arquivo à dimensão declarada no manifesto, fixa a transparência real e
+remove o fundo xadrez falso caso uma placa gerada o contenha. O antigo
+`tools/normalizar-sprites-oficina.ps1` permanece disponível apenas para
+comparar/preparar gabaritos de escala inteira.
 
 ## Editor visual de zonas
 
