@@ -3,74 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Calibrar zonas · Oficina de PCs</title>
+  <meta name="robots" content="noindex" />
+  <title>Editor de zonas · Oficina de PCs</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap" />
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/components.css" />
   <link rel="stylesheet" href="css/oficina.css" />
-  <script type="module" src="js/pages/oficina/zonas-editor.js"></script>
+  <link rel="stylesheet" href="css/oficina-zonas.css" />
+  <script type="module" src="js/pages/oficina/editor/main.js"></script>
 </head>
 <body data-page="oficina">
   <header id="site-header"></header>
-  <main class="container container-largo editor-zonas">
+
+  <main class="container container-editor">
     <section class="pagina-topo pagina-topo-compacta">
-      <span class="pagina-etiqueta"><span class="pagina-etiqueta-icone">🎯</span>Ferramenta de arte</span>
-      <h1>Calibrar zonas de encaixe</h1>
-      <p>Arraste as caixas sobre a arte. As alterações ficam neste navegador e a Oficina já as usa ao recarregar.</p>
+      <span class="pagina-etiqueta"><span class="pagina-etiqueta-icone">🎯</span>Ferramenta do professor</span>
+      <h1>Editor de zonas da Oficina</h1>
+      <p>Ajuste onde cada peça encaixa sobre a arte. As zonas são salvas em <code>public/images/oficina/zonas.json</code>, junto das imagens, e valem para todos depois de enviar para o GitHub.</p>
     </section>
 
-    <section class="editor-zonas-cartao" aria-label="Editor de zonas">
-      <div class="editor-barra">
-        <label>Arte
-          <select id="sprite-seletor"></select>
-        </label>
-        <label class="editor-arquivo">Pré-visualizar outro PNG
-          <input id="arquivo-preview" type="file" accept="image/png" />
-        </label>
-        <label>Identificador
-          <input id="id-sprite" placeholder="minha-placa-am5" pattern="[a-z0-9-]+" />
-        </label>
-        <label>Tipo de zonas
-          <select id="grupo-sprite"><option value="placas">Placa-mãe</option><option value="gabinetes">Gabinete</option></select>
-        </label>
-        <button id="adicionar-sprite" class="botao botao-secundario" type="button" disabled>Adicionar à biblioteca</button>
-        <a class="botao botao-secundario" href="oficina.html?zonas=1">Abrir Oficina com zonas</a>
-      </div>
-
-      <div class="editor-corpo">
-        <div class="editor-palco-wrap">
-          <p class="editor-ajuda">Arraste o centro para mover. Arraste o canto pontilhado para redimensionar.</p>
-          <div id="palco-zonas" class="editor-palco" aria-label="Prévia da arte e zonas de encaixe">
-            <img id="preview-sprite" alt="Prévia do sprite selecionado" />
-          </div>
-        </div>
-        <aside class="editor-painel">
-          <div class="editor-painel-cabeca">
-            <h2>Zonas</h2>
-            <button id="adicionar-zona" class="botao botao-secundario" type="button">+ zona</button>
-          </div>
-          <div id="lista-zonas" class="editor-lista"></div>
-          <form id="form-zona" class="editor-form" hidden>
-            <h3 id="titulo-zona"></h3>
-            <div class="editor-campos">
-              <label>X <input name="x" type="number" min="0" max="100" step="0.1" /></label>
-              <label>Y <input name="y" type="number" min="0" max="100" step="0.1" /></label>
-              <label>Largura <input name="w" type="number" min="0.1" max="100" step="0.1" /></label>
-              <label>Altura <input name="h" type="number" min="0.1" max="100" step="0.1" /></label>
-            </div>
-            <button id="remover-zona" class="editor-remover" type="button">Remover zona</button>
-          </form>
-        </aside>
-      </div>
-
-      <div class="editor-acoes">
-        <button id="salvar-zonas" class="botao botao-primario" type="button">Salvar neste navegador</button>
-        <button id="exportar-zonas" class="botao botao-secundario" type="button">Exportar JSON</button>
-        <label class="botao botao-secundario">Importar JSON <input id="importar-zonas" type="file" accept="application/json" hidden /></label>
-        <button id="restaurar-zonas" class="botao botao-secundario" type="button">Restaurar padrão</button>
-        <p id="status-zonas" class="editor-status" role="status"></p>
-      </div>
-    </section>
+    <div id="editor-zonas"></div>
   </main>
 </body>
 </html>

@@ -1,7 +1,8 @@
 import Phaser from '../phaser.js';
 import { CORES, HEX, estiloTexto } from '../constantes.js';
 import { SPRITES, LAYOUT_GABINETES } from '../sprites/manifesto.js';
-import { Vista } from './Vista.js';
+import { ARTE_NO_ENCAIXE, AREA_DE_SOLTAR, caber, daFracao, retangulo } from '../sprites/colocacao.js';
+import { Vista, paraPhaser } from './Vista.js';
 
 const CORES_CABOS = { placa: 0xf5c542, cpu: 0xf08a3c, gpu: 0x8f63e8, sata: 0x60a5fa };
 
@@ -17,48 +18,50 @@ export class VistaGabinete extends Vista {
       return { zonas: [{ encaixe: 'gabinete', ret }], pecas: [] };
     }
 
-    const { largura, altura } = SPRITES[gabinete.sprite];
-    const escala = Math.min(w / largura, h / altura);
-    const gw = largura * escala;
-    const gh = altura * escala;
-    const x0 = x + (w - gw) / 2;
-    const y0 = y + (h - gh) / 2;
+    const base = caber(gabinete.sprite, retangulo(x, y, w, h));
+    const { x: x0, y: y0, width: gw, height: gh } = base;
+    const escala = gw / SPRITES[gabinete.sprite].largura;
     const layout = LAYOUT_GABINETES[gabinete.sprite];
-    const R = (n) => new Phaser.Geom.Rectangle(x0 + n[0] * gw, y0 + n[1] * gh, n[2] * gw, n[3] * gh);
+    const R = (n) => daFracao(n, base);
 
     const zonas = [];
     const pecas = [];
-    const img = this.imagem(container, gabinete.sprite, x0, y0, escala, { origem: [0, 0] });
-    pecas.push({ encaixe: 'gabinete', objeto: img });
+    const guias = [];
+    pecas.push({ encaixe: 'gabinete', objeto: this.imagemEm(container, gabinete.sprite, base) });
 
     // Placa-mãe
     const areaPlaca = R(layout.placa);
+    guias.push(paraPhaser(areaPlaca));
     let pontos = null;
     if (montagem.estado.placaNoGabinete) {
       const resultado = this.desenharPlaca(container, montagem, areaPlaca, { arrastaveis: new Set(['gpu']) });
       pontos = resultado.pontos;
       zonas.push(...resultado.zonas.filter((z) => z.encaixe === 'gpu'));
       pecas.push(...resultado.pecas);
+      guias.push(...resultado.guias);
     } else {
-      container.add(this.cena.add.text(areaPlaca.centerX, areaPlaca.centerY, montagem.placa() ? 'Espaço da placa-mãe\n(use o botão "Placa → gabinete")' : 'Espaço da placa-mãe', estiloTexto(12, HEX.textoSuave, { align: 'center' })).setOrigin(0.5));
+      const texto = montagem.placa() ? 'Espaço da placa-mãe\n(use o botão "Placa → gabinete")' : 'Espaço da placa-mãe';
+      container.add(this.cena.add.text(areaPlaca.x + areaPlaca.width / 2, areaPlaca.y + areaPlaca.height / 2, texto, estiloTexto(12, HEX.textoSuave, { align: 'center' })).setOrigin(0.5));
     }
 
     // Fonte
     const baiaFonte = R(layout.fonte);
-    zonas.push({ encaixe: 'fonte', ret: baiaFonte });
+    guias.push(paraPhaser(baiaFonte));
+    zonas.push({ encaixe: 'fonte', ret: paraPhaser(AREA_DE_SOLTAR.fonte(baiaFonte)) });
     const fonte = montagem.fonte();
-    if (fonte) pecas.push({ encaixe: 'fonte', objeto: this.imagemNoRetangulo(container, fonte.sprite, baiaFonte, 0.98) });
+    if (fonte) pecas.push({ encaixe: 'fonte', objeto: this.imagemEm(container, fonte.sprite, ARTE_NO_ENCAIXE.fonte(fonte.sprite, baiaFonte, escala)) });
 
     // Baias SATA
     const baias = layout.sata.map((n, i) => {
-      const ret = R(n);
-      zonas.push({ encaixe: `sata-${i}`, ret });
+      const r = R(n);
+      guias.push(paraPhaser(r));
+      zonas.push({ encaixe: `sata-${i}`, ret: paraPhaser(AREA_DE_SOLTAR.sata(r)) });
       const disco = montagem.pecaNo(`sata-${i}`);
-      if (disco) pecas.push({ encaixe: `sata-${i}`, objeto: this.imagemNoRetangulo(container, disco.sprite, ret, 0.95) });
-      return ret;
+      if (disco) pecas.push({ encaixe: `sata-${i}`, objeto: this.imagemEm(container, disco.sprite, ARTE_NO_ENCAIXE.sata(disco.sprite, r, escala)) });
+      return paraPhaser(r);
     });
 
-    if (fonte) this.desenharCabos(container, montagem, baiaFonte, pontos, baias);
+    if (fonte) this.desenharCabos(container, montagem, paraPhaser(baiaFonte), pontos, baias);
 
     if (montagem.estado.tampaFechada) {
       const g = this.cena.add.graphics();
@@ -67,10 +70,10 @@ export class VistaGabinete extends Vista {
       g.lineStyle(4, CORES.borda, 1).strokeRect(x0 + 6 * escala, y0 + 6 * escala, gw * 0.9, gh - 12 * escala);
       container.add(g);
       container.add(this.cena.add.text(x0 + gw * 0.45, y0 + gh / 2, 'Tampa fechada', estiloTexto(16, HEX.textoSuave)).setOrigin(0.5));
-      return { zonas: [], pecas: [] };
+      return { zonas: [], pecas: [], guias };
     }
 
-    return { zonas, pecas };
+    return { zonas, pecas, guias };
   }
 
   desenharCabos(container, montagem, baiaFonte, pontos, baias) {

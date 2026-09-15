@@ -4,6 +4,8 @@ import { PEDIDOS } from '../../regras/pedidos.js';
 import { Progresso } from '../Progresso.js';
 import { Botao, desenharPainel } from '../ui/componentes.js';
 import { desenharOficina } from '../ui/cenario.js';
+import { ControlesDeJogo } from '../ui/ControlesDeJogo.js';
+import { somDa } from '../audio/SomDaOficina.js';
 
 /** Tela inicial: escolha do pedido, com estrelas e pedidos bloqueados. */
 export class CenaMenu extends Phaser.Scene {
@@ -13,8 +15,10 @@ export class CenaMenu extends Phaser.Scene {
 
   create() {
     prepararCamera(this);
+    somDa(this).musica('menu');
     const progresso = new Progresso();
     desenharOficina(this, { alturaBancada: 70 });
+    new ControlesDeJogo(this, 30, 34);
 
     this.add.text(LARGURA / 2, 42, 'OFICINA DE PCs', estiloTexto(44, HEX.destaque, { stroke: '#12152a', strokeThickness: 8 })).setOrigin(0.5);
     this.add.text(LARGURA / 2, 86, 'Atenda os clientes e monte o computador perfeito para cada um', estiloTexto(16, HEX.texto, { stroke: '#12152a', strokeThickness: 5 })).setOrigin(0.5);

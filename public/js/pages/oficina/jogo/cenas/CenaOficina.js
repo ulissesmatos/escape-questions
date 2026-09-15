@@ -12,8 +12,11 @@ import { Bandeja, tamanhoFantasma } from '../ui/Bandeja.js';
 import { CartaoPedido } from '../ui/CartaoPedido.js';
 import { VistaPlaca } from '../vistas/VistaPlaca.js';
 import { VistaGabinete } from '../vistas/VistaGabinete.js';
-import { AlinharProcessador, AplicarPasta, ParafusarCooler, ConectarCabos } from '../skills/skills.js';
-import { TelaTeste, TelaResultado } from '../telas/telas.js';
+import { EncaixarProcessador, AplicarPasta, ParafusarCooler, ConectarCabos } from '../skills/skills.js';
+import { TelaResultado } from '../telas/telas.js';
+import { TelaLigando } from '../telas/TelaLigando.js';
+import { ControlesDeJogo } from '../ui/ControlesDeJogo.js';
+import { somDa } from '../audio/SomDaOficina.js';
 
 const CARTAO = new Phaser.Geom.Rectangle(8, 44, 214, 488);
 const BANCADA = new Phaser.Geom.Rectangle(230, 44, 474, 434);
@@ -45,11 +48,14 @@ export class CenaOficina extends Phaser.Scene {
     this.testou = false;
     this.botoes = new Map();
     this.zonas = [];
+    this.guias = [];
     this.pecasVista = [];
   }
 
   create() {
     prepararCamera(this);
+    this.som = somDa(this);
+    this.som.musica('oficina');
     desenharOficina(this, { alturaBancada: 60 });
     this.desenharHud();
     this.cartao = new CartaoPedido(this, CARTAO, this.pedido);
@@ -93,7 +99,8 @@ export class CenaOficina extends Phaser.Scene {
     const g = this.add.graphics();
     g.fillStyle(0x12152a, 0.92).fillRect(0, 0, LARGURA, 36);
     this.add.text(12, 18, '🔧 OFICINA DE PCs', estiloTexto(16, HEX.destaque)).setOrigin(0, 0.5);
-    this.add.text(LARGURA / 2, 18, `Pedido: ${this.pedido.cliente}`, estiloTexto(15)).setOrigin(0.5);
+    this.add.text(LARGURA / 2 - 60, 18, `Pedido: ${this.pedido.cliente}`, estiloTexto(15)).setOrigin(0.5);
+    new ControlesDeJogo(this, 666, 18);
     this.add.image(LARGURA - 170, 18, 'moeda');
     this.textoMoedas = this.add.text(LARGURA - 156, 18, String(this.progresso.moedas), estiloTexto(15, HEX.destaque)).setOrigin(0, 0.5);
     new Botao(this, LARGURA - 56, 18, '☰ Menu', () => this.scene.start('menu'), { largura: 90, altura: 26, tamanho: 13 });
@@ -126,6 +133,7 @@ export class CenaOficina extends Phaser.Scene {
   clicarBotao(id, acao) {
     if (this.ocupado) return;
     if (this.tutorial && !this.tutorial.permiteBotao(id)) {
+      this.som.efeito('negar');
       this.aviso.mostrar(this.tutorial.lembrete, 'aviso');
       return;
     }
@@ -154,8 +162,9 @@ export class CenaOficina extends Phaser.Scene {
 
   redesenhar() {
     this.camadaVista.removeAll(true);
-    const { zonas, pecas } = this.vistas[this.vistaAtual].desenhar(this.camadaVista, this.montagem);
+    const { zonas, pecas, guias = [] } = this.vistas[this.vistaAtual].desenhar(this.camadaVista, this.montagem);
     this.zonas = zonas;
+    this.guias = guias;
     this.pecasVista = pecas;
     for (const { encaixe, objeto } of pecas) this.tornarArrastavel(objeto, encaixe);
 
@@ -198,11 +207,14 @@ export class CenaOficina extends Phaser.Scene {
     }
   }
 
+  /** ?zonas=1 — ciano: encaixes como estão no editor de zonas; rosa: áreas onde dá para soltar */
   desenharDebug() {
     if (!this.registry.get('mostrarZonas')) return;
     const g = this.camadaDebug;
-    g.clear().lineStyle(1, 0xff00ff, 1);
+    g.clear().lineStyle(1, 0xff00ff, 0.7);
     for (const z of this.zonas) g.strokeRect(z.ret.x, z.ret.y, z.ret.width, z.ret.height);
+    g.lineStyle(2, 0x22d3ee, 1);
+    for (const r of this.guias) g.strokeRect(r.x, r.y, r.width, r.height);
   }
 
   // ---------------- Arrastar e soltar ----------------
@@ -210,6 +222,7 @@ export class CenaOficina extends Phaser.Scene {
   podeArrastar(idPeca) {
     if (this.ocupado) return false;
     if (this.tutorial && !this.tutorial.permiteArrastar(idPeca)) {
+      this.som.efeito('negar');
       this.aviso.mostrar(this.tutorial.lembrete, 'aviso');
       return false;
     }
@@ -236,6 +249,7 @@ export class CenaOficina extends Phaser.Scene {
 
   iniciarArraste(idPeca, ponteiro, { origem, encaixe = null }) {
     const p = buscarPeca(idPeca);
+    this.som.efeito('pegar');
     const validos = new Set(this.montagem.encaixesPara(idPeca).map((e) => e.id));
     if (idPeca === 'pasta-termica') validos.add('pasta');
     this.arraste = { idPeca, origem, encaixe, validos };
@@ -273,6 +287,7 @@ export class CenaOficina extends Phaser.Scene {
     if (arraste.origem === 'encaixe') {
       if (this.bandeja.contem(x, y)) {
         const r = this.montagem.remover(arraste.encaixe);
+        this.som.efeito(r.status === 'ok' ? 'soltar' : 'erro');
         this.aviso.mostrar(r.status === 'ok' ? (r.estragada ? r.mensagem : `${buscarPeca(r.idPeca).nome} devolvida à bandeja.`) : r.mensagem, r.status === 'ok' ? (r.estragada ? 'aviso' : 'info') : 'erro');
       } else if (zona && zona.encaixe !== arraste.encaixe) {
         const r = this.montagem.remover(arraste.encaixe);
@@ -291,6 +306,7 @@ export class CenaOficina extends Phaser.Scene {
   /** Soltou fora de um encaixe: explica o que falta montar antes e pisca onde encontrar */
   explicarSemEncaixe(idPeca) {
     const pendencia = this.montagem.pendenciaPara(idPeca);
+    this.som.efeito('negar');
     if (!pendencia) {
       this.aviso.mostrar('Solte a peça em um lugar destacado em verde.', 'aviso', 2200);
       return;
@@ -315,6 +331,7 @@ export class CenaOficina extends Phaser.Scene {
       this.skillAtual = null;
       this.ocupado = false;
       if (saida === null) {
+        this.som.efeito('soltar');
         this.aviso.mostrar('Cancelado: a peça voltou para a bandeja.', 'info');
         return;
       }
@@ -322,12 +339,15 @@ export class CenaOficina extends Phaser.Scene {
     }
 
     if (resultado.status === 'ok') {
+      this.som.efeito('encaixe');
       this.efeitoEncaixe(zona.ret.centerX, zona.ret.centerY);
       this.aviso.mostrar(resultado.mensagem, 'sucesso', 2000);
     } else if (resultado.status === 'dano') {
+      this.som.efeito('dano');
       this.efeitoDano(zona.ret.centerX, zona.ret.centerY);
       this.aviso.mostrar(resultado.mensagem, 'erro', 5000);
     } else {
+      this.som.efeito('erro');
       this.cameras.main.shake(120, 0.003);
       this.aviso.mostrar(resultado.mensagem, 'erro', 4000);
     }
@@ -335,7 +355,7 @@ export class CenaOficina extends Phaser.Scene {
 
   criarSkill(nome, idPeca) {
     const skills = {
-      alinhar_cpu: () => new AlinharProcessador(this, buscarPeca(idPeca)),
+      encaixar_cpu: () => new EncaixarProcessador(this, buscarPeca(idPeca)),
       pasta: () => new AplicarPasta(this, this.montagem.processador()),
       parafusos: () => new ParafusarCooler(this, buscarPeca(idPeca)),
     };
@@ -374,6 +394,7 @@ export class CenaOficina extends Phaser.Scene {
   alternarPlacaNoGabinete() {
     const m = this.montagem;
     const r = m.estado.placaNoGabinete ? m.retirarPlacaDoGabinete() : m.colocarPlacaNoGabinete();
+    this.som.efeito(r.status === 'ok' ? 'parafuso' : 'erro');
     this.aviso.mostrar(r.mensagem, r.status === 'ok' ? 'sucesso' : 'erro');
     if (r.status === 'ok') this.vistaAtual = m.estado.placaNoGabinete ? 'gabinete' : 'placa';
     this.redesenhar();
@@ -396,6 +417,7 @@ export class CenaOficina extends Phaser.Scene {
   alternarTampa() {
     const m = this.montagem;
     const r = m.estado.tampaFechada ? m.abrirTampa() : m.fecharTampa();
+    this.som.efeito(r.status === 'ok' ? 'alavanca' : 'erro');
     if (r.status === 'ok' && m.estado.tampaFechada) this.vistaAtual = 'gabinete';
     this.aviso.mostrar(r.mensagem, r.status === 'ok' ? 'info' : 'erro', 1800);
     this.redesenhar();
@@ -412,7 +434,9 @@ export class CenaOficina extends Phaser.Scene {
     if (this.tutorial) this.tutorial.atualizar();
 
     const teste = SimuladorTeste.executar(m);
-    await new TelaTeste(this).executar(teste, m);
+    this.telaLigando = new TelaLigando(this);
+    await this.telaLigando.executar(teste, m);
+    this.telaLigando = null;
 
     const avaliacao = AvaliadorPedido.avaliar(this.pedido, m, teste);
     if (avaliacao.estrelas > 0) {

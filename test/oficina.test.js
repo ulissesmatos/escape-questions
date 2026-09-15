@@ -220,3 +220,38 @@ test('placa com pinos tortos pede troca e volta a aceitar processador depois de 
   m.tentar('placa', 'pm-am4-matx');
   assert.equal(m.tentar('cpu', 'cpu-am4-6g').status, 'skill');
 });
+
+test('soltar o processador: centralizado encaixa, torto arrisca, virado entorta, longe nem toca', async () => {
+  const { EncaixeProcessador } = await regras('encaixes.js');
+  const soltar = (opcoes) => EncaixeProcessador.soltar(opcoes).resultado;
+  assert.equal(soltar({ alinhado: true, desvio: 0.03, sorte: 0 }), 'encaixou');
+  assert.equal(soltar({ alinhado: true, desvio: 0.3, sorte: 0.99 }), 'por_pouco');
+  assert.equal(soltar({ alinhado: true, desvio: 0.3, sorte: 0.01 }), 'entortou');
+  assert.equal(soltar({ alinhado: false, desvio: 0.01, sorte: 0.99 }), 'entortou', 'virado sempre entorta');
+  assert.equal(soltar({ alinhado: false, desvio: 0.8, sorte: 0 }), 'fora', 'fora do socket volta para a mão');
+
+  const riscos = [0.07, 0.2, 0.35, 0.5].map((desvio) => EncaixeProcessador.riscoDeEntortar({ alinhado: true, desvio }));
+  assert.deepEqual([...riscos].sort((a, b) => a - b), riscos, 'quanto mais longe do centro, maior o risco');
+
+  const m = new Montagem();
+  m.tentar('placa', 'pm-am5-atx');
+  assert.equal(m.tentar('cpu', 'cpu-am5-6').skill, 'encaixar_cpu');
+  const r = m.concluir('cpu', 'cpu-am5-6', { alinhado: true, entortou: true });
+  assert.equal(r.status, 'dano');
+  assert.equal(m.estado.placaDanificada, true);
+  assert.equal(m.processador(), null);
+});
+
+test('desempenho e tempo de inicialização mostram o peso de cada peça', () => {
+  const escritorio = montar(ESCRITORIO);
+  const gamer = montar(GAMER);
+  assert.equal(SimuladorTeste.discoDoSistema(escritorio).nome, 'SSD NVMe');
+  assert.ok(SimuladorTeste.desempenho(gamer).total > SimuladorTeste.desempenho(escritorio).total * 2);
+  const video = (m) => SimuladorTeste.desempenho(m).partes.find((p) => p.nome === 'Vídeo').pontos;
+  assert.ok(video(gamer) > video(escritorio), 'placa de vídeo dedicada vale mais que o vídeo integrado');
+
+  const hd = montar({ ...ESCRITORIO, m2: [], gabinete: 'gab-mid', sata: ['hd-2tb'] });
+  assert.equal(SimuladorTeste.discoDoSistema(hd).segundos, 42, 'HD demora muito mais para iniciar');
+  const semCabo = montar({ ...ESCRITORIO, m2: [], gabinete: 'gab-mid', sata: ['hd-2tb'] }, { cabos: false });
+  assert.equal(SimuladorTeste.discoDoSistema(semCabo), null, 'disco SATA sem cabo não é encontrado');
+});

@@ -24,24 +24,35 @@ comparar/preparar gabaritos de escala inteira.
 
 ## Editor visual de zonas
 
-Abra `oficina-zonas.html` para calibrar socket, RAM, M.2, PCIe e baias sobre a
-arte real. As caixas podem ser movidas e redimensionadas; o editor também
-permite adicionar zonas, salvar no navegador, exportar e importar JSON. A
-Oficina lê essa calibração ao recarregar. Use **Restaurar padrão** para voltar
-imediatamente aos layouts do repositório.
+Zonas são os retângulos onde cada peça encaixa sobre a arte (socket, slots de
+memória, M.2, PCI Express, conectores, baias do gabinete). Para ajustá-las:
 
-Para adicionar uma arte sua, escolha o PNG, escreva um identificador em
-minúsculas (por exemplo `minha-placa-am5`), marque **Placa-mãe** ou **Gabinete**
-e clique em **Adicionar à biblioteca**. O arquivo fica guardado localmente no
-navegador e aparece no seletor “Meus sprites”; então basta desenhar as zonas e
-exportar o JSON para compartilhar a configuração com outro navegador. O PNG
-personalizado também é carregado pela Oficina nesse mesmo navegador, mantendo
-o fallback provisório para todo sprite não personalizado.
+1. Rode o site localmente (`npm start`) e abra
+   `http://localhost:3000/oficina-zonas.html`. A página não aparece no menu dos
+   alunos.
+2. Escolha a placa-mãe ou o gabinete na faixa de cima.
+3. **Arraste** uma zona para mover e **puxe os cantos** para redimensionar. Os
+   valores são em pixels da arte (por exemplo, `72, 48 · 58×57`) e também podem
+   ser digitados. Setas movem 1 px (Shift: 10 px), Alt + setas mudam o tamanho,
+   Ctrl+Z desfaz e Ctrl+S salva.
+4. **Mostrar peças montadas** desenha processador, memórias, SSD, placa de vídeo,
+   fonte e discos exatamente como o jogo desenha, para você conferir o encaixe.
+5. Clique em **Salvar zonas**. O editor grava só o que mudou em
+   `public/images/oficina/zonas.json`. O jogo aplica esse arquivo por cima dos
+   valores padrão do manifesto ao abrir.
+6. **Testar no jogo** abre `oficina.html?zonas=1`: em ciano, as zonas do editor;
+   em rosa, a área (um pouco maior) onde a peça pode ser solta.
+7. Envie o `zonas.json` para o GitHub junto com as imagens. Assim as zonas valem
+   para todos os alunos.
 
-Essa biblioteca resolve a arte e os encaixes. Para uma peça nova aparecer como
-opção de montagem em um pedido, ela ainda precisa receber sua ficha técnica no
-catálogo do jogo (socket, memória, preço e compatibilidades); isso impede que
-uma imagem sem regras entre acidentalmente em uma montagem avaliável.
+No servidor publicado (produção), o editor não grava arquivos, porque eles se
+perderiam a cada deploy. Nesse caso, use **Copiar JSON** e salve o conteúdo em
+`public/images/oficina/zonas.json` no repositório.
+
+As zonas que existem são fixas (a placa ATX tem 4 slots de memória, a Micro-ATX
+tem 2, e assim por diante), porque cada uma corresponde a uma regra do jogo.
+Para criar uma placa ou gabinete novo, é preciso também cadastrar a peça no
+catálogo (`regras/catalogo.js`) e o layout padrão no manifesto.
 
 ## Passo a passo
 
@@ -58,13 +69,8 @@ uma imagem sem regras entre acidentalmente em uma montagem avaliável.
      (*nearest neighbor*).
 5. **Salve** como `public/images/oficina/<nome>.png`, com o nome exato da
    coluna "Arquivo".
-6. **Recarregue** `oficina.html`. Para conferir se os encaixes batem com a arte,
-   abra `oficina.html?zonas=1`: os retângulos cor-de-rosa mostram onde cada peça
-   encaixa.
-
-Se os slots da arte não baterem com os retângulos, você pode ajustar a arte ou
-os números em `LAYOUT_PLACAS` / `LAYOUT_GABINETES` no arquivo
-`public/js/pages/oficina/jogo/sprites/manifesto.js` (frações de 0 a 1).
+6. **Recarregue** `oficina.html`. Se os slots da arte não baterem com os
+   encaixes, ajuste as zonas no **editor visual de zonas** (seção acima).
 
 ## Prompt de estilo (cole primeiro)
 

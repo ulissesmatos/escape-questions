@@ -2,65 +2,9 @@ import Phaser from '../phaser.js';
 import { CORES, HEX, estiloTexto } from '../constantes.js';
 import { Botao, ajustarImagem } from '../ui/componentes.js';
 import { SkillCheck } from './SkillCheck.js';
+import { somDa } from '../audio/SomDaOficina.js';
 
-/**
- * Alinhar o processador: gire até o triângulo dourado ficar no mesmo canto
- * da marca do socket. Encaixar virado entorta os pinos.
- */
-export class AlinharProcessador extends SkillCheck {
-  constructor(cena, peca) {
-    super(cena, {
-      titulo: 'Encaixe o processador',
-      instrucao: 'Gire o processador até o triângulo dourado ficar no MESMO canto da marca dourada do socket. Depois clique em Encaixar.',
-    });
-    this.peca = peca;
-    this.angulo = Phaser.Math.RND.pick([90, 180, 270]);
-  }
-
-  montar(c) {
-    const socket = this.cena.add.graphics();
-    socket.fillStyle(0x9aa3b5, 1).fillRect(-230, -90, 160, 160);
-    socket.fillStyle(0x5b6475, 1).fillRect(-222, -82, 144, 144);
-    for (let yy = -74; yy < 56; yy += 10) for (let xx = -214; xx < -84; xx += 10) socket.fillStyle(0xe8b64c, 1).fillRect(xx, yy, 3, 3);
-    socket.fillStyle(0xffc94a, 1).fillTriangle(-226, 66, -226, 40, -200, 66);
-    c.add([socket, this.cena.add.text(-150, 80, 'Socket', estiloTexto(13, HEX.textoSuave)).setOrigin(0.5)]);
-
-    this.cpu = ajustarImagem(this.cena.add.image(120, -10, this.peca.sprite), 150, 150).setAngle(this.angulo);
-    this.cpu.setInteractive({ useHandCursor: true }).on('pointerup', () => this.girar());
-    c.add([this.cpu, this.cena.add.text(120, 80, 'Clique para girar', estiloTexto(13, HEX.textoSuave)).setOrigin(0.5)]);
-
-    c.add(new Botao(this.cena, -90, 140, '⟲ Girar', () => this.girar(), { largura: 150 }));
-    c.add(new Botao(this.cena, 90, 140, 'Encaixar ✓', () => this.encaixar(), { largura: 150, cor: 0x2f9e5b }));
-  }
-
-  girar() {
-    if (this.encaixando) return;
-    this.angulo = (this.angulo + 270) % 360;
-    this.cena.tweens.add({ targets: this.cpu, angle: this.cpu.angle - 90, duration: 160 });
-  }
-
-  encaixar() {
-    if (this.encaixando) return;
-    this.encaixando = true;
-    const alinhado = this.angulo % 360 === 0;
-    this.cena.tweens.add({
-      targets: this.cpu,
-      x: -150,
-      y: -10,
-      scale: this.cpu.scale * 0.9,
-      duration: 380,
-      ease: 'Back.easeIn',
-      onComplete: () => {
-        if (alinhado) this.mensagem('Encaixou certinho! 👍', HEX.sucesso);
-        else {
-          this.mensagem('Estava virado... os pinos entortaram! 😱', HEX.erro);
-          this.cena.cameras.main.shake(250, 0.01);
-        }
-        this.cena.time.delayedCall(900, () => this.concluir({ alinhado }));
-      },
-    });
-  }
-}
+export { EncaixarProcessador } from './EncaixarProcessador.js';
 
 /** Aplicar pasta térmica: segure para apertar o tubo e solte na quantidade certa. */
 export class AplicarPasta extends SkillCheck {
@@ -105,6 +49,7 @@ export class AplicarPasta extends SkillCheck {
   apertar() {
     if (this.terminou) return;
     this.apertando = true;
+    this.somApertando = somDa(this.cena).continuo('pasta').intensidade(0.8, 0.1);
     this.cena.tweens.add({ targets: this.tubo, y: -80, duration: 120 });
     this.evento = this.cena.time.addEvent({
       delay: 30,
@@ -121,8 +66,12 @@ export class AplicarPasta extends SkillCheck {
     this.apertando = false;
     this.terminou = true;
     this.evento.remove();
+    this.somApertando.parar(0.1);
     const q = this.quantidade;
-    const [texto, cor] = q < 0.2 ? ['Ficou pouca pasta...', HEX.aviso] : q > 0.6 ? ['Pasta demais! Vai escorrer.', HEX.erro] : ['Perfeito, um grão de ervilha! 👌', HEX.sucesso];
+    const [texto, cor, efeito] = q < 0.2
+      ? ['Ficou pouca pasta...', HEX.aviso, 'negar']
+      : q > 0.6 ? ['Pasta demais! Vai escorrer.', HEX.erro, 'erro'] : ['Perfeito, um grão de ervilha! 👌', HEX.sucesso, 'passo'];
+    somDa(this.cena).efeito(efeito);
     this.mensagem(texto, cor);
     this.cena.time.delayedCall(900, () => this.concluir({ quantidade: q }));
   }
@@ -142,6 +91,7 @@ export class AplicarPasta extends SkillCheck {
   aoFechar() {
     this.cena.input.off('pointerup', this.soltarGlobal);
     if (this.evento) this.evento.remove();
+    if (this.apertando) this.somApertando.parar(0.05);
   }
 }
 
@@ -176,6 +126,7 @@ export class ParafusarCooler extends SkillCheck {
   apertar(i, parafuso, g, numero) {
     if (this.ordem.includes(i) || this.ordem.length === 4) return;
     this.ordem.push(i);
+    somDa(this.cena).efeito('parafuso', { tom: this.ordem.length });
     numero.setText(String(this.ordem.length));
     this.cena.tweens.add({ targets: g, angle: 180, duration: 250 });
     parafuso.disableInteractive();
@@ -276,9 +227,11 @@ export class ConectarCabos extends SkillCheck {
         const alvo = [...this.entradas.entries()].find(([, e]) => Phaser.Math.Distance.Between(plugue.x, plugue.y, e.x, e.y) < 44);
         if (alvo && alvo[0] === tipo) {
           this.encaixar(tipo, plugue, desenharCabo);
+          somDa(this.cena).efeito('plugue');
           this.mensagem(`${CONECTORES[tipo].nome}: conectado! ✅`, HEX.sucesso);
         } else {
           if (alvo) {
+            somDa(this.cena).efeito('erro');
             this.mensagem('Não encaixa: o formato é diferente.', HEX.erro);
             this.cena.cameras.main.shake(120, 0.004);
           }

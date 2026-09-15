@@ -1,6 +1,7 @@
 import { CORES, HEX, estiloTexto } from './constantes.js';
 import { peca as buscarPeca } from '../regras/catalogo.js';
 import { Ponteiro } from './ui/componentes.js';
+import { somDa } from './audio/SomDaOficina.js';
 
 /**
  * Passos do primeiro pedido. Cada passo diz o que fazer, qual peça ou botão
@@ -13,7 +14,7 @@ const PASSOS = [
     feito: (m) => Boolean(m.placa()),
   },
   {
-    texto: 'Agora o PROCESSADOR. Ele precisa ter o MESMO socket da placa-mãe (AM4). Arraste o "Processador AM4 6 núcleos G" até o socket.',
+    texto: 'Agora o PROCESSADOR. Ele precisa ter o MESMO socket da placa-mãe (AM4). Arraste o "Processador AM4 6 núcleos G" até o socket e siga as etapas da janela.',
     peca: 'cpu-am4-6g',
     feito: (m) => Boolean(m.processador()),
   },
@@ -119,7 +120,9 @@ export class Tutorial {
     // algo, como tirar a placa-mãe, o tutorial volta para o passo certo
     const { montagem } = this.cena;
     const pendente = PASSOS.findIndex((p) => !p.feito(montagem, this.cena));
+    const anterior = this.indice;
     this.indice = pendente === -1 ? PASSOS.length : pendente;
+    if (this.indice > anterior) somDa(this.cena).efeito('passo');
 
     if (!this.passo) {
       this.balao.setVisible(false);

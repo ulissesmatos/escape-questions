@@ -1,5 +1,6 @@
 import Phaser from '../phaser.js';
 import { CORES, HEX, estiloTexto } from '../constantes.js';
+import { somDa } from '../audio/SomDaOficina.js';
 
 /** Desenha um painel arredondado com borda (estilo "jogo mobile") */
 export function desenharPainel(g, x, y, w, h, { cor = CORES.painel, borda = CORES.borda, raio = 10, sombra = true } = {}) {
@@ -75,6 +76,7 @@ export class Botao extends Phaser.GameObjects.Container {
     this.on('pointerup', () => {
       this.rotulo.y = 0;
       this.desenhar();
+      somDa(cena).efeito(this.habilitado ? 'clique' : 'negar');
       if (this.habilitado) this.aoClicar();
     });
     cena.add.existing(this);

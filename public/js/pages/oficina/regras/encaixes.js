@@ -93,6 +93,35 @@ export class EncaixePlacaMae extends Encaixe {
 }
 
 export class EncaixeProcessador extends Encaixe {
+  /**
+   * Folgas ao soltar o processador sobre o socket, em fração do tamanho do
+   * socket: até `perfeita` desce certinho; entre `perfeita` e `maxima` (a borda
+   * do socket) há risco crescente de entortar pinos; além disso nem chega a
+   * tocar o socket (volta para a mão).
+   */
+  static FOLGA = { perfeita: 0.06, maxima: 0.5 };
+
+  /** Chance (0 a 1) de entortar os pinos ao soltar com esse desvio */
+  static riscoDeEntortar({ alinhado, desvio }) {
+    const { perfeita, maxima } = EncaixeProcessador.FOLGA;
+    if (desvio > maxima) return 0;
+    if (!alinhado) return 1;
+    if (desvio <= perfeita) return 0;
+    return 0.15 + 0.7 * Math.min(1, (desvio - perfeita) / (maxima - perfeita));
+  }
+
+  /**
+   * Resultado de soltar o processador: 'fora' (não tocou o socket), 'encaixou',
+   * 'por_pouco' (desceu torto mas deu sorte) ou 'entortou'.
+   * `sorte` (0 a 1) é injetável para os testes.
+   */
+  static soltar({ alinhado, desvio, sorte = Math.random() }) {
+    if (desvio > EncaixeProcessador.FOLGA.maxima) return { resultado: 'fora', risco: 0 };
+    const risco = EncaixeProcessador.riscoDeEntortar({ alinhado, desvio });
+    if (sorte < risco) return { resultado: 'entortou', risco };
+    return { resultado: risco > 0 ? 'por_pouco' : 'encaixou', risco };
+  }
+
   constructor() {
     super('cpu', { categorias: ['cpu'], rotulo: 'Socket do processador', vista: 'placa' });
   }
@@ -116,13 +145,17 @@ export class EncaixeProcessador extends Encaixe {
   }
 
   skill() {
-    return 'alinhar_cpu';
+    return 'encaixar_cpu';
   }
 
-  aplicar(m, peca, resultado = {}) {
-    if (resultado.alinhado === false) {
+  aplicar(m, peca, { alinhado = true, entortou = false } = {}) {
+    if (!alinhado) {
       m.danificarPlaca('pinos_tortos', 'O processador foi colocado virado (a seta dourada não estava alinhada) e os pinos entortaram.');
       return { status: 'dano', tipo: 'pinos_tortos', mensagem: 'Seta desalinhada: os pinos entortaram!' };
+    }
+    if (entortou) {
+      m.danificarPlaca('pinos_tortos', 'O processador desceu torto sobre o socket e os pinos entortaram. Ele precisa descer reto, bem no centro.');
+      return { status: 'dano', tipo: 'pinos_tortos', mensagem: 'Desceu torto: os pinos entortaram!' };
     }
     return super.aplicar(m, peca);
   }

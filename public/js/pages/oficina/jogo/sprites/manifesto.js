@@ -65,9 +65,12 @@ export const SPRITES = {
 };
 
 /**
- * Posição dos encaixes em cada placa-mãe, em frações da imagem (0 a 1):
+ * Zonas padrão dos encaixes em cada placa-mãe, em frações da imagem (0 a 1):
  * [x, y, largura, altura] a partir do canto superior esquerdo.
- * Se trocar a arte, ajuste aqui (abra o jogo com ?zonas=1 para ver os retângulos).
+ *
+ * Para calibrar sobre a arte, use o editor visual (oficina-zonas.html): ele
+ * grava só as diferenças em public/images/oficina/zonas.json, que o jogo
+ * aplica por cima destes valores (ver sprites/zonas.js).
  */
 export const LAYOUT_PLACAS = {
   'placa-atx': {
@@ -98,7 +101,8 @@ export const LAYOUT_PLACAS = {
     conectorCpu: [0.06, 0.03, 0.15, 0.06],
   },
 };
-LAYOUT_PLACAS['placa-matx-intel'] = LAYOUT_PLACAS['placa-matx'];
+// Começa igual à Micro-ATX AMD, mas é uma cópia: a arte Intel pode ser calibrada separadamente
+LAYOUT_PLACAS['placa-matx-intel'] = structuredClone(LAYOUT_PLACAS['placa-matx']);
 
 /** Regiões internas de cada gabinete (frações da imagem) */
 export const LAYOUT_GABINETES = {
@@ -119,116 +123,6 @@ export const LAYOUT_GABINETES = {
     ],
   },
 };
-
-// As zonas padrão ficam separadas das preferências locais. Assim uma arte nova
-// pode ser calibrada no editor sem alterar o código nem perder um fallback
-// seguro para testes.
-const copiar = (valor) => JSON.parse(JSON.stringify(valor));
-const congelarProfundo = (valor) => {
-  Object.values(valor).forEach((filho) => {
-    if (filho && typeof filho === 'object' && !Object.isFrozen(filho)) congelarProfundo(filho);
-  });
-  return Object.freeze(valor);
-};
-
-export const LAYOUTS_PADRAO = congelarProfundo({
-  placas: copiar(LAYOUT_PLACAS),
-  gabinetes: copiar(LAYOUT_GABINETES),
-});
-
-const CHAVE_LAYOUTS = 'oficina:layouts:v1';
-const CHAVE_SPRITES_PERSONALIZADOS = 'oficina:sprites-personalizados:v1';
-
-function storageDisponivel() {
-  return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
-}
-
-function aplicarLayouts(layouts) {
-  if (!layouts || typeof layouts !== 'object') return;
-  for (const [chave, layout] of Object.entries(layouts.placas || {})) {
-    if (layout && typeof layout === 'object') LAYOUT_PLACAS[chave] = copiar(layout);
-  }
-  for (const [chave, layout] of Object.entries(layouts.gabinetes || {})) {
-    if (layout && typeof layout === 'object') LAYOUT_GABINETES[chave] = copiar(layout);
-  }
-}
-
-/** Retorna uma cópia editável das zonas que estão sendo usadas neste navegador. */
-export function layoutsAtuais() {
-  return copiar({ placas: LAYOUT_PLACAS, gabinetes: LAYOUT_GABINETES });
-}
-
-/** Salva as zonas calibradas localmente. A Oficina passa a usá-las ao recarregar. */
-export function salvarLayoutsPersonalizados(layouts) {
-  if (!layouts || typeof layouts !== 'object') throw new Error('Formato de zonas inválido.');
-  if (storageDisponivel()) window.localStorage.setItem(CHAVE_LAYOUTS, JSON.stringify(layouts));
-  aplicarLayouts(layouts);
-}
-
-/** Remove a calibração local e volta ao conjunto que acompanha o jogo. */
-export function restaurarLayoutsPadrao() {
-  if (storageDisponivel()) window.localStorage.removeItem(CHAVE_LAYOUTS);
-  for (const chave of Object.keys(LAYOUT_PLACAS)) delete LAYOUT_PLACAS[chave];
-  for (const chave of Object.keys(LAYOUT_GABINETES)) delete LAYOUT_GABINETES[chave];
-  Object.assign(LAYOUT_PLACAS, copiar(LAYOUTS_PADRAO.placas));
-  Object.assign(LAYOUT_GABINETES, copiar(LAYOUTS_PADRAO.gabinetes));
-}
-
-function lerSpritesPersonalizados() {
-  if (!storageDisponivel()) return {};
-  try {
-    const dados = JSON.parse(window.localStorage.getItem(CHAVE_SPRITES_PERSONALIZADOS) || '{}');
-    return dados && typeof dados === 'object' ? dados : {};
-  } catch {
-    return {};
-  }
-}
-
-function validarSpritePersonalizado(sprite) {
-  const id = String(sprite?.id || '').trim();
-  if (!/^[a-z0-9-]+$/.test(id)) throw new Error('Use somente letras minúsculas, números e hífens no identificador.');
-  if (Object.hasOwn(SPRITES, id) && !lerSpritesPersonalizados()[id]) throw new Error('Esse identificador já pertence a um sprite do jogo.');
-  if (!['placas', 'gabinetes'].includes(sprite?.grupo)) throw new Error('Escolha placas ou gabinetes para configurar zonas.');
-  if (typeof sprite?.fonte !== 'string' || !sprite.fonte.startsWith('data:image/')) throw new Error('Escolha uma imagem PNG válida.');
-  const largura = Math.round(Number(sprite.largura));
-  const altura = Math.round(Number(sprite.altura));
-  if (largura < 16 || altura < 16 || largura > 1200 || altura > 1200) throw new Error('Informe dimensões lógicas entre 16 e 1200 pixels.');
-  return { id, grupo: sprite.grupo, fonte: sprite.fonte, largura, altura, nome: String(sprite.nome || id).slice(0, 80) };
-}
-
-/** Biblioteca de PNGs locais criada no editor. Cada navegador mantém sua cópia. */
-export function spritesPersonalizadosAtuais() {
-  return copiar(lerSpritesPersonalizados());
-}
-
-export function salvarSpritePersonalizado(sprite) {
-  const valido = validarSpritePersonalizado(sprite);
-  const todos = lerSpritesPersonalizados();
-  todos[valido.id] = valido;
-  if (storageDisponivel()) window.localStorage.setItem(CHAVE_SPRITES_PERSONALIZADOS, JSON.stringify(todos));
-  SPRITES[valido.id] = { largura: valido.largura, altura: valido.altura, pedido: 'sprite personalizado no editor de zonas' };
-  return valido;
-}
-
-function carregarSpritesPersonalizados() {
-  for (const sprite of Object.values(lerSpritesPersonalizados())) {
-    try {
-      const valido = validarSpritePersonalizado(sprite);
-      SPRITES[valido.id] = { largura: valido.largura, altura: valido.altura, pedido: 'sprite personalizado no editor de zonas' };
-    } catch { /* Um item corrompido não impede o jogo de abrir. */ }
-  }
-}
-
-// Importação protegida: testes em Node e renderização fora do navegador seguem
-// usando as zonas padrão, enquanto o jogador recebe sua calibração local.
-if (storageDisponivel()) {
-  try {
-    aplicarLayouts(JSON.parse(window.localStorage.getItem(CHAVE_LAYOUTS) || 'null'));
-  } catch {
-    window.localStorage.removeItem(CHAVE_LAYOUTS);
-  }
-}
-carregarSpritesPersonalizados();
 
 export function tamanhoSprite(chave) {
   const s = SPRITES[chave];

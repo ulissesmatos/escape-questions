@@ -29,6 +29,7 @@ export class SkillCheck {
       const instrucao = this.cena.add
         .text(LARGURA / 2, (ALTURA - h) / 2 + 50, this.instrucao, estiloTexto(13, HEX.texto, { align: 'center', wordWrap: { width: w - 60 } }))
         .setOrigin(0.5, 0);
+      this.textoInstrucao = instrucao;
       const fechar = new Botao(this.cena, (LARGURA + w) / 2 - 26, (ALTURA - h) / 2 + 24, '✕', () => this.concluir(null), { largura: 34, altura: 30 });
 
       this.camada.add([fundo, g, titulo, instrucao, fechar]);
@@ -63,9 +64,21 @@ export class SkillCheck {
   /** Gancho para limpar eventos/timers */
   aoFechar() {}
 
+  /** Troca a instrução do topo (minigames com várias etapas) */
+  instruir(texto) {
+    this.textoInstrucao.setText(texto);
+    this.cena.tweens.add({ targets: this.textoInstrucao, alpha: { from: 0.3, to: 1 }, duration: 250 });
+  }
+
+  /** Converte uma posição do conteúdo para coordenadas do jogo */
+  noMundo({ x, y }) {
+    return { x: this.conteudo.x + x, y: this.conteudo.y + y };
+  }
+
   mensagem(texto, cor = HEX.texto) {
     if (!this.textoMensagem) {
-      this.textoMensagem = this.cena.add.text(0, this.constructor.altura / 2 - 92, '', estiloTexto(15, cor)).setOrigin(0.5);
+      const y = this.constructor.alturaMensagem ?? this.constructor.altura / 2 - 92;
+      this.textoMensagem = this.cena.add.text(0, y, '', estiloTexto(15, cor)).setOrigin(0.5);
       this.conteudo.add(this.textoMensagem);
     }
     this.textoMensagem.setText(texto).setColor(cor);

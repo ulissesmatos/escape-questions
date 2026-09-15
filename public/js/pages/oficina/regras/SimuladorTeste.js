@@ -12,7 +12,41 @@ export const LIMITE_QUENTE = 90;
 
 const RESISTENCIA_PASTA = { ideal: 0.08, demais: 0.12, pouca: 0.25, nenhuma: 1.0 };
 
+/** Tempo típico para o sistema iniciar em cada tipo de disco (em segundos) */
+export const INICIO_POR_DISCO = [
+  { tipo: 'nvme', nome: 'SSD NVMe', segundos: 9, pontos: 600 },
+  { tipo: 'ssd', nome: 'SSD SATA', segundos: 15, pontos: 350 },
+  { tipo: 'hd', nome: 'HD', segundos: 42, pontos: 80 },
+];
+
 export class SimuladorTeste {
+  /** O disco mais rápido que o sistema consegue usar (SATA sem cabo não conta) */
+  static discoDoSistema(montagem) {
+    const tipoDe = (p) => (p.interface === 'nvme' ? 'nvme' : p.ssd ? 'ssd' : 'hd');
+    const usaveis = ['m2-0', 'm2-1', ...(montagem.estado.cabos.sata ? ['sata-0', 'sata-1'] : [])]
+      .map((id) => montagem.pecaNo(id))
+      .filter(Boolean)
+      .map(tipoDe);
+    return INICIO_POR_DISCO.find((d) => usaveis.includes(d.tipo)) || null;
+  }
+
+  /**
+   * Pontuação de desempenho (só faz sentido com o PC funcionando): mostra ao
+   * aluno quanto cada peça contribui.
+   */
+  static desempenho(montagem) {
+    const cpu = montagem.processador();
+    const gpu = montagem.placaDeVideo();
+    const disco = SimuladorTeste.discoDoSistema(montagem);
+    const partes = [
+      { nome: 'Processador', pontos: cpu ? cpu.nucleos * 150 : 0 },
+      { nome: 'Memória', pontos: Math.round(Math.min(64, montagem.ramTotalGb()) * 25 * (montagem.dualChannel() ? 1.2 : 1)) },
+      { nome: 'Vídeo', pontos: gpu ? [0, 900, 1800, 3200][gpu.nivel] : cpu?.videoIntegrado ? 250 : 0 },
+      { nome: 'Disco', pontos: disco ? disco.pontos : 0 },
+    ];
+    return { partes, total: partes.reduce((soma, p) => soma + p.pontos, 0) };
+  }
+
   static temperatura(montagem) {
     const cpu = montagem.processador();
     if (!cpu) return 30;

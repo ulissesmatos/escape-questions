@@ -3,6 +3,7 @@ import { CORES, HEX, estiloTexto, pontoNoMundo } from '../constantes.js';
 import { SPRITES } from '../sprites/manifesto.js';
 import { CATEGORIAS, pecasDaCategoria, formatarPreco } from '../../regras/catalogo.js';
 import { desenharPainel, ajustarImagem, piscarDestaque, truncarTexto, encolherTexto } from './componentes.js';
+import { somDa } from '../audio/SomDaOficina.js';
 
 const ICONES = {
   placa_mae: 'placa-atx',
@@ -67,7 +68,10 @@ export class Bandeja {
       const area = this.cena.add.zone(0, 0, tamanho - 4, ALTURA_CATEGORIA).setOrigin(0).setInteractive({ useHandCursor: true });
       botao.add([fundo, icone, nome, area]);
       botao.setSize(tamanho - 4, ALTURA_CATEGORIA);
-      area.on('pointerup', () => this.selecionar(cat.id));
+      area.on('pointerup', () => {
+        somDa(this.cena).efeito('aba');
+        this.selecionar(cat.id);
+      });
       botao.desenhar = (ativo) => {
         fundo.clear();
         fundo.fillStyle(ativo ? CORES.destaque : CORES.painelClaro, ativo ? 0.25 : 0.6).fillRoundedRect(0, 0, tamanho - 4, ALTURA_CATEGORIA, 8);

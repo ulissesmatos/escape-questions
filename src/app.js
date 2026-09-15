@@ -1,5 +1,4 @@
 const express = require('express');
-const fs = require('fs');
 const path = require('path');
 
 const config = require('./config');
@@ -26,12 +25,13 @@ const { pcbuildRoutes } = require('./modules/pcbuild/pcbuildRoutes');
 const { semearMonteOPc } = require('./modules/pcbuild/seed');
 
 const adminRoutes = require('./modules/admin/adminRoutes');
+const { oficinaRoutes } = require('./modules/oficina/oficinaRoutes');
 
 /**
  * Monta a aplicação: dependências são criadas aqui uma única vez e injetadas
  * nos serviços/rotas (fica fácil trocar peças em testes).
  */
-function criarApp({ db, auth, tipos = registroPadrao }) {
+function criarApp({ db, auth, tipos = registroPadrao, oficina = {} }) {
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', 1); // atrás do proxy do Coolify, para req.ip ser o IP real
@@ -51,12 +51,7 @@ function criarApp({ db, auth, tipos = registroPadrao }) {
   app.use('/api/pcbuild', pcbuildRoutes(new PcBuildService(db)));
   app.use('/api/admin', adminRoutes({ db, auth, tipos }));
 
-  // Oficina de PCs: lista dos sprites já desenhados em /images/oficina
-  app.get('/api/oficina/sprites', (req, res) => {
-    fs.readdir(path.join(__dirname, '..', 'public', 'images', 'oficina'), (err, arquivos) => {
-      res.json(err ? [] : arquivos.filter((a) => a.endsWith('.png')).map((a) => a.replace(/\.png$/, '')));
-    });
-  });
+  app.use('/api/oficina', oficinaRoutes({ podeEditarZonas: !config.isProduction, ...oficina }));
 
   app.use('/api', (req, res, next) => next(HttpError.notFound('Rota não encontrada.')));
 
