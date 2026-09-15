@@ -176,6 +176,11 @@ button.card-atividade:hover .card-acao::after {
   --card-cor-light: #fff1e8;
 }
 
+.card-cor-oficina {
+  --card-cor: #b45309;
+  --card-cor-light: #fff4e0;
+}
+
 .titulo-grupo {
   font-size: 0.8rem;
   font-weight: 800;

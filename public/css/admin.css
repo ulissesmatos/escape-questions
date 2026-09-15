@@ -42,11 +42,11 @@ body[data-page="admin"] {
 .login-logo {
   width: 52px;
   height: 52px;
-  border-radius: 14px;
-  background: var(--text);
   display: grid;
   place-items: center;
-  font-size: 1.6rem;
+  background: transparent;
+  font-size: 2.6rem;
+  line-height: 1;
   margin-bottom: 8px;
 }
 
@@ -80,11 +80,16 @@ body[data-page="admin"] {
   border-radius: 10px;
   background: transparent;
   cursor: pointer;
-  font-size: 1.05rem;
+  display: grid;
+  place-items: center;
+  color: var(--text-soft);
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
-.mostrar-senha:hover {
+.mostrar-senha:hover,
+.mostrar-senha[aria-pressed="true"] {
   background: var(--surface-2);
+  color: var(--text);
 }
 
 .login-card .erro-msg.mostrar {

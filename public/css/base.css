@@ -179,12 +179,11 @@ textarea {
 .site-nav-logo {
   width: 34px;
   height: 34px;
-  border-radius: 10px;
   display: grid;
   place-items: center;
-  background: var(--text);
-  color: white;
-  font-size: 1.05rem;
+  background: transparent;
+  font-size: 1.6rem;
+  line-height: 1;
 }
 
 .site-nav-links {
@@ -668,6 +667,8 @@ label,
 }
 
 input[type="text"],
+input[type="password"],
+input[type="email"],
 input[type="url"],
 input[type="search"],
 select,
@@ -696,7 +697,10 @@ textarea::placeholder {
 }
 
 input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus,
 input[type="url"]:focus,
+input[type="search"]:focus,
 select:focus,
 textarea:focus,
 .campo:focus {

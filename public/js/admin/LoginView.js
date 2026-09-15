@@ -1,5 +1,6 @@
 import { Component } from '../core/Component.js';
 import { h } from '../core/dom.js';
+import { icone } from '../components/icones.js';
 
 /**
  * Tela de entrada do professor. A senha fica oculta (com botão de mostrar)
@@ -21,9 +22,8 @@ export class LoginView extends Component {
       class: 'mostrar-senha',
       'aria-label': 'Mostrar senha',
       'aria-pressed': 'false',
-      text: '👁️',
       onClick: () => this.alternarVisibilidade(),
-    });
+    }, icone('olho'));
     this.erro = h('div', { class: `erro-msg${this.props.aviso ? ' mostrar' : ''}`, id: 'erro-login', role: 'alert', text: this.props.aviso || '' });
     this.botao = h('button', { type: 'submit', class: 'btn btn-escuro btn-grande btn-bloco', text: 'Entrar' });
 
@@ -56,7 +56,7 @@ export class LoginView extends Component {
     this.senha.type = mostrar ? 'text' : 'password';
     this.botaoMostrar.setAttribute('aria-pressed', String(mostrar));
     this.botaoMostrar.setAttribute('aria-label', mostrar ? 'Esconder senha' : 'Mostrar senha');
-    this.botaoMostrar.textContent = mostrar ? '🙈' : '👁️';
+    this.botaoMostrar.replaceChildren(icone(mostrar ? 'olhoRiscado' : 'olho'));
     this.senha.focus();
   }
 

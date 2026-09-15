@@ -1,4 +1,5 @@
 const express = require('express');
+const fs = require('fs');
 const path = require('path');
 
 const config = require('./config');
@@ -49,7 +50,19 @@ function criarApp({ db, auth, tipos = registroPadrao }) {
   app.use('/api/hardware', hardwareRoutes(jogoHardware));
   app.use('/api/pcbuild', pcbuildRoutes(new PcBuildService(db)));
   app.use('/api/admin', adminRoutes({ db, auth, tipos }));
+
+  // Oficina de PCs: lista dos sprites já desenhados em /images/oficina
+  app.get('/api/oficina/sprites', (req, res) => {
+    fs.readdir(path.join(__dirname, '..', 'public', 'images', 'oficina'), (err, arquivos) => {
+      res.json(err ? [] : arquivos.filter((a) => a.endsWith('.png')).map((a) => a.replace(/\.png$/, '')));
+    });
+  });
+
   app.use('/api', (req, res, next) => next(HttpError.notFound('Rota não encontrada.')));
+
+  // Phaser vem do node_modules (versão fixada no package.json), sem cópia no repositório
+  const pastaPhaser = path.join(path.dirname(require.resolve('phaser/package.json')), 'dist');
+  app.use('/vendor/phaser', express.static(pastaPhaser, { maxAge: '7d' }));
 
   app.use(express.static(path.join(__dirname, '..', 'public'), { extensions: ['html'] }));
   app.use(errorHandler);

@@ -14,6 +14,14 @@ professor gerencia tudo pela área `/admin.html`.
 - **Monte o PC Ideal** (`/monta-pc.html`): o aluno escolhe um cliente, pesquisa
   peças reais em lojas, monta a proposta dentro do orçamento e justifica a
   compatibilidade. Não há gabarito: o professor revisa e dá feedback.
+- **Oficina de PCs** (`/oficina.html`): jogo 2D em pixel art feito com
+  [Phaser 4](https://phaser.io). O aluno atende clientes e monta o PC na
+  bancada arrastando as peças, com skill checks: alinhar o processador, dosar a
+  pasta térmica, parafusar o cooler em X e ligar os cabos. Depois fecha a tampa
+  e testa. Peça incompatível tem consequência: socket errado entorta os pinos,
+  sem pasta o PC superaquece e fonte fraca desliga no teste de estresse. O
+  primeiro pedido é um tutorial guiado; os seguintes são livres, com estrelas e
+  moedas.
 
 ## Como rodar
 
@@ -73,8 +81,42 @@ public/
   js/questions/               → views de pergunta (espelham src/questions)
   js/pages/escape|hardware|pcbuild/
   js/admin/                   → AdminApp, sessão, seções/abas, editores de pergunta
-test/                         → node:test (tipos de pergunta, motor adaptativo, detector de chute)
+test/                         → node:test (tipos de pergunta, motor adaptativo, detector de chute, regras da Oficina)
+docs/oficina-sprites.md       → como gerar a arte do jogo no ChatGPT (+ gabaritos em docs/oficina-gabaritos)
 ```
+
+## Oficina de PCs (jogo)
+
+O jogo é dividido em duas camadas:
+
+- **Regras** (`public/js/pages/oficina/regras/`), em JavaScript puro, sem
+  Phaser, testadas com `node:test`:
+  - `catalogo.js`: peças e atributos (socket, DDR4/DDR5, TDP, watts, formato,
+    comprimento, preço).
+  - `encaixes.js`: um `Encaixe` por lugar da montagem (socket, slots, baias).
+    Cada subclasse define ordem, compatibilidade (recusa ou dano) e skill check.
+  - `Montagem.js`: estado do PC na bancada e ações (encaixar, remover, cabos,
+    tampa).
+  - `SimuladorTeste.js`: o que acontece ao ligar (sem energia, bipes, sem vídeo,
+    fonte fraca, temperatura).
+  - `pedidos.js`: clientes e requisitos (classes `Requisito`) e a avaliação por
+    estrelas.
+- **Jogo** (`public/js/pages/oficina/jogo/`), em Phaser 4: cenas (carregamento,
+  menu, oficina), vistas (placa-mãe e gabinete), bandeja, skill checks, telas
+  de teste/resultado e tutorial.
+
+O Phaser é servido direto do `node_modules` em `/vendor/phaser` (versão fixada
+no `package.json`), sem etapa de build. O progresso do jogo fica salvo no
+navegador do aluno.
+
+- **Arte:** peças sem imagem são desenhadas por código em pixel art. Para usar
+  arte própria, siga `docs/oficina-sprites.md`.
+- **Novo pedido:** adicione um item em `PEDIDOS` (`pedidos.js`) com fala,
+  requisitos e recompensa.
+- **Nova peça:** adicione em `PECAS` (`catalogo.js`) e, se usar um sprite novo,
+  em `SPRITES` (`manifesto.js`).
+- **Depuração:** `oficina.html?zonas=1` mostra as zonas de encaixe e
+  `oficina.html?teste` expõe o jogo em `window.jogoOficina` para testes.
 
 ### Como adicionar um tipo de pergunta novo
 
