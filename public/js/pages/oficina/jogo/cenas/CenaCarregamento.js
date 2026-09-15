@@ -23,8 +23,10 @@ export class CenaCarregamento extends Phaser.Scene {
     });
 
     this.disponiveis = new Set(this.registry.get('spritesDisponiveis') || []);
+    this.personalizados = this.registry.get('spritesPersonalizados') || {};
     for (const chave of Object.keys(SPRITES)) {
-      if (this.disponiveis.has(chave)) this.load.image(chave, `/images/oficina/${chave}.png`);
+      if (this.personalizados[chave]?.fonte) this.load.image(chave, this.personalizados[chave].fonte);
+      else if (this.disponiveis.has(chave)) this.load.image(chave, `/images/oficina/${chave}.png`);
     }
     this.load.on('loaderror', (arquivo) => {
       this.disponiveis.delete(arquivo.key);

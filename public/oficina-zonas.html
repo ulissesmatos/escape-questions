@@ -27,6 +27,13 @@
         <label class="editor-arquivo">Pré-visualizar outro PNG
           <input id="arquivo-preview" type="file" accept="image/png" />
         </label>
+        <label>Identificador
+          <input id="id-sprite" placeholder="minha-placa-am5" pattern="[a-z0-9-]+" />
+        </label>
+        <label>Tipo de zonas
+          <select id="grupo-sprite"><option value="placas">Placa-mãe</option><option value="gabinetes">Gabinete</option></select>
+        </label>
+        <button id="adicionar-sprite" class="botao botao-secundario" type="button" disabled>Adicionar à biblioteca</button>
         <a class="botao botao-secundario" href="oficina.html?zonas=1">Abrir Oficina com zonas</a>
       </div>
 

@@ -2,6 +2,7 @@ import { SiteHeader } from '../../components/SiteHeader.js';
 import {
   SPRITES, LAYOUTS_PADRAO, layoutsAtuais,
   salvarLayoutsPersonalizados, restaurarLayoutsPadrao,
+  spritesPersonalizadosAtuais, salvarSpritePersonalizado,
 } from './jogo/sprites/manifesto.js';
 
 SiteHeader.montarNaPagina();
@@ -21,23 +22,40 @@ const lista = document.querySelector('#lista-zonas');
 const form = document.querySelector('#form-zona');
 const titulo = document.querySelector('#titulo-zona');
 const status = document.querySelector('#status-zonas');
+const arquivoPreview = document.querySelector('#arquivo-preview');
+const idSprite = document.querySelector('#id-sprite');
+const grupoSprite = document.querySelector('#grupo-sprite');
+const botaoAdicionarSprite = document.querySelector('#adicionar-sprite');
 
 let layouts = layoutsAtuais();
+let spritesPersonalizados = spritesPersonalizadosAtuais();
 let atual = { grupo: 'placas', sprite: 'placa-atx' };
 let selecionada = null;
 let previewUrl = null;
 
-for (const [grupo, rotulo, sprites] of grupos) {
-  const optgroup = document.createElement('optgroup');
-  optgroup.label = rotulo;
-  sprites.forEach((sprite) => {
-    const option = new Option(sprite, `${grupo}:${sprite}`);
-    optgroup.append(option);
-  });
-  seletor.append(optgroup);
+function preencherSeletor(valor = seletor.value || 'placas:placa-atx') {
+  seletor.replaceChildren();
+  for (const [grupo, rotulo, sprites] of grupos) {
+    const optgroup = document.createElement('optgroup');
+    optgroup.label = rotulo;
+    sprites.forEach((sprite) => optgroup.append(new Option(sprite, `${grupo}:${sprite}`)));
+    seletor.append(optgroup);
+  }
+  const meus = Object.values(spritesPersonalizados);
+  if (meus.length) {
+    const optgroup = document.createElement('optgroup');
+    optgroup.label = 'Meus sprites';
+    meus.forEach((sprite) => optgroup.append(new Option(sprite.nome || sprite.id, `${sprite.grupo}:${sprite.id}`)));
+    seletor.append(optgroup);
+  }
+  seletor.value = valor;
 }
 
 function layoutAtual() {
+  if (!layouts[atual.grupo][atual.sprite]) {
+    const modelo = atual.grupo === 'placas' ? LAYOUTS_PADRAO.placas['placa-matx'] : LAYOUTS_PADRAO.gabinetes['gabinete-mini'];
+    layouts[atual.grupo][atual.sprite] = copiar(modelo);
+  }
   return layouts[atual.grupo][atual.sprite];
 }
 
@@ -110,7 +128,7 @@ function renderizar() {
   const { largura, altura } = SPRITES[atual.sprite];
   palco.style.width = `${Math.min(680, largura * 1.65)}px`;
   palco.style.aspectRatio = `${largura} / ${altura}`;
-  preview.src = previewUrl || `/images/oficina/${atual.sprite}.png`;
+  preview.src = previewUrl || spritesPersonalizados[atual.sprite]?.fonte || `/images/oficina/${atual.sprite}.png`;
   preview.alt = `Sprite ${atual.sprite}`;
   lista.replaceChildren();
   [...palco.querySelectorAll('.editor-zona')].forEach((elemento) => elemento.remove());
@@ -151,11 +169,44 @@ form.addEventListener('input', () => {
   definirRet(zona, ret); renderizar();
 });
 
-document.querySelector('#arquivo-preview').addEventListener('change', (evento) => {
+arquivoPreview.addEventListener('change', (evento) => {
   if (previewUrl) URL.revokeObjectURL(previewUrl);
   const arquivo = evento.target.files[0];
   previewUrl = arquivo ? URL.createObjectURL(arquivo) : null;
+  botaoAdicionarSprite.disabled = !arquivo;
   renderizar();
+});
+
+botaoAdicionarSprite.addEventListener('click', async () => {
+  const arquivo = arquivoPreview.files[0];
+  if (!arquivo) return;
+  const id = idSprite.value.trim();
+  if (!id) { status.textContent = 'Informe um identificador, como minha-placa-am5.'; return; }
+  try {
+    const fonte = await new Promise((resolve, reject) => {
+      const leitor = new FileReader();
+      leitor.onload = () => resolve(leitor.result); leitor.onerror = reject; leitor.readAsDataURL(arquivo);
+    });
+    const imagem = await new Promise((resolve, reject) => {
+      const elemento = new Image(); elemento.onload = () => resolve(elemento); elemento.onerror = reject; elemento.src = fonte;
+    });
+    const sprite = salvarSpritePersonalizado({
+      id, grupo: grupoSprite.value, fonte,
+      largura: imagem.naturalWidth, altura: imagem.naturalHeight, nome: arquivo.name.replace(/\.[^.]+$/, ''),
+    });
+    spritesPersonalizados = spritesPersonalizadosAtuais();
+    if (!layouts[sprite.grupo][sprite.id]) {
+      const modelo = sprite.grupo === 'placas' ? LAYOUTS_PADRAO.placas['placa-matx'] : LAYOUTS_PADRAO.gabinetes['gabinete-mini'];
+      layouts[sprite.grupo][sprite.id] = copiar(modelo);
+    }
+    atual = { grupo: sprite.grupo, sprite: sprite.id }; selecionada = null;
+    if (previewUrl) URL.revokeObjectURL(previewUrl); previewUrl = null;
+    arquivoPreview.value = ''; idSprite.value = ''; botaoAdicionarSprite.disabled = true;
+    preencherSeletor(`${sprite.grupo}:${sprite.id}`); renderizar();
+    status.textContent = 'Sprite adicionado. Ajuste as zonas e clique em “Salvar neste navegador”.';
+  } catch (erro) {
+    status.textContent = erro.message || 'Não foi possível adicionar esse PNG.';
+  }
 });
 
 document.querySelector('#adicionar-zona').addEventListener('click', () => {
@@ -180,7 +231,7 @@ document.querySelector('#salvar-zonas').addEventListener('click', () => {
 });
 
 document.querySelector('#exportar-zonas').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify({ versao: 1, layouts }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ versao: 2, layouts, sprites: spritesPersonalizados }, null, 2)], { type: 'application/json' });
   const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'oficina-zonas.json'; link.click();
   URL.revokeObjectURL(link.href);
   status.textContent = 'Arquivo de zonas exportado.';
@@ -193,7 +244,9 @@ document.querySelector('#importar-zonas').addEventListener('change', async (even
     if (!dado.layouts && !(dado.placas || dado.gabinetes)) throw new Error('Estrutura ausente');
     layouts = copiar(dado.layouts || dado);
     if (!layouts.placas || !layouts.gabinetes) throw new Error('Grupos ausentes');
-    selecionada = null; renderizar(); status.textContent = 'Arquivo importado. Clique em “Salvar neste navegador” para aplicar.';
+    for (const sprite of Object.values(dado.sprites || {})) salvarSpritePersonalizado(sprite);
+    spritesPersonalizados = spritesPersonalizadosAtuais();
+    preencherSeletor(); selecionada = null; renderizar(); status.textContent = 'Arquivo importado. Clique em “Salvar neste navegador” para aplicar.';
   } catch {
     status.textContent = 'Não foi possível ler esse JSON de zonas.';
   }
@@ -205,5 +258,5 @@ document.querySelector('#restaurar-zonas').addEventListener('click', () => {
   status.textContent = 'Padrão restaurado neste navegador.';
 });
 
-seletor.value = 'placas:placa-atx';
+preencherSeletor();
 renderizar();

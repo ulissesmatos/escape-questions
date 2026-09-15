@@ -1,5 +1,6 @@
 import { SiteHeader } from '../../components/SiteHeader.js';
 import { criarJogo } from './jogo/criarJogo.js';
+import { spritesPersonalizadosAtuais } from './jogo/sprites/manifesto.js';
 
 SiteHeader.montarNaPagina();
 
@@ -14,6 +15,7 @@ async function iniciar() {
   const parametros = new URLSearchParams(location.search);
   const jogo = criarJogo(alvo, {
     spritesDisponiveis: sprites,
+    spritesPersonalizados: spritesPersonalizadosAtuais(),
     mostrarZonas: parametros.has('zonas'),
   });
   // ?teste expõe o jogo para testes automatizados de navegador

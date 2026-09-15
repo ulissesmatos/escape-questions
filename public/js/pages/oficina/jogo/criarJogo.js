@@ -5,7 +5,7 @@ import { CenaMenu } from './cenas/CenaMenu.js';
 import { CenaOficina } from './cenas/CenaOficina.js';
 
 /** Cria o jogo dentro do elemento informado. */
-export function criarJogo(elemento, { spritesDisponiveis = [], mostrarZonas = false } = {}) {
+export function criarJogo(elemento, { spritesDisponiveis = [], spritesPersonalizados = {}, mostrarZonas = false } = {}) {
   const jogo = new Phaser.Game({
     type: Phaser.AUTO,
     parent: elemento,
@@ -19,6 +19,7 @@ export function criarJogo(elemento, { spritesDisponiveis = [], mostrarZonas = fa
     scene: [CenaCarregamento, CenaMenu, CenaOficina],
   });
   jogo.registry.set('spritesDisponiveis', spritesDisponiveis);
+  jogo.registry.set('spritesPersonalizados', spritesPersonalizados);
   jogo.registry.set('mostrarZonas', mostrarZonas);
   return jogo;
 }

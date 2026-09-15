@@ -7,21 +7,18 @@ recarregar a página.
 
 ## Arte final já incluída
 
-Os gabaritos recebidos foram normalizados para `public/images/oficina/` com
-redução por **vizinho mais próximo** e escala inteira. Isso conserva o desenho
-manual e evita pixels intermediários/artefatos de IA. Os originais em
-`docs/oficina-gabaritos/` continuam intocados.
+`public/images/oficina/` agora contém arte original nova para os 27 sprites. Os
+gabaritos em `docs/oficina-gabaritos/` foram usados somente como referência de
+composição — especialmente as posições de socket, RAM, PCIe e baias — e seguem
+intactos. A direção de arte usa uma paleta única, contorno consistente e blocos
+de pixel deliberados; as imagens são carregadas em alta resolução e reduzidas
+pelo Phaser no tamanho lógico do jogo, o que evita os serrilhados irregulares
+de uma geração de IA usada diretamente em tamanho pequeno.
 
-Para repetir a operação depois de criar uma variação, atualize o gabarito e rode:
-
-```powershell
-.\tools\normalizar-sprites-oficina.ps1
-```
-
-O script falha de propósito se a imagem não for um múltiplo exato do tamanho do
-jogo. Adicione a nova chave e seu tamanho ao mapa `$tamanhos` do script e ao
-`SPRITES` em `manifesto.js`; assim versões futuras de placas, gabinetes e peças
-entram sem afetar as existentes.
+O script `tools/normalizar-sprites-oficina.ps1` permanece disponível para
+comparar ou preparar os gabaritos, mas não deve ser executado sobre a pasta de
+arte final sem revisar o resultado: ele foi pensado para fontes com escala
+inteira.
 
 ## Editor visual de zonas
 
@@ -30,6 +27,19 @@ arte real. As caixas podem ser movidas e redimensionadas; o editor também
 permite adicionar zonas, salvar no navegador, exportar e importar JSON. A
 Oficina lê essa calibração ao recarregar. Use **Restaurar padrão** para voltar
 imediatamente aos layouts do repositório.
+
+Para adicionar uma arte sua, escolha o PNG, escreva um identificador em
+minúsculas (por exemplo `minha-placa-am5`), marque **Placa-mãe** ou **Gabinete**
+e clique em **Adicionar à biblioteca**. O arquivo fica guardado localmente no
+navegador e aparece no seletor “Meus sprites”; então basta desenhar as zonas e
+exportar o JSON para compartilhar a configuração com outro navegador. O PNG
+personalizado também é carregado pela Oficina nesse mesmo navegador, mantendo
+o fallback provisório para todo sprite não personalizado.
+
+Essa biblioteca resolve a arte e os encaixes. Para uma peça nova aparecer como
+opção de montagem em um pedido, ela ainda precisa receber sua ficha técnica no
+catálogo do jogo (socket, memória, preço e compatibilidades); isso impede que
+uma imagem sem regras entre acidentalmente em uma montagem avaliável.
 
 ## Passo a passo
 
