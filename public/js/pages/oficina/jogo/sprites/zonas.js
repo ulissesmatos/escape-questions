@@ -17,7 +17,7 @@ export const GRUPOS_DE_ZONAS = {
 };
 
 /** Nome de cada tipo de zona (as listas, como `ram`, ganham o número do slot) */
-export const CAMPOS_DE_ZONA = {
+const CAMPOS_DE_ZONA = {
   socket: { nome: 'Socket do processador', curto: 'Socket' },
   ram: { nome: 'Slot de memória', curto: 'RAM' },
   m2: { nome: 'Slot M.2', curto: 'M.2' },

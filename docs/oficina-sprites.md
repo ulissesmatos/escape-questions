@@ -18,9 +18,7 @@ pequeno.
 
 `tools/preparar-arte-gerada-oficina.ps1` é o pipeline da arte final: ele reduz
 cada arquivo à dimensão declarada no manifesto, fixa a transparência real e
-remove o fundo xadrez falso caso uma placa gerada o contenha. O antigo
-`tools/normalizar-sprites-oficina.ps1` permanece disponível apenas para
-comparar/preparar gabaritos de escala inteira.
+remove o fundo xadrez falso caso uma placa gerada o contenha.
 
 ## Editor visual de zonas
 
