@@ -2,7 +2,8 @@
 FROM node:20-alpine AS empacotador
 
 WORKDIR /app
-COPY package*.json ./
+# .npmrc: sem scripts de instalação (o utf-8-validate não compila no servidor ARM)
+COPY package*.json .npmrc ./
 RUN npm install
 COPY public ./public
 COPY tools ./tools
@@ -15,7 +16,7 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY package*.json .npmrc ./
 # O site serve só um arquivo do Phaser (/vendor/phaser); o resto do pacote
 # (código-fonte e outras versões, ~115 MB) não vai para a imagem
 RUN npm install --omit=dev \
