@@ -263,3 +263,11 @@ body[data-page="admin"] {
 /* ---------- Seção e abas ---------- */
 
 
+
+/* Indícios de consulta externa no histórico do aluno */
+.sinais-consulta {
+  display: inline-flex;
+  gap: 6px;
+  font-size: 1rem;
+  cursor: help;
+}

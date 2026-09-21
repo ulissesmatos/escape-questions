@@ -1,8 +1,14 @@
 import { Component } from '../../core/Component.js';
 import { h } from '../../core/dom.js';
 import { QuestionViewFactory } from '../../questions/QuestionViewFactory.js';
+import { AntiCopia } from '../../core/antiCopia.js';
 
-/** Cartão de uma pista: número, título e a view de resposta do tipo certo. props: { pista, numero, total, onMudar } */
+/**
+ * Cartão de uma pista: número, título e a view de resposta do tipo certo.
+ * O enunciado não pode ser copiado e a resposta não pode ser colada: a ideia é
+ * que o aluno leia e escreva (ver core/antiCopia.js).
+ * props: { pista, numero, total, onMudar, onAviso }
+ */
 export class PistaCard extends Component {
   render() {
     const { pista, numero, total } = this.props;
@@ -20,6 +26,10 @@ export class PistaCard extends Component {
       ),
       this.view.montar()
     );
+    this.antiCopia?.parar();
+    this.antiCopia = new AntiCopia({ aoTentar: (mensagem) => this.emitir('Aviso', mensagem) });
+    this.antiCopia.protegerTexto(el).protegerCampos(el);
+    this.limpezas.push(() => this.antiCopia.parar());
     return el;
   }
 

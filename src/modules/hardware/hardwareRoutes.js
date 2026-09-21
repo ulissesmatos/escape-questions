@@ -23,7 +23,7 @@ function hardwareRoutes(jogo) {
     const identidade = validar.identidade(req.body);
     const desafioId = validar.texto(req.params.id, 'Pergunta inválida.', { max: 64 });
     const resposta = req.body.resposta && typeof req.body.resposta === 'object' ? req.body.resposta : {};
-    res.json(await jogo.responder(identidade, desafioId, resposta));
+    res.json(await jogo.responder(identidade, desafioId, resposta, validar.sinais(req.body.sinais)));
   }));
 
   return r;

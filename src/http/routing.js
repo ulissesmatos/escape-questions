@@ -47,6 +47,22 @@ const validar = {
     return typeof valor === 'boolean' ? valor : padrao;
   },
 
+  /**
+   * Sinais de consulta externa mandados pelo navegador (tentativas de copiar,
+   * de colar e saídas da aba). São só indícios para o professor: chegam do
+   * aluno, então entram limitados e sem confiar no valor.
+   */
+  sinais(valor) {
+    const limitar = (n, maximo) => Math.min(maximo, Math.max(0, Math.round(Number(n) || 0)));
+    const s = valor && typeof valor === 'object' ? valor : {};
+    return {
+      copias: limitar(s.copias, 999),
+      colagens: limitar(s.colagens, 999),
+      saidasDeAba: limitar(s.saidasDeAba, 999),
+      tempoForaMs: limitar(s.tempoForaMs, 6 * 60 * 60 * 1000),
+    };
+  },
+
   /** Nome do aluno/grupo + turma, usados como identidade nas atividades. */
   identidade(body = {}) {
     return {

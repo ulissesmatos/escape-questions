@@ -992,3 +992,16 @@ footer a:hover {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Enunciados protegidos contra cópia (ver core/antiCopia.js) */
+.sem-copia,
+.sem-copia * {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sem-copia input,
+.sem-copia textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}

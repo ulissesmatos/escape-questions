@@ -166,7 +166,7 @@ class HardwareGameService {
 
   // ---------------- Resposta ----------------
 
-  async responder(identidade, desafioId, resposta) {
+  async responder(identidade, desafioId, resposta, sinais = {}) {
     const resultado = await this.db.transaction(async (tx) => {
       const desafio = await this.repo.desafioParaResponder(tx, desafioId);
       if (!desafio) throw HttpError.notFound('Pergunta expirada. Abra a peça de novo.');
@@ -212,6 +212,7 @@ class HardwareGameService {
         perguntaTexto: [desafio.publico.pergunta, desafio.publico.afirmacao].filter(Boolean).join(' — '),
         respostaTexto: tipo.descreverResposta(desafio.publico, resposta).slice(0, 500),
         respostaCertaTexto: tipo.descreverGabarito(desafio.publico, desafio.gabarito).slice(0, 500),
+        sinais,
         habilidadeAntes: perfil.habilidade,
         habilidadeDepois: atualizado.habilidade,
       });
