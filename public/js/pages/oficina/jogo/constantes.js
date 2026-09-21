@@ -3,13 +3,19 @@ export const LARGURA = 960;
 export const ALTURA = 540;
 
 // O canvas é renderizado ESCALA× maior e a câmera aplica zoom, para que textos
-// e bordas fiquem nítidos quando o jogo é esticado para caber na tela
-export const ESCALA = 2;
+// e bordas fiquem nítidos quando o jogo é esticado para caber na tela.
+// No modo leve vale 1: quatro vezes menos pixels por quadro.
+export let ESCALA = 2;
+
+export function definirEscala(valor) {
+  ESCALA = valor;
+}
 
 // Tamanho do "pixel" dos desenhos provisórios (2 = cada pixel lógico vira 2×2)
 export const PIXEL = 2;
 
-export const FONTE = '"Pixelify Sans", "Segoe UI", sans-serif';
+// DotGothic16: pixelada e legível — em outras fontes do tipo o 5 vira S e o 8 confunde
+export const FONTE = '"DotGothic16", "Segoe UI", sans-serif';
 
 export const CORES = {
   fundo: 0x1b2033,

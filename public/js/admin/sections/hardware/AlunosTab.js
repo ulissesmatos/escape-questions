@@ -21,6 +21,21 @@ function segundos(ms) {
 }
 
 /** Progresso do Mapa de Hardware por aluno/grupo, com histórico detalhado de cada tentativa. */
+/**
+ * Indícios de consulta externa durante a pergunta: tentativas de copiar o
+ * enunciado, de colar a resposta e saídas da aba. São pistas para conversar
+ * com o aluno, não prova de nada.
+ */
+function sinaisDeConsulta(sinais = {}) {
+  const { copias = 0, colagens = 0, saidasDeAba = 0, tempoForaMs = 0 } = sinais;
+  const marcas = [];
+  if (copias) marcas.push(['⧉', `Tentou copiar a pergunta ${copias}×`]);
+  if (colagens) marcas.push(['📋', `Tentou colar a resposta ${colagens}×`]);
+  if (saidasDeAba) marcas.push(['↗', `Saiu da aba ${saidasDeAba}× (${segundos(tempoForaMs)} fora)`]);
+  if (!marcas.length) return h('span', { class: 'texto-suave', text: '—' });
+  return h('span', { class: 'sinais-consulta' }, marcas.map(([icone, titulo]) => h('span', { title: titulo, text: icone })));
+}
+
 export class AlunosTab extends AdminTab {
   async carregar() {
     return this.props.api.get('/hardware/alunos', { turma: this.turma || '' });
@@ -127,6 +142,7 @@ export class AlunosTab extends AdminTab {
           },
           { titulo: 'Resultado', valor: (t) => badge(...(RESULTADOS[t.resultado] || [t.resultado])) },
           { titulo: 'Tempo', valor: (t) => h('span', { title: `Mínimo esperado: ${segundos(t.tempoMinimoMs)}`, text: segundos(t.tempoMs) }) },
+          { titulo: 'Sinais', valor: (t) => sinaisDeConsulta(t.sinais) },
         ],
       }).montar()
     );

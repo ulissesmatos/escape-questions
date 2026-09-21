@@ -15,7 +15,7 @@ export function daFracao([fx, fy, fw, fh], base) {
   return retangulo(base.x + fx * base.width, base.y + fy * base.height, fw * base.width, fh * base.height);
 }
 
-export function inflar(r, dx, dy) {
+function inflar(r, dx, dy) {
   return retangulo(r.x - dx, r.y - dy, r.width + dx * 2, r.height + dy * 2);
 }
 

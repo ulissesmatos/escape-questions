@@ -1,8 +1,8 @@
 import { LARGURA, ALTURA, CORES } from '../constantes.js';
+import { ehLeve } from '../desempenho.js';
 
-/** Fundo da oficina: parede com prateleiras e bancada de madeira (desenhado em pixel art) */
-export function desenharOficina(cena, { alturaBancada = 120 } = {}) {
-  const g = cena.add.graphics().setDepth(-10);
+/** Desenha a parede, as prateleiras e a bancada (pixel art feita por código) */
+function pintar(g, alturaBancada) {
   const P = 4;
 
   // Parede com azulejos
@@ -33,4 +33,21 @@ export function desenharOficina(cena, { alturaBancada = 120 } = {}) {
   g.fillStyle(CORES.bancada, 1).fillRect(0, topo, LARGURA, P * 3);
   for (let x = 0; x < LARGURA; x += 120) g.fillStyle(0x3d2a1d, 1).fillRect(x, topo + P * 3, P, alturaBancada);
   return g;
+}
+
+/**
+ * Fundo da oficina. São centenas de retângulos, e o Phaser redesenha um
+ * Graphics a cada quadro: no modo leve o cenário vira uma imagem, desenhada
+ * uma única vez, para poupar o processador.
+ */
+export function desenharOficina(cena, { alturaBancada = 120 } = {}) {
+  if (!ehLeve(cena)) return pintar(cena.add.graphics().setDepth(-10), alturaBancada);
+
+  const chave = `cenario-${alturaBancada}`;
+  if (!cena.textures.exists(chave)) {
+    const g = pintar(cena.make.graphics({ add: false }), alturaBancada);
+    g.generateTexture(chave, LARGURA, ALTURA);
+    g.destroy();
+  }
+  return cena.add.image(0, 0, chave).setOrigin(0).setDepth(-10);
 }

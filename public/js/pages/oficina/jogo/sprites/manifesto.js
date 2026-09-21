@@ -123,9 +123,3 @@ export const LAYOUT_GABINETES = {
     ],
   },
 };
-
-export function tamanhoSprite(chave) {
-  const s = SPRITES[chave];
-  if (!s) throw new Error(`Sprite sem manifesto: ${chave}`);
-  return s;
-}

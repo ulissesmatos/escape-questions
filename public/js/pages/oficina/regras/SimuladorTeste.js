@@ -13,7 +13,7 @@ export const LIMITE_QUENTE = 90;
 const RESISTENCIA_PASTA = { ideal: 0.08, demais: 0.12, pouca: 0.25, nenhuma: 1.0 };
 
 /** Tempo típico para o sistema iniciar em cada tipo de disco (em segundos) */
-export const INICIO_POR_DISCO = [
+const INICIO_POR_DISCO = [
   { tipo: 'nvme', nome: 'SSD NVMe', segundos: 9, pontos: 600 },
   { tipo: 'ssd', nome: 'SSD SATA', segundos: 15, pontos: 350 },
   { tipo: 'hd', nome: 'HD', segundos: 42, pontos: 80 },

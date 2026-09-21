@@ -3,6 +3,7 @@ import { api } from '../../core/ApiClient.js';
 import { Modal } from '../../components/Modal.js';
 import { estadoCarregando } from '../../components/ui.js';
 import { QuestionViewFactory } from '../../questions/QuestionViewFactory.js';
+import { AntiCopia } from '../../core/antiCopia.js';
 
 /**
  * Modal de desafio de uma peça do mapa. Estados:
@@ -26,6 +27,7 @@ export class ChallengeModal extends Modal {
 
   fechar(opcoes) {
     this.token++;
+    this.antiCopia?.parar();
     this.pararContagem();
     super.fechar(opcoes);
   }
@@ -64,6 +66,8 @@ export class ChallengeModal extends Modal {
     if (meu !== this.token) return;
 
     this.desafio = desafio;
+    this.antiCopia?.parar();
+    this.antiCopia = new AntiCopia({ aoTentar: (mensagem) => this.mostrarAviso(mensagem) }).vigiarAba();
     this.view = QuestionViewFactory.criar(desafio.questao, {
       onMudar: () => this.atualizarBotao(),
       onEnviar: () => this.confirmar(),
@@ -72,6 +76,7 @@ export class ChallengeModal extends Modal {
     this.botaoConfirmar = h('button', { type: 'button', class: 'btn btn-primario', text: 'Confirmar resposta', onClick: () => this.confirmar() });
     this.definirCorpo(this.seloDificuldade(desafio), this.view.montar());
     this.definirRodape(this.botaoConfirmar);
+    this.antiCopia.protegerTexto(this.corpo).protegerCampos(this.corpo);
     this.atualizarBotao();
   }
 
@@ -101,6 +106,7 @@ export class ChallengeModal extends Modal {
       resultado = await api.post(`/hardware/desafios/${this.desafio.desafioId}/resposta`, {
         ...this.props.identidade,
         resposta: this.view.obterResposta(),
+        sinais: this.antiCopia.relatorio,
       });
     } catch (err) {
       this.enviando = false;

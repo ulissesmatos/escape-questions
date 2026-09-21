@@ -1,5 +1,6 @@
 import { CORES } from '../constantes.js';
 import { somDa } from '../audio/SomDaOficina.js';
+import { definirModoLeve } from '../desempenho.js';
 import { Botao } from './componentes.js';
 
 const COR_ICONE = 0xf1f3fb;
@@ -20,6 +21,15 @@ const ICONES = {
       g.beginPath().arc(2, 0, 8, -0.9, 0.9).strokePath();
     } else riscar(g);
   },
+  // Velocímetro: aceso = modo leve (menos pixels e efeitos, para PCs fracos)
+  desempenho(g, leve) {
+    const cor = leve ? CORES.destaque : COR_ICONE;
+    g.lineStyle(2, cor, 1);
+    g.beginPath().arc(0, 4, 8, Math.PI, 0).strokePath();
+    g.lineBetween(0, 4, leve ? 5 : -5, leve ? -3 : -3);
+    g.fillStyle(cor, 1).fillCircle(0, 4, 2);
+  },
+
   telaCheia(g, cheia) {
     g.fillStyle(COR_ICONE, 1);
     // Fora da tela cheia: cantos nas bordas. Em tela cheia: cantos "recolhidos" no meio.
@@ -34,7 +44,7 @@ function riscar(g) {
   g.lineStyle(3, CORES.erro, 1).lineBetween(-8, 8, 8, -8);
 }
 
-export function alternarTelaCheia(cena) {
+function alternarTelaCheia(cena) {
   if (cena.scale.isFullscreen) cena.scale.stopFullscreen();
   else cena.scale.startFullscreen();
 }
@@ -51,6 +61,7 @@ export class ControlesDeJogo {
       ['musica', 'Música', () => som.alternar('musica'), () => som.preferencias.musica],
       ['efeitos', 'Efeitos sonoros', () => som.alternar('efeitos'), () => som.preferencias.efeitos],
       ['telaCheia', 'Tela cheia (F)', () => alternarTelaCheia(cena), () => cena.scale.isFullscreen],
+      ['desempenho', 'Modo leve (PCs fracos)', () => definirModoLeve(!cena.registry.get('modoLeve')), () => cena.registry.get('modoLeve')],
     ];
     this.icones = botoes.map(([nome, , acao, estado], i) => {
       const botao = new Botao(cena, x + i * espaco, y, '', acao, { largura: 28, altura: 24 }).setDepth(profundidade);

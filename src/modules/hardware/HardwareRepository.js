@@ -194,8 +194,8 @@ class HardwareRepository {
       `INSERT INTO hw_answers
          (participantes, turma, component_id, componente_nome, opcao_texto, correta, questao_id, desafio_id,
           tipo, dificuldade, resultado, tempo_ms, tempo_minimo_ms, pergunta_texto, resposta_certa_texto,
-          habilidade_antes, habilidade_depois)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+          habilidade_antes, habilidade_depois, copias, colagens, saidas_aba, tempo_fora_ms)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)`,
       [
         t.participantes,
         t.turma,
@@ -214,6 +214,10 @@ class HardwareRepository {
         t.respostaCertaTexto,
         t.habilidadeAntes,
         t.habilidadeDepois,
+        t.sinais?.copias || 0,
+        t.sinais?.colagens || 0,
+        t.sinais?.saidasDeAba || 0,
+        t.sinais?.tempoForaMs || 0,
       ]
     );
   }

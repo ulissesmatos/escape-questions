@@ -23,8 +23,9 @@ export class CenaCarregamento extends Phaser.Scene {
     });
 
     this.disponiveis = new Set(this.registry.get('spritesDisponiveis') || []);
+    const fontes = this.registry.get('fontesDeSprite') || {};
     for (const chave of Object.keys(SPRITES)) {
-      if (this.disponiveis.has(chave)) this.load.image(chave, `/images/oficina/${chave}.png`);
+      if (this.disponiveis.has(chave)) this.load.image(chave, fontes[chave] || `/images/oficina/${chave}.png`);
     }
     this.load.on('loaderror', (arquivo) => {
       this.disponiveis.delete(arquivo.key);

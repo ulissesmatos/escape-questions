@@ -15,13 +15,21 @@ async function carregarZonas() {
   }
 }
 
+/** Cada link de download só aparece se o arquivo existir (npm run empacotar / empacotar:exe) */
+async function mostrarDownloads() {
+  for (const item of document.querySelectorAll('.jogo-baixar-item')) {
+    const resposta = await fetch(item.dataset.arquivo, { method: 'HEAD' }).catch(() => null);
+    item.hidden = !resposta || !resposta.ok;
+  }
+}
+
 async function iniciar() {
   const alvo = document.getElementById('jogo');
   const [sprites] = await Promise.all([
     fetch('/api/oficina/sprites').then((r) => (r.ok ? r.json() : [])).catch(() => []),
     carregarZonas(),
     // A fonte pixelada precisa estar carregada antes de o Phaser desenhar textos
-    document.fonts ? document.fonts.load('16px "Pixelify Sans"').catch(() => null) : null,
+    document.fonts ? document.fonts.load('16px "DotGothic16"').catch(() => null) : null,
   ]);
   alvo.querySelector('.jogo-carregando')?.remove();
   const parametros = new URLSearchParams(location.search);
@@ -31,6 +39,7 @@ async function iniciar() {
   });
   // ?teste expõe o jogo para testes automatizados de navegador
   if (parametros.has('teste')) window.jogoOficina = jogo;
+  mostrarDownloads();
 }
 
 iniciar();

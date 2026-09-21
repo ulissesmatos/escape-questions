@@ -81,15 +81,6 @@ export function miniBarra(feitos, total, { rotulo = '' } = {}) {
 }
 
 /** Cabeçalho de seção com título, descrição e ações */
-export function cabecalhoSecao({ titulo, descricao = '', acoes = [] }) {
-  return h(
-    'div',
-    { class: 'secao-admin-cabecalho' },
-    h('div', {}, h('h1', { text: titulo }), descricao && h('p', { text: descricao })),
-    acoes.length > 0 && h('div', { class: 'secao-admin-acoes' }, acoes)
-  );
-}
-
 /** Barra de filtros */
 export function barraFiltros(...filtros) {
   return h('div', { class: 'barra-filtros' }, filtros);

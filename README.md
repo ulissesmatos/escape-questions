@@ -33,6 +33,7 @@ docker compose up -d        # PostgreSQL local na porta 5433
 npm install
 npm start                   # http://localhost:3000
 npm test                    # testes automatizados
+npm run empacotar           # gera a versão da Oficina para baixar
 ```
 
 As tabelas são criadas e populadas automaticamente na primeira execução
@@ -83,6 +84,8 @@ public/
   js/questions/               → views de pergunta (espelham src/questions)
   js/pages/escape|hardware|pcbuild/
   js/admin/                   → AdminApp, sessão, seções/abas, editores de pergunta
+  fonts/                      → DotGothic16 (fonte do jogo; licença OFL junto)
+tools/empacotar-oficina.js    → gera a versão da Oficina para baixar (arquivo único)
 test/                         → node:test (tipos de pergunta, motor adaptativo, detector de chute, regras da Oficina)
 docs/oficina-sprites.md       → como gerar a arte do jogo no ChatGPT (+ gabaritos em docs/oficina-gabaritos)
 docs/oficina-expansao.md      → proposta do loop de gameplay e das próximas fases do jogo
@@ -130,6 +133,29 @@ navegador do aluno.
 - **Depuração:** `oficina.html?zonas=1` mostra as zonas de encaixe (ciano) e as
   áreas de soltar (rosa); `oficina.html?teste` expõe o jogo em
   `window.jogoOficina` para testes.
+
+### Versões para baixar (rodam offline)
+
+Duas formas de levar o jogo para o computador, ambas sem internet e sem instalar
+nada. Na página da Oficina, cada botão só aparece se o arquivo existir; no
+deploy, a primeira etapa do `Dockerfile` gera os dois.
+
+```
+npm run empacotar        → arquivo único .html (qualquer sistema)
+npm run empacotar:exe    → aplicativo do Windows (.exe), em zip
+```
+
+| Saída | O que é |
+| --- | --- |
+| `dist/oficina-de-pcs.html` | O jogo inteiro (2,4 MB) num arquivo só: jogo, arte e fonte embutidos (esbuild). Abre com dois cliques no navegador. |
+| `dist/windows/` | Aplicativo pronto para testar: `Oficina de PCs.exe` + `resources.neu` + LEIA-ME |
+| `dist/oficina-de-pcs-windows.zip` | O mesmo aplicativo zipado (2,4 MB), para compartilhar |
+| `public/downloads/` | Cópias que o site oferece como download |
+
+O aplicativo do Windows usa o [Neutralino](https://neutralino.js.org): uma janela
+nativa que mostra o jogo pelo WebView2 (o motor do Edge, que já vem no Windows 10
+e 11). Por isso ele fica em ~5 MB e ~25 MB de memória, em vez dos ~150 MB de um
+Electron. O progresso fica salvo no próprio computador.
 
 ### Como adicionar um tipo de pergunta novo
 

@@ -39,7 +39,7 @@ function aplicarProps(el, props) {
   }
 }
 
-export function anexar(el, filhos) {
+function anexar(el, filhos) {
   for (const filho of filhos.flat(Infinity)) {
     if (filho === null || filho === undefined || filho === false) continue;
     if (filho instanceof Node) el.appendChild(filho);
@@ -54,14 +54,6 @@ export function anexar(el, filhos) {
 export function substituirFilhos(el, ...filhos) {
   el.replaceChildren();
   return anexar(el, filhos);
-}
-
-export function $(seletor, raiz = document) {
-  return raiz.querySelector(seletor);
-}
-
-export function $$(seletor, raiz = document) {
-  return [...raiz.querySelectorAll(seletor)];
 }
 
 /** Formata data/hora no padrão brasileiro */

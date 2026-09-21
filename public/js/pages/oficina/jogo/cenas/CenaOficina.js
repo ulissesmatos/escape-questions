@@ -1,5 +1,5 @@
 import Phaser from '../phaser.js';
-import { LARGURA, CORES, HEX, estiloTexto, prepararCamera, pontoNoMundo } from '../constantes.js';
+import { LARGURA, ALTURA, CORES, HEX, estiloTexto, prepararCamera, pontoNoMundo } from '../constantes.js';
 import { peca as buscarPeca } from '../../regras/catalogo.js';
 import { Montagem } from '../../regras/Montagem.js';
 import { SimuladorTeste } from '../../regras/SimuladorTeste.js';
@@ -17,6 +17,7 @@ import { TelaResultado } from '../telas/telas.js';
 import { TelaLigando } from '../telas/TelaLigando.js';
 import { ControlesDeJogo } from '../ui/ControlesDeJogo.js';
 import { somDa } from '../audio/SomDaOficina.js';
+import { ehLeve } from '../desempenho.js';
 
 const CARTAO = new Phaser.Geom.Rectangle(8, 44, 214, 488);
 const BANCADA = new Phaser.Geom.Rectangle(230, 44, 474, 434);
@@ -60,11 +61,7 @@ export class CenaOficina extends Phaser.Scene {
     this.desenharHud();
     this.cartao = new CartaoPedido(this, CARTAO, this.pedido);
 
-    const g = this.add.graphics();
-    desenharPainel(g, BANCADA.x, BANCADA.y, BANCADA.width, BANCADA.height, { cor: CORES.tapete, raio: 12 });
-    g.lineStyle(1, 0x4a5779, 0.5);
-    for (let x = BANCADA.x + 20; x < BANCADA.right; x += 24) g.lineBetween(x, BANCADA.y + 46, x, BANCADA.bottom - 6);
-    for (let y = BANCADA.y + 46; y < BANCADA.bottom; y += 24) g.lineBetween(BANCADA.x + 6, y, BANCADA.right - 6, y);
+    this.desenharTapete();
 
     // No tutorial a faixa de baixo da bancada fica reservada para o balão de instruções
     const area = this.pedido.tutorial ? { ...AREA_VISTA, h: AREA_VISTA.h - 92 } : AREA_VISTA;
@@ -93,6 +90,25 @@ export class CenaOficina extends Phaser.Scene {
     if (!this.pedido.tutorial) this.aviso.mostrar(`Novo pedido de ${this.pedido.cliente}! Leia o que o cliente quer antes de escolher as peças.`, 'info', 4000);
   }
 
+  /** Tapete da bancada com a grade. No modo leve vira imagem (desenho estático) */
+  desenharTapete() {
+    const pintar = (g) => {
+      desenharPainel(g, BANCADA.x, BANCADA.y, BANCADA.width, BANCADA.height, { cor: CORES.tapete, raio: 12 });
+      g.lineStyle(1, 0x4a5779, 0.5);
+      for (let x = BANCADA.x + 20; x < BANCADA.right; x += 24) g.lineBetween(x, BANCADA.y + 46, x, BANCADA.bottom - 6);
+      for (let y = BANCADA.y + 46; y < BANCADA.bottom; y += 24) g.lineBetween(BANCADA.x + 6, y, BANCADA.right - 6, y);
+      return g;
+    };
+    if (!ehLeve(this)) return pintar(this.add.graphics());
+    const chave = 'bancada-tapete';
+    if (!this.textures.exists(chave)) {
+      const g = pintar(this.make.graphics({ add: false }));
+      g.generateTexture(chave, LARGURA, ALTURA);
+      g.destroy();
+    }
+    return this.add.image(0, 0, chave).setOrigin(0);
+  }
+
   // ---------------- Interface fixa ----------------
 
   desenharHud() {
@@ -100,7 +116,7 @@ export class CenaOficina extends Phaser.Scene {
     g.fillStyle(0x12152a, 0.92).fillRect(0, 0, LARGURA, 36);
     this.add.text(12, 18, '🔧 OFICINA DE PCs', estiloTexto(16, HEX.destaque)).setOrigin(0, 0.5);
     this.add.text(LARGURA / 2 - 60, 18, `Pedido: ${this.pedido.cliente}`, estiloTexto(15)).setOrigin(0.5);
-    new ControlesDeJogo(this, 666, 18);
+    new ControlesDeJogo(this, 640, 18);
     this.add.image(LARGURA - 170, 18, 'moeda');
     this.textoMoedas = this.add.text(LARGURA - 156, 18, String(this.progresso.moedas), estiloTexto(15, HEX.destaque)).setOrigin(0, 0.5);
     new Botao(this, LARGURA - 56, 18, '☰ Menu', () => this.scene.start('menu'), { largura: 90, altura: 26, tamanho: 13 });
@@ -363,6 +379,7 @@ export class CenaOficina extends Phaser.Scene {
   }
 
   efeitoEncaixe(x, y) {
+    if (ehLeve(this)) return;
     const particulas = this.add.particles(x, y, 'faisca', {
       speed: { min: 40, max: 140 },
       lifespan: 380,
@@ -376,6 +393,7 @@ export class CenaOficina extends Phaser.Scene {
 
   efeitoDano(x, y) {
     this.cameras.main.shake(320, 0.012);
+    if (ehLeve(this)) return;
     const flash = this.add.rectangle(LARGURA / 2, 270, LARGURA, 540, CORES.erro, 0.35).setDepth(870);
     this.tweens.add({ targets: flash, alpha: 0, duration: 450, onComplete: () => flash.destroy() });
     const particulas = this.add.particles(x, y, 'faisca', {

@@ -1,6 +1,7 @@
 import { CORES, HEX, estiloTexto } from '../constantes.js';
 import { Botao } from '../ui/componentes.js';
 import { somDa } from '../audio/SomDaOficina.js';
+import { ehLeve } from '../desempenho.js';
 import { SimuladorTeste, LIMITE_DESLIGA, LIMITE_QUENTE } from '../../regras/SimuladorTeste.js';
 import { TelaSobreposta } from './telas.js';
 
@@ -432,6 +433,7 @@ export class TelaLigando extends TelaSobreposta {
   }
 
   soltarFumaca() {
+    if (ehLeve(this.cena)) return;
     const fumaca = this.cena.add.particles(this.ventoinha.x, this.ventoinha.y - 40, 'fumaca', {
       speed: { min: 20, max: 60 },
       angle: { min: 240, max: 300 },

@@ -67,13 +67,21 @@ export class Botao extends Phaser.GameObjects.Container {
     this.setSize(largura, altura);
     this.setInteractive({ useHandCursor: true });
     this.on('pointerover', () => this.habilitado && this.desenhar(0.12));
-    this.on('pointerout', () => this.desenhar());
+    this.on('pointerout', () => {
+      this.pressionado = false;
+      this.desenhar();
+    });
     this.on('pointerdown', () => {
       if (!this.habilitado) return;
+      this.pressionado = true;
       this.rotulo.y = 2;
       this.desenhar(0, 2);
     });
+    // Só conta como clique se o botão também recebeu o "apertar": evita que um
+    // clique solto (de outra janela, por exemplo) acione o botão sem querer
     this.on('pointerup', () => {
+      if (!this.pressionado) return;
+      this.pressionado = false;
       this.rotulo.y = 0;
       this.desenhar();
       somDa(cena).efeito(this.habilitado ? 'clique' : 'negar');

@@ -1,7 +1,7 @@
 import { h } from '../../core/dom.js';
 import { api } from '../../core/ApiClient.js';
 import { IdentityForm } from '../../components/IdentityForm.js';
-import { ProgressBar, estadoCarregando, estadoVazio } from '../../components/ui.js';
+import { ProgressBar, estadoCarregando, estadoVazio, Toast } from '../../components/ui.js';
 import { PistaCard } from './PistaCard.js';
 
 /** Escape Room: identificação + todas as pistas + envio único no final. */
@@ -67,7 +67,13 @@ export class EscapeRoomPage {
     }
 
     this.cartoes = pistas.map(
-      (pista, i) => new PistaCard({ pista, numero: i + 1, total: pistas.length, onMudar: () => this.atualizarProgresso() })
+      (pista, i) => new PistaCard({
+        pista,
+        numero: i + 1,
+        total: pistas.length,
+        onMudar: () => this.atualizarProgresso(),
+        onAviso: (mensagem) => Toast.mostrar(mensagem, { tipo: 'info' }),
+      })
     );
     this.lista.replaceChildren(...this.cartoes.map((c) => c.montar()));
     this.envio.hidden = false;

@@ -160,6 +160,11 @@ const COMANDOS = [
   `ALTER TABLE hw_answers ADD COLUMN IF NOT EXISTS questao_id INTEGER REFERENCES hw_questoes(id) ON DELETE SET NULL`,
   `ALTER TABLE hw_answers ADD COLUMN IF NOT EXISTS desafio_id TEXT`,
   `ALTER TABLE hw_answers ADD COLUMN IF NOT EXISTS tipo TEXT`,
+  // Sinais de consulta externa durante a pergunta (ver public/js/core/antiCopia.js)
+  `ALTER TABLE hw_answers ADD COLUMN IF NOT EXISTS copias INTEGER NOT NULL DEFAULT 0`,
+  `ALTER TABLE hw_answers ADD COLUMN IF NOT EXISTS colagens INTEGER NOT NULL DEFAULT 0`,
+  `ALTER TABLE hw_answers ADD COLUMN IF NOT EXISTS saidas_aba INTEGER NOT NULL DEFAULT 0`,
+  `ALTER TABLE hw_answers ADD COLUMN IF NOT EXISTS tempo_fora_ms INTEGER NOT NULL DEFAULT 0`,
   `ALTER TABLE hw_answers ADD COLUMN IF NOT EXISTS dificuldade INTEGER`,
   `ALTER TABLE hw_answers ADD COLUMN IF NOT EXISTS resultado TEXT`,
   `ALTER TABLE hw_answers ADD COLUMN IF NOT EXISTS tempo_ms INTEGER`,
