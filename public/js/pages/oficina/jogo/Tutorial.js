@@ -9,12 +9,12 @@ import { somDa } from './audio/SomDaOficina.js';
  */
 const PASSOS = [
   {
-    texto: 'Bem-vindo(a) à oficina! Tudo começa pela PLACA-MÃE: arraste a "Placa-mãe AM4" da bandeja para a bancada.',
+    texto: 'Bem-vindo(a) à oficina! Tudo começa pela PLACA-MÃE: arraste a placa-mãe "ASUS Prime A520M-K" (socket AM4) da bandeja para a bancada.',
     peca: 'pm-am4-matx',
     feito: (m) => Boolean(m.placa()),
   },
   {
-    texto: 'Agora o PROCESSADOR. Ele precisa ter o MESMO socket da placa-mãe (AM4). Arraste o "Processador AM4 6 núcleos G" até o socket e siga as etapas da janela.',
+    texto: 'Agora o PROCESSADOR. Ele precisa ter o MESMO socket da placa-mãe (AM4). Arraste o "AMD Ryzen 5 5600G" até o socket e siga as etapas da janela. (O "G" no nome indica que ele tem vídeo integrado.)',
     peca: 'cpu-am4-6g',
     feito: (m) => Boolean(m.processador()),
   },
@@ -29,7 +29,7 @@ const PASSOS = [
     feito: (m) => Boolean(m.cooler()),
   },
   {
-    texto: 'MEMÓRIA: esta placa usa DDR4. Coloque DOIS pentes "DDR4 8 GB" (16 GB no total).',
+    texto: 'MEMÓRIA: esta placa usa DDR4. Coloque DOIS pentes "Kingston Fury Beast DDR4 8 GB" (16 GB no total).',
     peca: 'ram-ddr4-8',
     feito: (m) => m.memorias().length >= 2,
   },

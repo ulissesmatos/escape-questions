@@ -143,9 +143,33 @@ export class EncaixarProcessador extends SkillCheck {
 
   girar() {
     if (this.bloqueado || this.naMao || this.etapa === 'travar') return;
+    // Cliques rápidos: o giro anterior termina na hora, no ângulo exato, antes
+    // de começar outro. Girar a partir do ângulo "no meio do caminho" deixava
+    // a imagem torta (fora dos 90°) e o erro ia se acumulando a cada clique.
+    this.endireitar();
     this.angulo = (this.angulo + 270) % 360;
     somDa(this.cena).efeito('clique');
-    this.cena.tweens.add({ targets: [this.cpu, this.sombra], angle: this.cpu.angle - 90, duration: 160 });
+    const giro = this.cena.tweens.add({
+      targets: [this.cpu, this.sombra],
+      angle: this.cpu.angle - 90,
+      duration: 160,
+      onComplete: () => this.giro === giro && this.endireitar(),
+    });
+    this.giro = giro;
+  }
+
+  /**
+   * Interrompe o giro em andamento (se houver) e crava o processador e a
+   * sombra no ângulo certo, sempre múltiplo de 90°
+   */
+  endireitar() {
+    if (this.giro) {
+      const giro = this.giro;
+      this.giro = null;
+      giro.stop();
+    }
+    this.cpu.setAngle(this.angulo);
+    this.sombra.setAngle(this.angulo);
   }
 
   levantar() {
@@ -178,6 +202,7 @@ export class EncaixarProcessador extends SkillCheck {
   soltar() {
     if (!this.naMao) return;
     this.naMao = false;
+    this.endireitar();
     this.alvo.clear();
 
     if (!this.moveu) {
