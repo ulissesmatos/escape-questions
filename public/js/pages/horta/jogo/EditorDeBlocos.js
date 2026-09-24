@@ -34,6 +34,14 @@ export class EditorDeBlocos {
     this.arraste = null;
     this.aoMover = (e) => this.mover(e);
     this.aoSoltar = (e) => this.soltar(e);
+    // Sem isso, clicar duas vezes seleciona o texto do bloco e o navegador
+    // passa a arrastar o texto (o "fantasma") em vez do bloco
+    for (const el of [paleta, area]) {
+      el.addEventListener('dragstart', (e) => e.preventDefault());
+      el.addEventListener('mousedown', (e) => {
+        if (!e.target.closest('select')) e.preventDefault();
+      });
+    }
     this.renderPaleta();
     this.renderPlano();
   }
@@ -97,7 +105,9 @@ export class EditorDeBlocos {
 
   renderFenda(lista, indice, vazia, principal = false) {
     const ehCursor = this.cursor.lista === lista && this.cursor.indice === indice;
-    const texto = vazia ? (principal ? 'Clique nos blocos para montar o plano' : 'coloque blocos aqui') : null;
+    let texto = null;
+    if (vazia) texto = principal ? 'Clique nos blocos para montar o plano' : 'coloque blocos aqui';
+    else if (ehCursor) texto = '＋ o próximo bloco entra aqui';
     const el = h('div', {
       class: `fenda${vazia ? ' vazia' : ''}${principal ? ' principal' : ''}${ehCursor ? ' cursor' : ''}`,
       title: 'O próximo bloco entra aqui',
@@ -294,6 +304,8 @@ export class EditorDeBlocos {
   iniciarArraste(e) {
     const a = this.arraste;
     a.ativo = true;
+    const selecao = window.getSelection && window.getSelection();
+    if (selecao) selecao.removeAllRanges();
     const caixa = a.el.getBoundingClientRect();
     a.dx = e.clientX - caixa.left;
     a.dy = e.clientY - caixa.top;

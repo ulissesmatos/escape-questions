@@ -1,14 +1,21 @@
 /* =========================================================
-   Robô na Horta: horta em canvas + editor de blocos em HTML.
-   Cada tipo de bloco tem uma cor (movimento, ação, repetição
-   e decisão), como nos blocos de montar.
+   Robô na Horta: tela própria de jogo (sem o menu do site),
+   ocupando a tela toda. Horta em canvas + editor de blocos em
+   HTML. Cada tipo de bloco tem uma cor (movimento, ação,
+   repetição e decisão), como nos blocos de montar.
    ========================================================= */
+
+@font-face {
+  font-family: "Pixel Horta";
+  src: url("../fonts/dotgothic16-latin.woff2") format("woff2");
+  font-display: swap;
+}
 
 body[data-page="horta"] {
   --accent: #16a34a;
   --accent-dark: #15803d;
   --accent-light: #e8f8ee;
-  --accent-ring: rgba(22, 163, 74, 0.2);
+  --accent-ring: rgba(22, 163, 74, 0.25);
 
   --cat-movimento: #2f6fe4;
   --cat-movimento-escuro: #1f53b8;
@@ -18,95 +25,347 @@ body[data-page="horta"] {
   --cat-repeticao-escuro: #b85a07;
   --cat-decisao: #8150e0;
   --cat-decisao-escuro: #6337b8;
+
+  --madeira: #7a4a24;
+  --madeira-clara: #9c6433;
+  --madeira-escura: #4f2e14;
+  --papel: #fff9ec;
+  --papel-2: #f6ecd6;
+  --papel-borda: #d9b98a;
+  --papel-sombra: #a67c46;
+  --tinta: #3b2a1a;
+  --tinta-suave: #7a6448;
+  --ouro: #f5b301;
+  --ouro-escuro: #b7791f;
+
+  --fonte-jogo: "Pixel Horta", "DotGothic16", var(--fonte);
 }
 
-.horta {
-  margin-top: 20px;
+body.modo-jogo {
+  padding: 0;
+  color: var(--tinta);
+  background-color: #2f6b36;
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.07) 2px, transparent 2px),
+    radial-gradient(rgba(0, 0, 0, 0.06) 2px, transparent 2px);
+  background-size: 28px 28px;
+  background-position: 0 0, 14px 14px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.jogo-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
 .horta-carregando {
-  color: var(--text-muted);
+  color: white;
   text-align: center;
-  padding: 60px 0;
+  padding: 80px 0;
+  font-family: var(--fonte-jogo);
+}
+
+/* ---------- Barra de cima ---------- */
+
+.jogo-topo {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 8px 14px;
+  background: linear-gradient(var(--madeira-clara), var(--madeira));
+  border-bottom: 4px solid var(--madeira-escura);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+  color: #fff4dc;
+  z-index: 10;
+}
+
+.topo-marca {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--fonte-jogo);
+  font-size: 1.25rem;
+  white-space: nowrap;
+  text-shadow: 0 2px 0 var(--madeira-escura);
+}
+
+.topo-logo {
+  font-size: 1.6rem;
+}
+
+.topo-centro {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 12px;
+  border-left: 2px solid rgba(255, 255, 255, 0.18);
+}
+
+.topo-fase-numero {
+  white-space: nowrap;
+  font-family: var(--fonte-jogo);
+  font-size: 0.95rem;
+  background: var(--madeira-escura);
+  padding: 3px 10px;
+  border-radius: 8px;
+}
+
+.topo-fase-titulo {
+  margin: 0;
+  font-family: var(--fonte-jogo);
+  font-size: 1.3rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 2px 0 var(--madeira-escura);
+}
+
+.topo-fase-melhor {
+  color: var(--ouro);
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 0 var(--madeira-escura);
+}
+
+.topo-direita {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topo-estrelas {
+  font-family: var(--fonte-jogo);
+  font-size: 1.05rem;
+  color: #fff3c4;
+  background: var(--madeira-escura);
+  border: 2px solid var(--ouro-escuro);
+  padding: 4px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.botao-topo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: #fff4dc;
+  color: var(--madeira-escura);
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.95rem;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--madeira-escura);
+}
+
+.botao-topo:hover {
+  background: white;
+}
+
+.botao-topo:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--madeira-escura);
+}
+
+.botao-sair {
+  background: #ffe1d6;
+  color: #8e2b0e;
+}
+
+/* ---------- Área do jogo ---------- */
+
+.jogo-conteudo {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px;
+}
+
+.painel {
+  background: var(--papel);
+  border: 3px solid var(--papel-borda);
+  border-radius: 16px;
+  box-shadow: 0 5px 0 var(--papel-sombra), 0 10px 24px rgba(0, 0, 0, 0.18);
+  padding: 12px;
+}
+
+.painel-titulo {
+  margin: 0 0 8px;
+  font-family: var(--fonte-jogo);
+  font-size: 1.05rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--madeira);
+}
+
+/* Botões de jogo: grossos, com "degrau" embaixo */
+.botao-jogo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.98rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: filter 0.12s ease;
+}
+
+.botao-jogo:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.botao-jogo:active:not(:disabled) {
+  transform: translateY(3px);
+}
+
+.botao-jogo:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.botao-rodar {
+  min-width: 132px;
+  background: #22b455;
+  color: white;
+  font-family: var(--fonte-jogo);
+  font-weight: 400;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 0 #13763a;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.botao-rodar:active:not(:disabled) {
+  box-shadow: 0 1px 0 #13763a;
+}
+
+.botao-rodar.parar {
+  background: #e0473a;
+  box-shadow: 0 4px 0 #8e1b1b;
+}
+
+.botao-claro {
+  background: white;
+  color: var(--tinta);
+  border: 2px solid var(--papel-borda);
+  box-shadow: 0 3px 0 var(--papel-borda);
+}
+
+.botao-claro:active:not(:disabled) {
+  box-shadow: 0 0 0 var(--papel-borda);
+}
+
+.botao-pequeno {
+  min-height: 34px;
+  padding: 4px 12px;
+  font-size: 0.85rem;
 }
 
 /* ---------- Mapa de fases ---------- */
 
 .horta-mapa {
   display: grid;
-  gap: 18px;
-}
-
-.mapa-topo {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+  grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
   gap: 16px;
-  flex-wrap: wrap;
-}
-
-.mapa-topo h2 {
-  margin: 0 0 4px;
-  font-size: 1.6rem;
-}
-
-.mapa-topo p {
-  margin: 0;
-  color: var(--text-muted);
-}
-
-.mapa-total {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: #b7791f;
-  background: #fff8e1;
-  border: 1.5px solid #f6d77a;
-  padding: 8px 16px;
-  border-radius: 999px;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding-bottom: 12px;
 }
 
 .mundo {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: var(--raio-lg);
-  padding: 18px;
-  box-shadow: var(--sombra);
+  padding: 16px;
+}
+
+.mundo.fechado {
+  opacity: 0.75;
 }
 
 .mundo-cabeca {
   display: flex;
   align-items: center;
   gap: 14px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
 }
 
-.mundo-cabeca h3 {
+.mundo-icone {
+  font-size: 1.9rem;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--papel-2);
+  border: 2px solid var(--papel-borda);
+}
+
+.mundo-textos {
+  flex: 1;
+  min-width: 0;
+}
+
+.mundo-numero {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tinta-suave);
+}
+
+.mundo-cabeca h2 {
   margin: 0;
-  font-size: 1.1rem;
+  font-family: var(--fonte-jogo);
+  font-weight: 400;
+  font-size: 1.35rem;
+  letter-spacing: 0;
+  color: var(--madeira);
 }
 
 .mundo-cabeca p {
   margin: 2px 0 0;
-  color: var(--text-muted);
-  font-size: 0.92rem;
+  color: var(--tinta-suave);
+  font-size: 0.9rem;
 }
 
-.mundo-icone {
-  font-size: 1.8rem;
-  width: 52px;
-  height: 52px;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
-  background: var(--accent-light);
+.mundo-estrelas {
+  font-family: var(--fonte-jogo);
+  color: var(--ouro-escuro);
+  background: #fff3c4;
+  border: 2px solid #f0d27a;
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
 .mundo-blocos {
-  margin-left: auto;
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
+  margin: 12px 0;
+}
+
+.mundo-blocos-rotulo {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--tinta-suave);
 }
 
 .chip-bloco {
@@ -116,118 +375,137 @@ body[data-page="horta"] {
   padding: 4px 10px;
   border-radius: 8px;
   background: var(--cor-bloco);
+  box-shadow: 0 2px 0 var(--cor-bloco-escura);
 }
 
 .mundo-fases {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 10px;
 }
 
 .fase-botao {
+  position: relative;
   display: grid;
-  gap: 2px;
-  justify-items: start;
-  text-align: left;
-  padding: 12px 14px;
-  border-radius: var(--raio);
-  border: 1.5px solid var(--border-strong);
-  background: var(--card-bg);
+  gap: 4px;
+  justify-items: center;
+  text-align: center;
+  padding: 12px 8px 10px;
+  border-radius: 14px;
+  border: 3px solid var(--papel-borda);
+  background: white;
+  box-shadow: 0 4px 0 var(--papel-borda);
   cursor: pointer;
   font: inherit;
-  color: var(--text);
-  transition: border-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  color: var(--tinta);
+  transition: transform 0.1s ease;
 }
 
 .fase-botao:hover:not(:disabled) {
+  transform: translateY(-2px);
   border-color: var(--accent);
-  box-shadow: 0 4px 14px var(--accent-ring);
-  transform: translateY(-1px);
+  box-shadow: 0 6px 0 var(--accent-dark);
+}
+
+.fase-botao:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--papel-borda);
 }
 
 .fase-botao-numero {
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: var(--accent-dark);
+  font-family: var(--fonte-jogo);
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--madeira);
 }
 
 .fase-botao-titulo {
   font-weight: 700;
-  line-height: 1.25;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  min-height: 2.4em;
+  display: grid;
+  place-items: center;
 }
 
 .fase-botao-estrelas {
-  font-size: 1.1rem;
-  color: #d4d8e6;
+  font-size: 1.15rem;
+  color: #dccdb2;
   letter-spacing: 2px;
 }
 
+.fase-botao.concluida {
+  background: #f3fbef;
+  border-color: #9fd48a;
+  box-shadow: 0 4px 0 #6fae5a;
+}
+
 .fase-botao.concluida .fase-botao-estrelas {
-  color: #f5b301;
+  color: var(--ouro);
+  text-shadow: 0 1px 0 var(--ouro-escuro);
+}
+
+.fase-botao.atual {
+  border-color: var(--ouro);
+  box-shadow: 0 4px 0 var(--ouro-escuro);
+  animation: fase-atual 1.6s ease-in-out infinite;
+}
+
+.fase-botao-jogar {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ouro);
+  color: #5a3d00;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+@keyframes fase-atual {
+  50% {
+    box-shadow: 0 4px 0 var(--ouro-escuro), 0 0 0 6px rgba(245, 179, 1, 0.25);
+  }
 }
 
 .fase-botao.bloqueada {
   cursor: not-allowed;
-  background: var(--bloqueado-bg);
-  color: var(--bloqueado);
-  border-color: var(--border);
+  background: #efe7d6;
+  color: #b3a386;
+  border-color: #e0d3b8;
+  box-shadow: 0 4px 0 #d6c6a6;
 }
 
-/* ---------- Tela da fase ---------- */
-
-.fase-barra {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 14px;
+.fase-botao.bloqueada .fase-botao-numero {
+  color: inherit;
+  font-size: 1.2rem;
 }
 
-.fase-titulo {
-  flex: 1;
-  min-width: 0;
-}
+/* ---------- Tela da fase: três colunas na largura toda ---------- */
 
-.fase-titulo h2 {
-  margin: 0;
-  font-size: 1.35rem;
-}
-
-.fase-numero {
-  font-size: 0.8rem;
-  font-weight: 800;
-  color: var(--accent-dark);
-}
-
-.fase-melhor {
-  font-size: 1.3rem;
-  color: #f5b301;
-  letter-spacing: 2px;
-}
-
-.btn-som {
-  min-width: 46px;
-  padding: 10px;
-}
-
-.fase-grade {
+.horta-fase {
+  height: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.2fr);
-  gap: 18px;
-  align-items: start;
-}
-
-.fase-palco,
-.fase-oficina {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: var(--raio-lg);
-  padding: 14px;
-  box-shadow: var(--sombra);
+  grid-template-columns: minmax(0, 1.25fr) 200px minmax(300px, 1fr);
+  gap: 12px;
+  min-height: 520px;
 }
 
 .fase-palco {
-  display: grid;
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.coluna-paleta,
+.coluna-plano {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 /* Fala do robô */
@@ -238,49 +516,59 @@ body[data-page="horta"] {
 }
 
 .fala-robo {
-  font-size: 1.9rem;
+  font-size: 2rem;
   line-height: 1;
   flex-shrink: 0;
+  animation: robo-flutuar 2.4s ease-in-out infinite;
+}
+
+@keyframes robo-flutuar {
+  50% {
+    transform: translateY(-3px);
+  }
 }
 
 .fala-texto {
   position: relative;
   margin: 0;
   flex: 1;
-  min-height: 48px;
+  min-height: 46px;
   padding: 10px 14px;
-  border-radius: 14px;
-  background: var(--surface-2);
-  font-weight: 600;
-  font-size: 0.95rem;
+  border-radius: 12px;
+  background: white;
+  border: 2px solid var(--papel-borda);
+  font-weight: 700;
+  font-size: 0.98rem;
 }
 
 .fala-texto::before {
   content: "";
   position: absolute;
-  left: -7px;
+  left: -9px;
   top: 14px;
-  border: 7px solid transparent;
+  border: 8px solid transparent;
   border-left: 0;
-  border-right-color: var(--surface-2);
+  border-right-color: var(--papel-borda);
 }
 
 .fala-erro .fala-texto {
-  background: var(--erro-bg);
-  color: var(--erro);
+  background: #fff0ee;
+  border-color: #f2a79d;
+  color: #b3261e;
 }
 
 .fala-erro .fala-texto::before {
-  border-right-color: var(--erro-bg);
+  border-right-color: #f2a79d;
 }
 
 .fala-ok .fala-texto {
-  background: var(--sucesso-bg);
-  color: var(--sucesso);
+  background: #effcf3;
+  border-color: #8fd6a4;
+  color: #157a3a;
 }
 
 .fala-ok .fala-texto::before {
-  border-right-color: var(--sucesso-bg);
+  border-right-color: #8fd6a4;
 }
 
 /* Abas das hortas sorteadas */
@@ -292,39 +580,43 @@ body[data-page="horta"] {
 }
 
 .abas-rotulo {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  color: var(--text-muted);
+  color: var(--tinta-suave);
   margin-right: 4px;
 }
 
 .aba-horta,
 .aba-sortear {
   font: inherit;
-  font-size: 0.85rem;
-  font-weight: 700;
-  padding: 5px 12px;
-  border-radius: 999px;
-  border: 1.5px solid var(--border-strong);
-  background: var(--card-bg);
-  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 800;
+  padding: 5px 14px;
+  border-radius: 10px;
+  border: 2px solid var(--papel-borda);
+  background: white;
+  color: var(--tinta-suave);
+  box-shadow: 0 3px 0 var(--papel-borda);
   cursor: pointer;
 }
 
 .aba-horta.ativa {
-  border-color: var(--accent);
-  color: var(--accent-dark);
-  background: var(--accent-light);
+  border-color: var(--madeira);
+  color: var(--madeira-escura);
+  background: #fff3c4;
+  box-shadow: 0 3px 0 var(--madeira);
 }
 
 .aba-horta.ok {
-  border-color: var(--sucesso-border);
-  color: var(--sucesso);
+  border-color: #6fae5a;
+  color: #2f7a1e;
+  box-shadow: 0 3px 0 #6fae5a;
 }
 
 .aba-horta.erro {
-  border-color: var(--erro-border);
-  color: var(--erro);
+  border-color: #e0473a;
+  color: #b3261e;
+  box-shadow: 0 3px 0 #b3261e;
 }
 
 .aba-horta:disabled,
@@ -333,25 +625,30 @@ body[data-page="horta"] {
 }
 
 .aba-sortear {
-  padding: 5px 9px;
+  padding: 5px 10px;
 }
 
-/* A horta */
+/* A horta: o canvas fica centralizado e cresce com o espaço livre */
 .palco-canvas {
-  display: flex;
-  justify-content: center;
-  background: #3f8a3a;
-  border-radius: var(--raio);
-  padding: 8px;
-  min-height: 120px;
+  position: relative;
+  flex: 1;
+  min-height: 200px;
+  background: #2e6b2c;
+  border: 3px solid #1f4d1f;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.06);
+  overflow: hidden;
 }
 
 .horta-canvas {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   display: block;
-  max-width: 100%;
   image-rendering: -moz-crisp-edges;
   image-rendering: pixelated;
-  border-radius: 6px;
+  border-radius: 4px;
 }
 
 .objetivos {
@@ -361,28 +658,25 @@ body[data-page="horta"] {
 }
 
 .objetivo {
-  font-size: 0.85rem;
-  font-weight: 700;
-  padding: 5px 10px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  padding: 4px 12px;
   border-radius: 999px;
-  background: var(--surface-2);
-  color: var(--text-muted);
-  border: 1.5px solid transparent;
+  background: white;
+  color: var(--tinta-suave);
+  border: 2px solid var(--papel-borda);
 }
 
 .objetivo.feito {
-  background: var(--sucesso-bg);
-  color: var(--sucesso);
-  border-color: var(--sucesso-border);
+  background: #effcf3;
+  color: #157a3a;
+  border-color: #8fd6a4;
 }
 
 .objetivo.bonus {
   background: #fff8e1;
   color: #9a6b00;
-}
-
-.objetivo.bonus.feito {
-  border-color: #f6d77a;
+  border-color: #f0d27a;
 }
 
 .controles {
@@ -392,94 +686,69 @@ body[data-page="horta"] {
   gap: 8px;
 }
 
-.btn-rodar {
-  background: var(--accent);
-  color: white;
-  font-size: 1.05rem;
-  min-width: 128px;
-  box-shadow: 0 4px 0 var(--accent-dark);
-}
-
-.btn-rodar:hover:not(:disabled) {
-  background: var(--accent-dark);
-}
-
-.btn-rodar.parar {
-  background: var(--erro);
-  box-shadow: 0 4px 0 #8e1b1b;
-}
-
-.controles .btn {
-  min-height: 44px;
-  padding: 9px 14px;
-}
-
-.controles .btn-rodar {
-  padding: 9px 20px;
+.controles .botao-claro {
+  padding: 8px 12px;
 }
 
 .velocidade {
   display: inline-flex;
   margin-left: auto;
-  border: 1.5px solid var(--border-strong);
+  border: 2px solid var(--papel-borda);
   border-radius: 12px;
   overflow: hidden;
+  background: white;
 }
 
 .velocidade-botao {
   font-size: 1.15rem;
-  padding: 8px 10px;
+  padding: 7px 11px;
   border: 0;
-  background: var(--card-bg);
+  background: white;
   cursor: pointer;
-  opacity: 0.5;
+  opacity: 0.45;
 }
 
 .velocidade-botao + .velocidade-botao {
-  border-left: 1.5px solid var(--border-strong);
+  border-left: 2px solid var(--papel-borda);
 }
 
 .velocidade-botao.ativo {
-  background: var(--accent-light);
+  background: #fff3c4;
   opacity: 1;
 }
 
-/* ---------- Oficina de blocos ---------- */
-
-.fase-oficina {
-  display: grid;
-  grid-template-columns: 184px minmax(0, 1fr);
-  gap: 14px;
-}
-
-.fase-oficina h3 {
-  margin: 0 0 8px;
-  font-size: 0.95rem;
-}
-
-.coluna-paleta {
-  min-width: 0;
-  border-right: 1px dashed var(--border-strong);
-  padding-right: 14px;
-}
+/* ---------- Paleta e plano ---------- */
 
 .paleta {
   display: grid;
+  align-content: start;
   gap: 8px;
-  border-radius: var(--raio);
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 2px 2px 6px;
+  border-radius: 12px;
   transition: background 0.15s ease;
 }
 
 .paleta.lixeira {
-  background: var(--erro-bg);
-  outline: 2px dashed var(--erro);
-  outline-offset: 4px;
+  background: #ffe1dc;
+  outline: 3px dashed #e0473a;
+  outline-offset: 2px;
+}
+
+.paleta.lixeira::after {
+  content: "🗑 Solte para jogar fora";
+  text-align: center;
+  font-weight: 800;
+  color: #b3261e;
+  padding: 8px;
 }
 
 .dica-paleta {
   margin: 10px 0 0;
   font-size: 0.75rem;
-  color: var(--text-soft);
+  color: var(--tinta-suave);
 }
 
 .plano-topo {
@@ -493,33 +762,33 @@ body[data-page="horta"] {
 .plano-contador {
   display: flex;
   gap: 8px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--tinta-suave);
 }
 
 .plano-contador .meta {
   color: #9a6b00;
-  background: #fff8e1;
+  background: #fff3c4;
   border-radius: 999px;
-  padding: 1px 8px;
+  padding: 1px 9px;
 }
 
 .plano-contador .meta.ok {
-  color: var(--sucesso);
-  background: var(--sucesso-bg);
+  color: #157a3a;
+  background: #dcf5e3;
 }
 
 .plano-area {
-  min-height: 260px;
-  max-height: 560px;
+  flex: 1;
+  min-height: 220px;
   overflow: auto;
-  padding: 10px;
-  border-radius: var(--raio);
-  background-color: #f7f8fc;
-  background-image: radial-gradient(#dde1ee 1px, transparent 1px);
-  background-size: 16px 16px;
-  border: 1.5px solid var(--border);
+  padding: 12px 12px 12px 18px;
+  border-radius: 12px;
+  background-color: #fffdf7;
+  background-image: radial-gradient(#e6d9bf 1.2px, transparent 1.2px);
+  background-size: 18px 18px;
+  border: 2px solid var(--papel-borda);
 }
 
 .plano-rodape {
@@ -537,7 +806,6 @@ body[data-page="horta"] {
   padding: 8px 14px 8px 12px;
   border-radius: 18px 18px 6px 6px;
   box-shadow: 0 3px 0 #a67c00;
-  user-select: none;
 }
 
 /* Blocos */
@@ -760,15 +1028,41 @@ select.bloco-condicao {
   cursor: pointer;
 }
 
-.fenda.vazia {
+.fenda:not(.vazia):not(.cursor)::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 60%;
+  top: 2px;
+  height: 4px;
+  border-radius: 4px;
+  background: transparent;
+}
+
+.fenda:not(.vazia):not(.cursor):hover::after {
+  background: rgba(120, 90, 50, 0.25);
+}
+
+/* Onde o próximo clique vai colocar o bloco: um encaixe tracejado */
+.fenda.vazia,
+.fenda.cursor {
   height: auto;
-  margin: 3px 0;
-  padding: 8px 12px;
-  border: 2px dashed var(--border-strong);
+  margin: 4px 0;
+  padding: 7px 12px;
+  border: 2px dashed #cdb58f;
   border-radius: 10px;
-  color: var(--text-soft);
+  color: #9c8664;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
+}
+
+.fenda.cursor {
+  width: fit-content;
+  min-width: 210px;
+  border-color: #e0a800;
+  background: rgba(255, 214, 64, 0.22);
+  color: #8a6300;
+  animation: encaixe-piscar 1.4s ease-in-out infinite;
 }
 
 .fenda.vazia.principal {
@@ -776,51 +1070,27 @@ select.bloco-condicao {
   font-size: 0.9rem;
 }
 
-.fenda:not(.vazia)::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 30%;
-  top: 2px;
-  height: 4px;
-  border-radius: 4px;
-  background: transparent;
+@keyframes encaixe-piscar {
+  50% {
+    border-color: #f5c842;
+    background: rgba(255, 214, 64, 0.1);
+  }
 }
 
-.fenda:not(.vazia):hover::after {
-  background: var(--border-strong);
-}
-
-.fenda.cursor:not(.vazia)::after {
-  background: #f5b301;
-  box-shadow: 0 0 0 2px rgba(245, 179, 1, 0.25);
-}
-
-.fenda.cursor:not(.vazia)::before {
-  content: "▸";
-  position: absolute;
-  left: -12px;
-  top: -8px;
-  color: #d99a00;
-  font-size: 0.95rem;
-}
-
-.fenda.vazia.cursor {
-  border-color: #f5b301;
-  background: #fff8e1;
-  color: #9a6b00;
-}
-
-.fenda.alvo:not(.vazia)::after {
-  background: var(--accent) !important;
+.fenda.alvo:not(.vazia):not(.cursor)::after {
+  background: var(--accent);
   height: 6px;
   top: 1px;
   box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
-.fenda.vazia.alvo {
+.fenda.vazia.alvo,
+.fenda.cursor.alvo {
   border-color: var(--accent);
+  border-style: solid;
   background: var(--accent-light);
+  color: var(--accent-dark);
+  animation: none;
 }
 
 /* Arrastando */
@@ -906,46 +1176,52 @@ body.arrastando-bloco * {
   display: grid;
   place-items: center;
   padding: 16px;
-  background: rgba(18, 21, 42, 0.55);
+  background: rgba(20, 30, 15, 0.6);
 }
 
 .resultado-caixa {
-  width: min(420px, 100%);
-  background: var(--card-bg);
-  border-radius: var(--raio-lg);
+  width: min(440px, 100%);
+  background: var(--papel);
+  border: 4px solid var(--papel-borda);
+  border-radius: 20px;
   padding: 24px;
   text-align: center;
-  box-shadow: var(--sombra-media);
-  animation: surgir 0.25s ease;
+  box-shadow: 0 7px 0 var(--papel-sombra), 0 20px 50px rgba(0, 0, 0, 0.35);
+  animation: surgir 0.3s ease;
 }
 
 @keyframes surgir {
   from {
-    transform: scale(0.9);
+    transform: scale(0.85);
     opacity: 0;
   }
 }
 
 .resultado-caixa h2 {
-  margin: 6px 0 12px;
-  font-size: 1.5rem;
+  margin: 6px 0 14px;
+  font-family: var(--fonte-jogo);
+  font-weight: 400;
+  font-size: 1.8rem;
+  letter-spacing: 0;
+  color: var(--madeira);
 }
 
 .resultado-estrelas {
   display: flex;
   justify-content: center;
   gap: 10px;
-  font-size: 3rem;
+  font-size: 3.4rem;
   line-height: 1;
 }
 
 .estrela {
-  color: #e3e6ef;
+  color: #e6dac2;
 }
 
 .estrela.ganha.aparecer {
-  color: #f5b301;
-  animation: estrela 0.4s ease;
+  color: var(--ouro);
+  text-shadow: 0 3px 0 var(--ouro-escuro);
+  animation: estrela 0.45s ease;
 }
 
 @keyframes estrela {
@@ -953,7 +1229,7 @@ body.arrastando-bloco * {
     transform: scale(0.3) rotate(-30deg);
   }
   70% {
-    transform: scale(1.3);
+    transform: scale(1.35);
   }
 }
 
@@ -971,26 +1247,27 @@ body.arrastando-bloco * {
   gap: 10px;
   padding: 8px 12px;
   border-radius: 10px;
-  background: var(--surface-2);
-  color: var(--text-muted);
-  font-weight: 600;
+  background: white;
+  border: 2px solid var(--papel-2);
+  color: var(--tinta-suave);
+  font-weight: 700;
 }
 
 .resultado-lista li span {
-  color: #c9cddb;
+  color: #dccdb2;
 }
 
 .resultado-lista li.ok {
-  color: var(--text);
+  color: var(--tinta);
 }
 
 .resultado-lista li.ok span {
-  color: #f5b301;
+  color: var(--ouro);
 }
 
 .resultado-dica {
   margin: 0 0 14px;
-  color: var(--text-muted);
+  color: var(--tinta-suave);
   font-size: 0.9rem;
 }
 
@@ -1003,22 +1280,71 @@ body.arrastando-bloco * {
 
 /* ---------- Telas menores ---------- */
 
-@media (max-width: 960px) {
-  .fase-grade {
-    grid-template-columns: minmax(0, 1fr);
+/* Tela média (1024×768 das escolas): horta à esquerda; blocos em cima e
+   plano embaixo à direita. Tudo continua cabendo sem rolar a página */
+@media (max-width: 1100px) and (min-width: 761px) {
+  .horta-fase {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .fase-palco {
+    grid-row: 1 / 3;
+  }
+
+  .coluna-paleta .paleta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .coluna-paleta .dica-paleta {
+    display: none;
+  }
+
+  .paleta-item {
+    padding: 7px 10px;
+    font-size: 0.84rem;
+  }
+
+  .topo-nome {
+    display: none;
   }
 }
 
-@media (max-width: 560px) {
-  .fase-oficina {
+/* Celular e janelas estreitas: uma coluna, rolando a página */
+@media (max-width: 760px) {
+  .jogo-app {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .jogo-conteudo {
+    overflow: visible;
+  }
+
+  .horta-fase {
+    height: auto;
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .coluna-paleta {
-    border-right: 0;
-    padding-right: 0;
-    border-bottom: 1px dashed var(--border-strong);
-    padding-bottom: 12px;
+  .palco-canvas {
+    flex: none;
+    height: 45vh;
+  }
+
+  .plano-area {
+    min-height: 300px;
+    max-height: 70vh;
+  }
+
+  .topo-nome {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .horta-mapa {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .paleta {
@@ -1029,22 +1355,27 @@ body.arrastando-bloco * {
     margin-left: 0;
   }
 
-  .fase-barra {
+  .jogo-topo {
     flex-wrap: wrap;
   }
 
-  .fase-titulo {
+  .topo-centro {
     order: 5;
     flex-basis: 100%;
+    border-left: 0;
+    padding-left: 0;
   }
 
-  .fase-melhor {
+  .topo-direita {
     margin-left: auto;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .bloco-novo,
+  .fala-robo,
+  .fase-botao.atual,
+  .fenda.cursor,
   .bloco.com-erro > .bloco-linha,
   .bloco.chegou > .bloco-linha {
     animation: none;

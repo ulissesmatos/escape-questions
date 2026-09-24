@@ -272,16 +272,33 @@ export class Desenho {
     this.escala = 3;
   }
 
-  /** Ajusta o tamanho do canvas à horta e ao espaço disponível */
-  ajustar(horta, larguraDisponivel, alturaMaxima = 460) {
+  /** Ajusta o tamanho do canvas à horta e ao espaço disponível (escala inteira: pixel nítido) */
+  ajustar(horta, larguraDisponivel, alturaDisponivel) {
     const lw = horta.largura * T + BORDA * 2;
     const lh = horta.altura * T + BORDA * 2;
     const porLargura = Math.floor(larguraDisponivel / lw);
-    const porAltura = Math.floor(alturaMaxima / lh);
-    this.escala = Math.max(1, Math.min(5, porLargura, porAltura));
+    const porAltura = Math.floor(alturaDisponivel / lh);
+    this.escala = Math.max(1, Math.min(8, porLargura, porAltura));
     this.canvas.width = lw * this.escala;
     this.canvas.height = lh * this.escala;
+    // Desenha em escala inteira e deixa o navegador ampliar o que sobrar,
+    // para a horta ocupar todo o espaço sem borrar os pixels
+    const ajuste = Math.max(1, Math.min(larguraDisponivel / lw, alturaDisponivel / lh) / this.escala);
+    this.canvas.style.width = `${Math.floor(lw * this.escala * ajuste)}px`;
+    this.canvas.style.height = `${Math.floor(lh * this.escala * ajuste)}px`;
     this.chaoChave = '';
+  }
+
+  /** Grade de linhas finas (1 pixel da tela, não do desenho) marcando as casas */
+  desenharGrade(horta) {
+    const { ctx, escala } = this;
+    const x0 = BORDA * escala;
+    const y0 = BORDA * escala;
+    const largura = horta.largura * T * escala;
+    const altura = horta.altura * T * escala;
+    ctx.fillStyle = 'rgba(20, 40, 10, 0.16)';
+    for (let x = 1; x < horta.largura; x++) ctx.fillRect(x0 + x * T * escala, y0, 1, altura);
+    for (let y = 1; y < horta.altura; y++) ctx.fillRect(x0, y0 + y * T * escala, largura, 1);
   }
 
   desenharChao(horta) {
@@ -306,6 +323,7 @@ export class Desenho {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(this.chao, 0, 0, this.canvas.width, this.canvas.height);
+    this.desenharGrade(horta);
     ctx.setTransform(escala, 0, 0, escala, 0, 0);
 
     for (const chave of horta.moedas) {

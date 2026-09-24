@@ -98,6 +98,11 @@ docs/oficina-expansao.md      → proposta do loop de gameplay e das próximas f
 
 ## Robô na Horta (jogo de blocos)
 
+O jogo tem tela própria, sem o menu do site, ocupando a tela toda: uma barra
+de madeira em cima (Sair, fases, estrelas, som e tela cheia) e, embaixo, a
+horta, os blocos e o plano lado a lado. Em 1024×768 fica em duas colunas, e
+no celular numa só.
+
 Feito para rodar bem em computadores antigos: Canvas 2D sem WebGL, sem
 biblioteca e sem imagens (a pixel art é desenhada por código). O chão só é
 redesenhado quando uma casa muda, e com o jogo parado a tela se atualiza poucas
