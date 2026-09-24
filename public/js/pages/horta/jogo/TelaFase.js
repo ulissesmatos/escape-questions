@@ -19,8 +19,10 @@ const VELOCIDADES = [
 const DESLOCAMENTO = { cima: [0, -1], direita: [1, 0], baixo: [0, 1], esquerda: [-1, 0] };
 
 export class TelaFase {
-  constructor({ alvo, indice, progresso, aoVoltar, aoAbrirFase }) {
+  constructor({ alvo, topo, indice, progresso, aoVoltar, aoAbrirFase, aoGanharEstrelas }) {
     this.alvo = alvo;
+    this.topo = topo;
+    this.aoGanharEstrelas = aoGanharEstrelas;
     this.indice = indice;
     this.fase = FASES[indice];
     this.progresso = progresso;
@@ -52,10 +54,11 @@ export class TelaFase {
     this.paleta = h('div', { class: 'paleta' });
     this.area = h('div', { class: 'plano-area' });
     this.resultado = h('div', { class: 'resultado', hidden: true });
+    this.molduraCanvas = h('div', { class: 'palco-canvas' }, this.canvas);
 
-    this.botaoRodar = h('button', { type: 'button', class: 'btn btn-rodar', onClick: () => this.alternarRodar() });
-    this.botaoPasso = h('button', { type: 'button', class: 'btn btn-contorno', onClick: () => this.darPasso() }, '⏭ Passo a passo');
-    this.botaoRecomecar = h('button', { type: 'button', class: 'btn btn-contorno', onClick: () => this.recomecar() }, '↺ Recomeçar');
+    this.botaoRodar = h('button', { type: 'button', class: 'botao-jogo botao-rodar', onClick: () => this.alternarRodar() });
+    this.botaoPasso = h('button', { type: 'button', class: 'botao-jogo botao-claro', onClick: () => this.darPasso() }, '⏭ Passo a passo');
+    this.botaoRecomecar = h('button', { type: 'button', class: 'botao-jogo botao-claro', onClick: () => this.recomecar() }, '↺ Recomeçar');
     this.botoesVelocidade = VELOCIDADES.map((v) =>
       h('button', {
         type: 'button',
@@ -66,54 +69,52 @@ export class TelaFase {
         onClick: () => this.mudarVelocidade(v),
       })
     );
-    this.botaoSom = h('button', { type: 'button', class: 'btn btn-suave btn-som', onClick: () => this.alternarSom() });
 
+    // Barra de cima do jogo: voltar ao mapa, nome da fase e melhor resultado
     const melhor = this.progresso.estrelas(fase.id);
+    substituirFilhos(
+      this.topo,
+      h('button', { type: 'button', class: 'botao-topo', onClick: () => this.aoVoltar() }, '☰ Fases'),
+      h('span', { class: 'topo-fase-numero', text: fase.id }),
+      h('h1', { class: 'topo-fase-titulo', text: fase.titulo }),
+      (this.melhorEl = h('span', { class: 'topo-fase-melhor', title: 'Seu melhor resultado nesta fase', text: '★'.repeat(melhor) + '☆'.repeat(3 - melhor) }))
+    );
+
     const tela = h(
       'div',
       { class: 'horta-fase' },
       h(
-        'div',
-        { class: 'fase-barra' },
-        h('button', { type: 'button', class: 'btn btn-suave', onClick: () => this.aoVoltar() }, '← Fases'),
-        h('div', { class: 'fase-titulo' }, h('span', { class: 'fase-numero', text: `Fase ${fase.id}` }), h('h2', { text: fase.titulo })),
-        h('span', { class: 'fase-melhor', title: 'Seu melhor resultado', text: '★'.repeat(melhor) + '☆'.repeat(3 - melhor) }),
-        this.botaoSom
+        'section',
+        { class: 'painel fase-palco' },
+        h('div', { class: 'fala' }, h('span', { class: 'fala-robo', 'aria-hidden': 'true', text: '🤖' }), this.falaTexto),
+        this.abas,
+        this.molduraCanvas,
+        this.objetivos,
+        h(
+          'div',
+          { class: 'controles' },
+          this.botaoRodar,
+          this.botaoPasso,
+          this.botaoRecomecar,
+          h('div', { class: 'velocidade', role: 'group', 'aria-label': 'Velocidade' }, this.botoesVelocidade)
+        )
       ),
       h(
-        'div',
-        { class: 'fase-grade' },
+        'section',
+        { class: 'painel coluna-paleta' },
+        h('h2', { class: 'painel-titulo', text: 'Blocos' }),
+        this.paleta,
+        h('p', { class: 'dica-paleta', text: 'Clique para colocar no plano ou arraste. Para jogar um bloco fora, arraste ele para cá.' })
+      ),
+      h(
+        'section',
+        { class: 'painel coluna-plano' },
+        h('div', { class: 'plano-topo' }, h('h2', { class: 'painel-titulo', text: 'Plano do robô' }), this.contador),
+        this.area,
         h(
-          'section',
-          { class: 'fase-palco' },
-          h('div', { class: 'fala' }, h('span', { class: 'fala-robo', 'aria-hidden': 'true', text: '🤖' }), this.falaTexto),
-          this.abas,
-          h('div', { class: 'palco-canvas' }, this.canvas),
-          this.objetivos,
-          h(
-            'div',
-            { class: 'controles' },
-            this.botaoRodar,
-            this.botaoPasso,
-            this.botaoRecomecar,
-            h('div', { class: 'velocidade', role: 'group', 'aria-label': 'Velocidade' }, this.botoesVelocidade)
-          )
-        ),
-        h(
-          'section',
-          { class: 'fase-oficina' },
-          h('div', { class: 'coluna-paleta' }, h('h3', { text: 'Blocos' }), this.paleta, h('p', { class: 'dica-paleta', text: 'Arraste um bloco para cá para jogar fora.' })),
-          h(
-            'div',
-            { class: 'coluna-plano' },
-            h('div', { class: 'plano-topo' }, h('h3', { text: 'Plano do robô' }), this.contador),
-            this.area,
-            h(
-              'div',
-              { class: 'plano-rodape' },
-              h('button', { type: 'button', class: 'btn btn-suave btn-pequeno', onClick: () => this.limparPlano() }, '🗑 Limpar tudo')
-            )
-          )
+          'div',
+          { class: 'plano-rodape' },
+          h('button', { type: 'button', class: 'botao-jogo botao-claro botao-pequeno', onClick: () => this.limparPlano() }, '🗑 Limpar tudo')
         )
       ),
       this.resultado
@@ -128,14 +129,18 @@ export class TelaFase {
       plano: this.plano,
       aoMudar: () => this.planoMudou(),
     });
+    // A horta cresce e encolhe com o espaço livre na tela
     this.aoRedimensionar = () => this.ajustarCanvas();
+    if (window.ResizeObserver) {
+      this.observador = new ResizeObserver(this.aoRedimensionar);
+      this.observador.observe(this.molduraCanvas);
+    }
     window.addEventListener('resize', this.aoRedimensionar);
 
     this.falar(fase.fala);
     this.mostrarHorta(0);
     this.atualizarContador();
     this.atualizarControles();
-    this.atualizarSom();
     this.laco = requestAnimationFrame((t) => this.quadro(t));
   }
 
@@ -145,6 +150,7 @@ export class TelaFase {
     cancelAnimationFrame(this.laco);
     clearTimeout(this.salvarDepois);
     window.removeEventListener('resize', this.aoRedimensionar);
+    if (this.observador) this.observador.disconnect();
     if (this.editor) this.editor.destruir();
   }
 
@@ -174,8 +180,14 @@ export class TelaFase {
   }
 
   ajustarCanvas() {
-    const largura = this.canvas.parentElement.clientWidth || 480;
-    this.desenho.ajustar(this.horta, largura);
+    if (!this.horta) return;
+    const moldura = this.molduraCanvas;
+    const largura = Math.max(100, moldura.clientWidth - 12);
+    const altura = Math.max(100, moldura.clientHeight - 12);
+    const chave = `${largura}x${altura}:${this.horta.largura}x${this.horta.altura}`;
+    if (chave === this.tamanhoAtual) return;
+    this.tamanhoAtual = chave;
+    this.desenho.ajustar(this.horta, largura, altura);
     this.ultimoDesenho = 0;
   }
 
@@ -238,7 +250,7 @@ export class TelaFase {
     const livre = this.modo === 'parado';
     substituirFilhos(
       this.abas,
-      h('span', { class: 'abas-rotulo', text: 'O mesmo plano precisa funcionar em:' }),
+      h('span', { class: 'abas-rotulo', text: 'O plano precisa funcionar em:' }),
       this.hortas.map((_, i) => {
         const estado = this.estadoHortas[i];
         return h(
@@ -303,17 +315,6 @@ export class TelaFase {
     for (const [i, v] of VELOCIDADES.entries()) this.botoesVelocidade[i].classList.toggle('ativo', v === this.velocidade);
     this.editor.travar(this.modo !== 'parado');
     this.atualizarAbas();
-  }
-
-  atualizarSom() {
-    this.botaoSom.textContent = sons.ligado ? '🔊' : '🔇';
-    this.botaoSom.title = sons.ligado ? 'Desligar o som' : 'Ligar o som';
-  }
-
-  alternarSom() {
-    sons.alternar();
-    this.atualizarSom();
-    sons.tocar('clique');
   }
 
   mudarVelocidade(v) {
@@ -557,6 +558,9 @@ export class TelaFase {
     const blocos = contarBlocos(this.plano);
     const estrelas = calcularEstrelas(this.fase, { blocos, moedasPegas, moedasTotal });
     this.progresso.registrar(this.fase.id, { estrelas, blocos });
+    if (this.aoGanharEstrelas) this.aoGanharEstrelas();
+    const melhor = this.progresso.estrelas(this.fase.id);
+    this.melhorEl.textContent = '★'.repeat(melhor) + '☆'.repeat(3 - melhor);
     sons.tocar('sucesso');
     this.falar(this.hortas.length > 1 ? 'Deu certo em todas as hortas! 🎉' : 'Deu certo! 🎉', 'ok');
 
@@ -581,10 +585,10 @@ export class TelaFase {
         h(
           'div',
           { class: 'resultado-botoes' },
-          h('button', { type: 'button', class: 'btn btn-contorno', onClick: () => this.recomecar() }, 'Melhorar o plano'),
+          h('button', { type: 'button', class: 'botao-jogo botao-claro', onClick: () => this.recomecar() }, 'Melhorar o plano'),
           proxima !== null
-            ? h('button', { type: 'button', class: 'btn btn-primario', onClick: () => this.aoAbrirFase(proxima) }, 'Próxima fase →')
-            : h('button', { type: 'button', class: 'btn btn-primario', onClick: () => this.aoVoltar() }, 'Ver todas as fases')
+            ? h('button', { type: 'button', class: 'botao-jogo botao-rodar', onClick: () => this.aoAbrirFase(proxima) }, 'Próxima fase →')
+            : h('button', { type: 'button', class: 'botao-jogo botao-rodar', onClick: () => this.aoVoltar() }, 'Ver todas as fases')
         ),
         proxima === null && h('p', { class: 'resultado-dica', text: 'Você terminou todas as fases! 🏆' })
       )
