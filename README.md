@@ -138,7 +138,11 @@ O jogo é dividido em duas camadas:
 - **Regras** (`public/js/pages/oficina/regras/`), em JavaScript puro, sem
   Phaser, testadas com `node:test`:
   - `catalogo.js`: peças e atributos (socket, DDR4/DDR5, TDP, watts, formato,
-    comprimento, preço).
+    comprimento, preço). Placas-mãe, processadores e memórias usam modelos
+    reais: AMD AM4 e AM5, Intel LGA1700 (com placas DDR4 e DDR5) e LGA1851.
+    Cada processador diz se tem vídeo integrado (o "G" da AMD e o "F" da
+    Intel). A quantidade de slots segue o desenho da placa no jogo; um teste
+    confere isso e se toda peça tem um par compatível.
   - `encaixes.js`: um `Encaixe` por lugar da montagem (socket, slots, baias).
     Cada subclasse define ordem, compatibilidade (recusa ou dano) e skill check.
   - `Montagem.js`: estado do PC na bancada e ações (encaixar, remover, cabos,

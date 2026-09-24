@@ -255,3 +255,48 @@ test('desempenho e tempo de inicialização mostram o peso de cada peça', () =>
   const semCabo = montar({ ...ESCRITORIO, m2: [], gabinete: 'gab-mid', sata: ['hd-2tb'] }, { cabos: false });
   assert.equal(SimuladorTeste.discoDoSistema(semCabo), null, 'disco SATA sem cabo não é encontrado');
 });
+
+test('catálogo: cada placa tem os slots do seu desenho, e toda peça tem par compatível', async () => {
+  const { PECAS, pecasDaCategoria } = await regras('catalogo.js');
+  const { LAYOUT_PLACAS, SPRITES } = await import(pathToFileURL(path.join(__dirname, '..', 'public/js/pages/oficina/jogo/sprites/manifesto.js')).href);
+  const ids = new Set();
+  for (const p of PECAS) {
+    assert.ok(!ids.has(p.id), `id repetido: ${p.id}`);
+    ids.add(p.id);
+    assert.ok(SPRITES[p.sprite], `${p.id}: sprite ${p.sprite} não existe`);
+  }
+  const placas = pecasDaCategoria('placa_mae');
+  const cpus = pecasDaCategoria('cpu');
+  const memorias = pecasDaCategoria('ram');
+  for (const placa of placas) {
+    const layout = LAYOUT_PLACAS[placa.sprite];
+    assert.equal(placa.slotsRam, layout.ram.length, `${placa.nome}: slots de memória diferentes do desenho`);
+    assert.equal(placa.slotsM2, layout.m2.length, `${placa.nome}: slots M.2 diferentes do desenho`);
+    assert.ok(cpus.some((c) => c.socket === placa.socket), `${placa.nome}: nenhum processador ${placa.socket}`);
+    assert.ok(memorias.some((r) => r.tipoRam === placa.tipoRam), `${placa.nome}: nenhuma memória ${placa.tipoRam}`);
+  }
+  for (const cpu of cpus) {
+    assert.ok(placas.some((p) => p.socket === cpu.socket), `${cpu.nome}: nenhuma placa ${cpu.socket}`);
+    assert.equal(typeof cpu.videoIntegrado, 'boolean', cpu.nome);
+    assert.ok(cpu.descricao, `${cpu.nome}: sem descrição`);
+    assert.match(cpu.resumo, cpu.videoIntegrado ? /Com vídeo/ : /SEM vídeo/, cpu.nome);
+  }
+  // Cada plataforma tem opção com e sem vídeo integrado, e há placas DDR4 e DDR5 na Intel LGA1700
+  for (const socket of new Set(cpus.map((c) => c.socket))) {
+    const doSocket = cpus.filter((c) => c.socket === socket);
+    assert.ok(doSocket.some((c) => c.videoIntegrado) && doSocket.some((c) => !c.videoIntegrado), `${socket}: falta opção com/sem vídeo`);
+  }
+  const lga1700 = placas.filter((p) => p.socket === 'LGA1700').map((p) => p.tipoRam);
+  assert.ok(lga1700.includes('DDR4') && lga1700.includes('DDR5'));
+});
+
+test('memória DDR5 não entra em placa Intel DDR4 da mesma plataforma', () => {
+  const m = new Montagem();
+  m.tentar('placa', 'pm-lga1700-b760-d4');
+  const r = m.tentar('ram-0', 'ram-ddr5-16');
+  assert.equal(r.status, 'recusado');
+  assert.match(r.mensagem, /DDR4/);
+  const m2 = new Montagem();
+  m2.tentar('placa', 'pm-lga1851-z890');
+  assert.equal(m2.tentar('cpu', 'cpu-lga1700-12400').status, 'dano', 'LGA1700 não encaixa em LGA1851');
+});

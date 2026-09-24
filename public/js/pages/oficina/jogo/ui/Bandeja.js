@@ -20,7 +20,7 @@ const ICONES = {
 const COLUNAS = 3;
 const ALTURA_CATEGORIA = 48;
 const PASSO_CATEGORIA = 52;
-const ALTURA_CARTAO = 74;
+const ALTURA_CARTAO = 86;
 const ESPACO_CARTAO = 6;
 const LARGURA_BARRA = 6;
 
@@ -140,10 +140,13 @@ export class Bandeja {
     desenharFundo(false);
 
     const miniatura = ajustarImagem(this.cena.add.image(32, altura / 2, peca.sprite), 48, 54);
-    const nome = this.cena.add.text(62, 8, peca.nome, estiloTexto(13, HEX.texto, { wordWrap: { width: largura - 68 }, lineSpacing: 1 }));
-    const preco = this.cena.add.text(largura - 8, altura - 8, peca.ferramenta ? 'Grátis' : formatarPreco(peca.preco), estiloTexto(13, HEX.destaque)).setOrigin(1, 1);
-    const detalhe = this.cena.add.text(62, altura - 8, peca.detalhes[0], estiloTexto(11, HEX.textoSuave)).setOrigin(0, 1);
-    truncarTexto(detalhe, largura - 62 - preco.width - 10);
+    // Três linhas: nome (até 2 linhas), resumo técnico e preço
+    const nome = this.cena.add.text(62, 7, peca.nome, estiloTexto(13, HEX.texto, { wordWrap: { width: largura - 68 }, lineSpacing: 1 }));
+    const preco = this.cena.add.text(largura - 8, altura - 6, peca.ferramenta ? 'Grátis' : formatarPreco(peca.preco), estiloTexto(13, HEX.destaque)).setOrigin(1, 1);
+    // No processador, o resumo diz se tem vídeo integrado (verde) ou não (amarelo)
+    const corResumo = peca.categoria === 'cpu' ? (peca.videoIntegrado ? HEX.sucesso : HEX.aviso) : HEX.textoSuave;
+    const detalhe = this.cena.add.text(62, altura - 24, peca.resumo || peca.detalhes[0], estiloTexto(11, corResumo)).setOrigin(0, 1);
+    truncarTexto(detalhe, largura - 68);
 
     // A área só responde na parte visível da lista (o resto está escondido pela rolagem)
     const visivel = (hitArea, hx, hy) => Phaser.Geom.Rectangle.Contains(hitArea, hx, hy) && this.areaLista.contains(cartao.x + hx, this.lista.y + cartao.y + hy);
@@ -255,18 +258,21 @@ export class Bandeja {
   // ---------------- Detalhes ----------------
 
   criarTooltip() {
-    const container = this.cena.add.container(0, 0).setDepth(700).setVisible(false);
+    // Acima do aviso da bancada (900), abaixo da seta do tutorial (950) e das janelas (1000)
+    const container = this.cena.add.container(0, 0).setDepth(920).setVisible(false);
     container.fundo = this.cena.add.graphics();
     container.texto = this.cena.add.text(12, 10, '', estiloTexto(13, HEX.texto, { lineSpacing: 4 }));
-    container.add([container.fundo, container.texto]);
+    container.descricao = this.cena.add.text(12, 0, '', estiloTexto(12, HEX.destaque, { wordWrap: { width: 250 }, lineSpacing: 2 }));
+    container.add([container.fundo, container.texto, container.descricao]);
     return container;
   }
 
   mostrarTooltip(peca, y) {
     const t = this.tooltip;
     t.texto.setText([peca.nome, ...peca.detalhes.map((d) => `• ${d}`)].join('\n'));
-    const w = t.texto.width + 24;
-    const h = t.texto.height + 20;
+    t.descricao.setText(peca.descricao || '').setY(t.texto.height + 16).setVisible(Boolean(peca.descricao));
+    const w = Math.max(t.texto.width, peca.descricao ? t.descricao.width : 0) + 24;
+    const h = t.texto.height + (peca.descricao ? t.descricao.height + 8 : 0) + 20;
     t.fundo.clear();
     t.fundo.fillStyle(0x0f1224, 0.96).fillRoundedRect(0, 0, w, h, 8);
     t.fundo.lineStyle(2, CORES.destaque, 1).strokeRoundedRect(0, 0, w, h, 8);

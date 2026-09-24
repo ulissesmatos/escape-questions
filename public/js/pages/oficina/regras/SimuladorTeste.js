@@ -41,7 +41,7 @@ export class SimuladorTeste {
     const partes = [
       { nome: 'Processador', pontos: cpu ? cpu.nucleos * 150 : 0 },
       { nome: 'Memória', pontos: Math.round(Math.min(64, montagem.ramTotalGb()) * 25 * (montagem.dualChannel() ? 1.2 : 1)) },
-      { nome: 'Vídeo', pontos: gpu ? [0, 900, 1800, 3200][gpu.nivel] : cpu?.videoIntegrado ? 250 : 0 },
+      { nome: 'Vídeo', pontos: gpu ? [0, 900, 1800, 3200][gpu.nivel] : cpu?.videoIntegrado ? cpu.pontosVideo || 250 : 0 },
       { nome: 'Disco', pontos: disco ? disco.pontos : 0 },
     ];
     return { partes, total: partes.reduce((soma, p) => soma + p.pontos, 0) };
