@@ -7,6 +7,7 @@ const PAGINAS = [
   { pagina: 'hardware', href: 'hardware.html', icone: '🗺️', texto: 'Mapa de Hardware' },
   { pagina: 'monta-pc', href: 'monta-pc.html', icone: '🛒', texto: 'Monte o PC' },
   { pagina: 'oficina', href: 'oficina.html', icone: '🔧', texto: 'Oficina de PCs' },
+  { pagina: 'horta', href: 'horta.html', icone: '🤖', texto: 'Horta' },
 ];
 
 /** Cabeçalho de navegação compartilhado. props: { paginaAtual } */
