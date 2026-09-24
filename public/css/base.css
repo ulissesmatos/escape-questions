@@ -160,7 +160,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: 12px 24px;
-  max-width: 1120px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 12px 20px;
 }
@@ -220,6 +220,17 @@ textarea {
 .site-nav-links a.ativo {
   background: var(--accent-light);
   color: var(--accent-dark);
+}
+
+/* Seis atividades: em telas médias o nome encurta para caber tudo */
+@media (max-width: 1260px) {
+  .site-nav-marca .site-nav-texto-longo {
+    display: none;
+  }
+  .site-nav-links a {
+    padding: 8px 9px;
+    font-size: 0.86rem;
+  }
 }
 
 @media (max-width: 720px) {

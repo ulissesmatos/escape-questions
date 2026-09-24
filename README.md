@@ -24,6 +24,11 @@ professor gerencia tudo pela área `/admin.html`.
   processador torto entortam os pinos, sem pasta o PC superaquece e fonte fraca
   desliga no teste. O primeiro pedido é um tutorial guiado; os seguintes são
   livres, com estrelas e moedas. Tem música, efeitos sonoros e tela cheia.
+- **Robô na Horta** (`/horta.html`): lógica com blocos de montar, sem falar em
+  programação. O aluno monta o "plano do robô" (andar, virar, colher, plantar,
+  regar, repetir, "se", "repita até") e o robô executa na horta em pixel art.
+  São 18 fases em 4 mundos. A partir do mundo 3 a horta é sorteada e o mesmo
+  plano precisa funcionar em 3 hortas, então decorar o caminho não resolve.
 
 ## Como rodar
 
@@ -86,10 +91,40 @@ public/
   js/admin/                   → AdminApp, sessão, seções/abas, editores de pergunta
   fonts/                      → DotGothic16 (fonte do jogo; licença OFL junto)
 tools/empacotar-oficina.js    → gera a versão da Oficina para baixar (arquivo único)
-test/                         → node:test (tipos de pergunta, motor adaptativo, detector de chute, regras da Oficina)
+test/                         → node:test (tipos de pergunta, motor adaptativo, detector de chute, regras da Oficina e do Robô na Horta)
 docs/oficina-sprites.md       → como gerar a arte do jogo no ChatGPT (+ gabaritos em docs/oficina-gabaritos)
 docs/oficina-expansao.md      → proposta do loop de gameplay e das próximas fases do jogo
 ```
+
+## Robô na Horta (jogo de blocos)
+
+Feito para rodar bem em computadores antigos: Canvas 2D sem WebGL, sem
+biblioteca e sem imagens (a pixel art é desenhada por código). O chão só é
+redesenhado quando uma casa muda, e com o jogo parado a tela se atualiza poucas
+vezes por segundo. Com a CPU 6× mais lenta e sem placa de vídeo, a animação
+fica em 60 fps.
+
+- **Regras** (`public/js/pages/horta/regras/`), em JavaScript puro, testadas
+  com `node:test`:
+  - `Horta.js`: a grade, o robô, os sensores (planta madura, com sede, terra
+    vazia, pedra na frente, celeiro) e as ações. Ação errada para o robô com uma
+    mensagem para o aluno, por exemplo "Essa planta ainda está verde!".
+  - `blocos.js`: catálogo dos blocos e das perguntas, com o texto que o aluno
+    vê.
+  - `Interpretador.js`: executa o plano como um gerador, um evento por vez, e
+    a tela anima cada um. A "bateria" do robô impede que um "Repita até" sem
+    fim trave o jogo.
+  - `fases.js`: mundos, fases, geradores das hortas sorteadas e cálculo das
+    estrelas (completar, usar no máximo a meta de blocos e pegar as moedas).
+- **Jogo** (`public/js/pages/horta/jogo/`): `Desenho.js` (canvas),
+  `EditorDeBlocos.js` (clicar para adicionar, arrastar para mover, soltar fora
+  para jogar fora), `TelaFase.js`, `TelaMapa.js`, `sons.js` (usa o sintetizador
+  da Oficina) e `Progresso.js`.
+- **Progresso:** fica no navegador (estrelas e o último plano de cada fase).
+  `horta.html?tudo` libera todas as fases para o professor conhecer o jogo.
+- **Nova fase:** adicione em `FASES` (`fases.js`) com um mapa fixo ou um
+  gerador. Coloque uma solução de referência em `test/horta.test.js`: o teste
+  confere se ela funciona em 40 sorteios, dentro da meta e pegando as moedas.
 
 ## Oficina de PCs (jogo)
 
