@@ -87,3 +87,19 @@ export function planoParaSalvar(lista) {
     ...(senao ? { senao: planoParaSalvar(senao) } : {}),
   }));
 }
+
+/**
+ * Plano escrito de forma curta (usado nas fases e nos testes):
+ *   'andar' | ['repita', 3, [...]] | ['repitaAte', 'bloqueio', [...]]
+ *   | ['se', 'madura', [...]] | ['seSenao', 'sede', [...], [...]]
+ */
+export function planoCurto(lista) {
+  return lista.map((item) => {
+    if (typeof item === 'string') return { tipo: item };
+    const [tipo, ...resto] = item;
+    if (tipo === 'repita') return { tipo, vezes: resto[0], corpo: planoCurto(resto[1]) };
+    if (tipo === 'repitaAte' || tipo === 'se') return { tipo, condicao: resto[0], corpo: planoCurto(resto[1]) };
+    if (tipo === 'seSenao') return { tipo, condicao: resto[0], corpo: planoCurto(resto[1]), senao: planoCurto(resto[2]) };
+    throw new Error(`Bloco desconhecido no plano curto: ${tipo}`);
+  });
+}

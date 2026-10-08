@@ -259,9 +259,36 @@ function balao(ctx, px, py, valor) {
   }
 }
 
+/** Uma cor por volta do Repita de fora: o caminho aparece em pedaços iguais, cada um de uma cor */
+export const CORES_VOLTAS = ['#ffeb3b', '#29b6f6', '#ff7043', '#ab47bc', '#66bb6a', '#ec407a', '#26c6da', '#d4e157', '#ffa726', '#5c6bc0', '#8d6e63', '#9ccc65'];
+const COR_SEM_VOLTA = '#fffde7';
+
+/**
+ * Caminho do robô: segmentos de casa em casa, { de: {x, y}, para: {x, y}, cor }.
+ * `fantasma` desenha mais fraco e pontilhado (a dica mostrando o padrão).
+ */
+function caminho(ctx, segmentos, fantasma) {
+  ctx.globalAlpha = fantasma ? 0.6 : 0.55;
+  for (const { de, para, cor } of segmentos) {
+    const cor1 = cor === null || cor === undefined ? COR_SEM_VOLTA : CORES_VOLTAS[cor % CORES_VOLTAS.length];
+    const x1 = BORDA + de.x * T + T / 2;
+    const y1 = BORDA + de.y * T + T / 2;
+    const x2 = BORDA + para.x * T + T / 2;
+    const y2 = BORDA + para.y * T + T / 2;
+    const passos = Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1));
+    for (let i = 0; i <= passos; i++) {
+      if (fantasma && i % 4 > 1) continue; // pontilhado
+      const x = Math.round(x1 + ((x2 - x1) * i) / passos);
+      const y = Math.round(y1 + ((y2 - y1) * i) / passos);
+      r(ctx, cor1, x - 2, y - 2, 4, 4);
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
 /**
  * Desenha a horta num <canvas>. `visual` é o que a animação controla:
- * { x, y, dir, pulo, tremor, balao, particulas }
+ * { x, y, dir, pulo, tremor, balao, particulas, rastro, fantasma }
  */
 export class Desenho {
   constructor(canvas) {
@@ -325,6 +352,9 @@ export class Desenho {
     ctx.drawImage(this.chao, 0, 0, this.canvas.width, this.canvas.height);
     this.desenharGrade(horta);
     ctx.setTransform(escala, 0, 0, escala, 0, 0);
+
+    if (visual.fantasma) caminho(ctx, visual.fantasma, true);
+    if (visual.rastro) caminho(ctx, visual.rastro, false);
 
     for (const chave of horta.moedas) {
       const [x, y] = chave.split(',').map(Number);

@@ -1,9 +1,19 @@
 // Fases do Robô na Horta, organizadas em mundos. Cada mundo libera blocos
-// novos. A partir do mundo 3 a horta é sorteada e o mesmo plano precisa
-// funcionar em 3 hortas diferentes: decorar o caminho não resolve, o aluno
-// precisa de "Se" e "Repita até".
+// novos (o mundo 3 ensina a combinar: um Repita dentro de outro). A partir
+// do mundo 4 a horta é sorteada e o mesmo plano precisa funcionar em 3
+// hortas diferentes: decorar o caminho não resolve, o aluno precisa de "Se"
+// e "Repita até".
+//
+// Campos de cada fase:
+//   id            chave do progresso salvo (não muda, mesmo se a fase mudar de lugar)
+//   rotulo        número que aparece na tela ("3-2"), calculado pela posição
+//   meta          até quantos blocos vale a estrela
+//   memoria       limite de blocos: o robô não roda um plano maior (obriga o Repita)
+//   planoInicial  plano que já vem montado, para o aluno completar
+//   solucao       uma solução de referência: alimenta as dicas e os testes
 
 import { Horta } from './Horta.js';
+import { planoCurto } from './blocos.js';
 
 /** Gerador de números com semente (mulberry32): a mesma semente dá as mesmas hortas */
 export function criarSorteio(semente) {
@@ -33,8 +43,15 @@ export function criarSorteio(semente) {
 export const MUNDOS = [
   { numero: 1, titulo: 'Primeiros passos', icone: '🌱', descricao: 'Dê ordens ao robô, uma de cada vez.' },
   { numero: 2, titulo: 'Repetindo', icone: '🔁', descricao: 'Faça o robô repetir sem precisar de tantos blocos.' },
-  { numero: 3, titulo: 'Horta surpresa', icone: '❓', descricao: 'A horta muda a cada vez. O robô precisa olhar antes de agir.' },
-  { numero: 4, titulo: 'Até quando?', icone: '⏳', descricao: 'Caminhos de tamanho diferente. O robô repete até chegar lá.' },
+  {
+    numero: 3,
+    titulo: 'Repita dentro do Repita',
+    icone: '🔄',
+    descricao: 'Um Repita pode guardar outro, como os ponteiros do relógio: o de dentro gira rápido e o de fora anda um pouco a cada volta.',
+    novidade: '🔁 dentro de 🔁',
+  },
+  { numero: 4, titulo: 'Horta surpresa', icone: '❓', descricao: 'A horta muda a cada vez. O robô precisa olhar antes de agir.' },
+  { numero: 5, titulo: 'Até quando?', icone: '⏳', descricao: 'Caminhos de tamanho diferente. O robô repete até chegar lá.' },
 ];
 
 const BASICOS = ['andar', 'direita', 'esquerda', 'colher'];
@@ -116,7 +133,12 @@ function caminhoSorteado(comPlantas) {
 
 // ---------- fases ----------
 
+const SO_REPITA = [...TODAS_ACOES, 'repita'];
+// Uma coluna do pomar: entra, sobe colhendo, dá meia-volta e desce
+const COLUNA = ['andar', 'esquerda', ['repita', 3, ['andar', 'colher']], 'direita', 'direita', ['repita', 3, ['andar']]];
+
 export const FASES = [
+  // ---------------------------------------------------------------- Mundo 1
   {
     id: '1-1',
     mundo: 1,
@@ -126,6 +148,7 @@ export const FASES = [
     novos: ['andar', 'colher'],
     meta: 5,
     mapa: { mapa: ['.....', '..o.m', '.....'], robo: [0, 1, 'direita'] },
+    solucao: ['andar', 'andar', 'andar', 'andar', 'colher'],
   },
   {
     id: '1-2',
@@ -136,6 +159,7 @@ export const FASES = [
     novos: ['direita', 'esquerda'],
     meta: 6,
     mapa: { mapa: ['...p.', '..o..', '..m..'], robo: [0, 0, 'direita'] },
+    solucao: ['andar', 'andar', 'direita', 'andar', 'andar', 'colher'],
   },
   {
     id: '1-3',
@@ -145,6 +169,7 @@ export const FASES = [
     blocos: BASICOS,
     meta: 10,
     mapa: { mapa: ['..m.p', '..o.p', '...om'], robo: [0, 0, 'direita'] },
+    solucao: ['andar', 'andar', 'colher', 'direita', 'andar', 'andar', 'esquerda', 'andar', 'andar', 'colher'],
   },
   {
     id: '1-4',
@@ -155,6 +180,7 @@ export const FASES = [
     novos: ['plantar'],
     meta: 9,
     mapa: { mapa: ['.tot.', 'p...t', '.....'], robo: [0, 0, 'direita'] },
+    solucao: ['andar', 'plantar', 'andar', 'andar', 'plantar', 'andar', 'direita', 'andar', 'plantar'],
   },
   {
     id: '1-5',
@@ -165,62 +191,134 @@ export const FASES = [
     novos: ['regar'],
     meta: 10,
     mapa: { mapa: ['.som.', '...s.', '.p.m.'], robo: [0, 0, 'direita'] },
+    solucao: ['andar', 'regar', 'andar', 'andar', 'colher', 'direita', 'andar', 'regar', 'andar', 'colher'],
   },
 
+  // ---------------------------------------------------------------- Mundo 2: um Repita só
+  {
+    id: 'ate-o-tomate',
+    mundo: 2,
+    titulo: 'Até o tomate',
+    fala: 'O tomate está longe e na minha memória só cabem 4 blocos! O Repita faz o que está dentro dele várias vezes. Coloque um Repita, mude para 6 vezes e ponha um Ande dentro dele.',
+    blocos: SO_REPITA,
+    novos: ['repita'],
+    meta: 3,
+    memoria: 4,
+    mapa: { mapa: ['........', '......m.', '........'], moedas: [[2, 1], [4, 1]], robo: [0, 1, 'direita'] },
+    solucao: [['repita', 6, ['andar']], 'colher'],
+  },
   {
     id: '2-1',
     mundo: 2,
     titulo: 'Fileira de tomates',
-    fala: 'Ufa, são muitos blocos iguais! O bloco Repita faz o que estiver dentro dele várias vezes.',
-    blocos: [...TODAS_ACOES, 'repita'],
-    novos: ['repita'],
+    fala: 'Agora são 6 tomates seguidos. Repare: para cada tomate eu ando e colho. Esse pedaço é que vai dentro do Repita!',
+    blocos: SO_REPITA,
     meta: 3,
+    memoria: 4,
     mapa: { mapa: ['........', '.mmmmmm.', '........'], moedas: [[3, 1], [6, 1]], robo: [0, 1, 'direita'] },
-  },
-  {
-    id: '2-2',
-    mundo: 2,
-    titulo: 'Volta no canteiro',
-    fala: 'Colha nas quatro pontas do canteiro. Repare que o caminho é igual nos quatro lados!',
-    blocos: [...TODAS_ACOES, 'repita'],
-    meta: 7,
-    mapa: { mapa: ['m...m', '.ppp.', '.ppp.', '.ppp.', 'm...m'], moedas: [[2, 0], [4, 2], [2, 4], [0, 2]], robo: [0, 0, 'direita'] },
-  },
-  {
-    id: '2-3',
-    mundo: 2,
-    titulo: 'Canteiro gigante',
-    fala: 'O canteiro cresceu! Dá para colocar um Repita dentro de outro Repita.',
-    blocos: [...TODAS_ACOES, 'repita'],
-    meta: 5,
-    mapa: {
-      mapa: ['m.....m', '.ppppp.', '.ppppp.', '.ppppp.', '.ppppp.', '.ppppp.', 'm.....m'],
-      moedas: [[3, 0], [6, 3], [3, 6], [0, 3]],
-      robo: [0, 0, 'direita'],
-    },
+    solucao: [['repita', 6, ['andar', 'colher']]],
   },
   {
     id: '2-4',
     mundo: 2,
     titulo: 'Escadinha',
-    fala: 'Suba a escadinha colhendo cada degrau. Qual pedaço do caminho se repete?',
-    blocos: [...TODAS_ACOES, 'repita'],
+    fala: 'Suba a escadinha colhendo cada degrau. Monte o plano de UM degrau e depois coloque ele dentro do Repita.',
+    blocos: SO_REPITA,
     meta: 6,
+    memoria: 7,
     mapa: { mapa: ['....m', '...m.', '..m..', '.m...', '.....'], moedas: [[1, 4], [3, 2]], robo: [0, 4, 'direita'] },
+    solucao: [['repita', 4, ['andar', 'esquerda', 'andar', 'direita', 'colher']]],
+  },
+  {
+    id: '2-2',
+    mundo: 2,
+    titulo: 'Volta no canteiro',
+    fala: 'Colha nas quatro pontas do canteiro. O caminho é igual nos quatro lados: colher, andar até a ponta e virar.',
+    blocos: SO_REPITA,
+    meta: 7,
+    memoria: 8,
+    mapa: { mapa: ['m...m', '.ppp.', '.ppp.', '.ppp.', 'm...m'], moedas: [[2, 0], [4, 2], [2, 4], [0, 2]], robo: [0, 0, 'direita'] },
+    solucao: [['repita', 4, ['colher', 'andar', 'andar', 'andar', 'andar', 'direita']]],
+  },
+
+  // ---------------------------------------------------------------- Mundo 3: Repita dentro do Repita
+  {
+    id: 'quadradinho',
+    mundo: 3,
+    titulo: 'Quadradinho',
+    fala: 'Olha o plano que eu comecei: um Repita dentro do outro! O de fora faz os 4 lados. O de dentro anda o lado inteiro. O que falta colocar no Repita de dentro?',
+    blocos: SO_REPITA,
+    meta: 5,
+    memoria: 5,
+    mapa: { mapa: ['m..m', '.pp.', '.pp.', 'm..m'], moedas: [[2, 0], [3, 2], [1, 3], [0, 1]], robo: [0, 0, 'direita'] },
+    planoInicial: [['repita', 4, ['colher', ['repita', 3, []], 'direita']]],
+    solucao: [['repita', 4, ['colher', ['repita', 3, ['andar']], 'direita']]],
+  },
+  {
+    id: 'canteiro-medio',
+    mundo: 3,
+    titulo: 'O canteiro de novo',
+    fala: 'Lembra deste canteiro? Agora só cabem 5 blocos na minha memória! Dentro de cada lado o Ande também se repete. Use um Repita para os lados e outro, dentro dele, para o Ande.',
+    blocos: SO_REPITA,
+    meta: 5,
+    memoria: 5,
+    mapa: { mapa: ['m...m', '.ppp.', '.ppp.', '.ppp.', 'm...m'], moedas: [[1, 0], [4, 3], [3, 4], [0, 1]], robo: [0, 0, 'direita'] },
+    solucao: [['repita', 4, ['colher', ['repita', 4, ['andar']], 'direita']]],
+  },
+  {
+    id: '2-3',
+    mundo: 3,
+    titulo: 'Canteiro gigante',
+    fala: 'O canteiro cresceu! É igual ao de antes, só que cada lado é maior. O que muda no plano?',
+    blocos: SO_REPITA,
+    meta: 5,
+    memoria: 5,
+    mapa: {
+      mapa: ['m.....m', '.ppppp.', '.ppppp.', '.ppppp.', '.ppppp.', '.ppppp.', 'm.....m'],
+      moedas: [[3, 0], [6, 3], [3, 6], [0, 3]],
+      robo: [0, 0, 'direita'],
+    },
+    solucao: [['repita', 4, ['colher', ['repita', 6, ['andar']], 'direita']]],
+  },
+  {
+    id: 'uma-coluna',
+    mundo: 3,
+    titulo: 'Uma coluna do pomar',
+    fala: 'Este é um pedaço do pomar: uma coluna só. Suba colhendo tudo e depois volte para o celeiro, lá embaixo. Dá para usar um Repita para subir e outro para descer.',
+    blocos: SO_REPITA,
+    meta: 9,
+    memoria: 10,
+    mapa: { mapa: ['.m', '.m', '.m', '.c'], robo: [0, 3, 'direita'] },
+    solucao: COLUNA,
+  },
+  {
+    id: 'duas-colunas',
+    mundo: 3,
+    titulo: 'Duas colunas',
+    fala: 'Eu já sei fazer uma coluna: o plano está aí! Agora são duas colunas iguais. Aperte "🔁 Pôr tudo num Repita". Dica: antes da próxima coluna eu preciso virar para a direita de novo.',
+    blocos: SO_REPITA,
+    meta: 11,
+    memoria: 12,
+    mapa: { mapa: ['.mm', '.mm', '.mm', '...'], moedas: [[2, 3]], robo: [0, 3, 'direita'] },
+    planoInicial: COLUNA,
+    solucao: [['repita', 2, [...COLUNA, 'esquerda']]],
   },
   {
     id: '2-5',
-    mundo: 2,
+    mundo: 3,
     titulo: 'Pomar',
-    fala: 'Um pomar inteiro! Suba cada coluna colhendo, desça e vá para a próxima.',
-    blocos: [...TODAS_ACOES, 'repita'],
+    fala: 'O pomar inteiro! É o mesmo plano das duas colunas, só que agora são 4 colunas.',
+    blocos: SO_REPITA,
     meta: 11,
+    memoria: 12,
     mapa: { mapa: ['.mmmm', '.mmmm', '.mmmm', '.....'], moedas: [[2, 3], [4, 3]], robo: [0, 3, 'direita'] },
+    solucao: [['repita', 4, [...COLUNA, 'esquerda']]],
   },
 
+  // ---------------------------------------------------------------- Mundo 4: Horta surpresa
   {
     id: '3-1',
-    mundo: 3,
+    mundo: 4,
     titulo: 'Só as maduras',
     fala: 'Essa horta muda toda vez! Não dá para decorar. Use o Se para eu olhar antes de colher.',
     blocos: [...TODAS_ACOES, 'repita', 'se'],
@@ -229,10 +327,11 @@ export const FASES = [
     meta: 4,
     variantes: 3,
     gerar: fileiraSorteada(['m', 'b'], 2),
+    solucao: [['repita', 6, ['andar', ['se', 'madura', ['colher']]]]],
   },
   {
     id: '3-2',
-    mundo: 3,
+    mundo: 4,
     titulo: 'Regar ou colher?',
     fala: 'Cada planta ou está com sede, ou está madura. O bloco Se... senão escolhe entre duas coisas.',
     blocos: [...TODAS_ACOES, 'repita', 'se', 'seSenao'],
@@ -241,10 +340,11 @@ export const FASES = [
     meta: 5,
     variantes: 3,
     gerar: fileiraSorteada(['s', 'm'], 2),
+    solucao: [['repita', 6, ['andar', ['seSenao', 'sede', ['regar'], ['colher']]]]],
   },
   {
     id: '3-3',
-    mundo: 3,
+    mundo: 4,
     titulo: 'Plantar ou colher?',
     fala: 'Terra vazia: plante. Planta madura: colha. Planta verde: deixe crescer!',
     blocos: [...TODAS_ACOES, 'repita', 'se', 'seSenao'],
@@ -252,22 +352,25 @@ export const FASES = [
     meta: 6,
     variantes: 3,
     gerar: fileiraSorteada(['t', 'm', 'b'], 1),
+    solucao: [['repita', 6, ['andar', ['se', 'vazia', ['plantar']], ['se', 'madura', ['colher']]]]],
   },
   {
     id: '3-4',
-    mundo: 3,
+    mundo: 4,
     titulo: 'Pomar surpresa',
-    fala: 'O pomar voltou, mas agora tem fruta verde no meio. Junte tudo o que você já aprendeu!',
+    fala: 'O pomar voltou, mas agora tem fruta verde no meio. É o plano do pomar, só que olhando antes de colher!',
     blocos: [...TODAS_ACOES, 'repita', 'se', 'seSenao'],
     condicoes: ['madura'],
     meta: 12,
     variantes: 3,
     gerar: pomarSorteado,
+    solucao: [['repita', 4, ['andar', 'esquerda', ['repita', 3, ['andar', ['se', 'madura', ['colher']]]], 'direita', 'direita', ['repita', 3, ['andar']], 'esquerda']]],
   },
 
+  // ---------------------------------------------------------------- Mundo 5: Até quando?
   {
     id: '4-1',
-    mundo: 4,
+    mundo: 5,
     titulo: 'Até a pedra',
     fala: 'Cada fileira tem um tamanho. O Repita até faz eu repetir até acontecer alguma coisa.',
     blocos: [...TODAS_ACOES, 'repita', 'repitaAte', 'se', 'seSenao'],
@@ -276,10 +379,11 @@ export const FASES = [
     meta: 3,
     variantes: 3,
     gerar: corredorSorteado(['m']),
+    solucao: [['repitaAte', 'bloqueio', ['andar', 'colher']]],
   },
   {
     id: '4-2',
-    mundo: 4,
+    mundo: 5,
     titulo: 'Colha até a pedra',
     fala: 'Tamanho diferente e plantas diferentes. Vou precisar repetir e também olhar!',
     blocos: [...TODAS_ACOES, 'repita', 'repitaAte', 'se', 'seSenao'],
@@ -287,10 +391,11 @@ export const FASES = [
     meta: 4,
     variantes: 3,
     gerar: corredorSorteado(['m', 'b']),
+    solucao: [['repitaAte', 'bloqueio', ['andar', ['se', 'madura', ['colher']]]]],
   },
   {
     id: '4-3',
-    mundo: 4,
+    mundo: 5,
     titulo: 'Caminho do celeiro',
     fala: 'Me leve até o celeiro! O caminho muda, mas sempre que aparece uma pedra na frente é hora de virar à direita.',
     blocos: [...TODAS_ACOES, 'repita', 'repitaAte', 'se', 'seSenao'],
@@ -298,10 +403,11 @@ export const FASES = [
     meta: 4,
     variantes: 3,
     gerar: caminhoSorteado(false),
+    solucao: [['repitaAte', 'celeiro', [['seSenao', 'bloqueio', ['direita'], ['andar']]]]],
   },
   {
     id: '4-4',
-    mundo: 4,
+    mundo: 5,
     titulo: 'Grande colheita',
     fala: 'O desafio final: siga o caminho até o celeiro colhendo só as plantas maduras. Você consegue!',
     blocos: [...TODAS_ACOES, 'repita', 'repitaAte', 'se', 'seSenao'],
@@ -309,8 +415,26 @@ export const FASES = [
     meta: 6,
     variantes: 3,
     gerar: caminhoSorteado(true),
+    solucao: [['repitaAte', 'celeiro', [['se', 'madura', ['colher']], ['seSenao', 'bloqueio', ['direita'], ['andar']]]]],
   },
 ];
+
+// Número que aparece na tela: mundo-posição ("3-2"). O id fica para o progresso salvo.
+for (const mundo of MUNDOS) {
+  FASES.filter((f) => f.mundo === mundo.numero).forEach((fase, i) => {
+    fase.rotulo = `${mundo.numero}-${i + 1}`;
+  });
+}
+
+/** Solução de referência da fase, no formato do editor (dicas e testes) */
+export function solucaoDaFase(fase) {
+  return planoCurto(fase.solucao);
+}
+
+/** Plano que a fase já traz montado (vazio se não tiver) */
+export function planoInicialDaFase(fase) {
+  return fase.planoInicial ? planoCurto(fase.planoInicial) : [];
+}
 
 /** As hortas de uma fase: a fixa, ou `variantes` hortas sorteadas diferentes entre si */
 export function montarHortas(fase, semente = Date.now()) {

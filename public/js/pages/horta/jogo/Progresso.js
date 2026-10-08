@@ -39,8 +39,17 @@ export class Progresso {
     this.salvar();
   }
 
+  /**
+   * Liberada: a primeira, ou a anterior já tem estrela. Uma fase que o aluno
+   * já ganhou continua liberada, mesmo se entrar uma fase nova antes dela.
+   */
   liberada(indice) {
-    return this.liberarTudo || indice === 0 || this.estrelas(FASES[indice - 1].id) > 0;
+    return this.liberarTudo || indice === 0 || this.estrelas(FASES[indice - 1].id) > 0 || this.estrelas(FASES[indice].id) > 0;
+  }
+
+  /** Já tem plano salvo nesta fase? (senão, a fase pode trazer um plano começado) */
+  temPlano(id) {
+    return Array.isArray(this.dados.planos[id]);
   }
 
   total() {

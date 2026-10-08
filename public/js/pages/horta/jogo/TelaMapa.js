@@ -47,8 +47,9 @@ export class TelaMapa {
         h(
           'div',
           { class: 'mundo-blocos', title: 'Blocos novos neste mundo' },
-          h('span', { class: 'mundo-blocos-rotulo', text: 'Blocos novos:' }),
-          novos.map((tipo) => h('span', { class: `chip-bloco cat-${BLOCOS[tipo].categoria}`, text: `${BLOCOS[tipo].icone} ${nomeCurto(tipo)}` }))
+          h('span', { class: 'mundo-blocos-rotulo', text: novos.length ? 'Blocos novos:' : 'Novidade:' }),
+          novos.map((tipo) => h('span', { class: `chip-bloco cat-${BLOCOS[tipo].categoria}`, text: `${BLOCOS[tipo].icone} ${nomeCurto(tipo)}` })),
+          mundo.novidade && h('span', { class: 'chip-bloco cat-repeticao', text: mundo.novidade })
         ),
         h(
           'div',
@@ -65,7 +66,7 @@ export class TelaMapa {
                 title: liberada ? fase.titulo : 'Complete a fase anterior para liberar',
                 onClick: () => this.aoAbrirFase(indice),
               },
-              h('span', { class: 'fase-botao-numero', text: liberada ? fase.id : '🔒' }),
+              h('span', { class: 'fase-botao-numero', text: liberada ? fase.rotulo : '🔒' }),
               h('span', { class: 'fase-botao-titulo', text: fase.titulo }),
               h('span', { class: 'fase-botao-estrelas', 'aria-label': `${estrelas} de 3 estrelas`, text: estrelasTexto(estrelas) }),
               indice === atual && h('span', { class: 'fase-botao-jogar', text: '▶ Jogar' })

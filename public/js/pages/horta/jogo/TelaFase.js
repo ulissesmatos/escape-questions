@@ -4,8 +4,9 @@
 import { h, substituirFilhos } from '../../../core/dom.js';
 import { armazenamentoLocal } from '../../../core/SafeStorage.js';
 import { executar } from '../regras/Interpretador.js';
-import { CONDICOES, contarBlocos, copiarPlano, planoParaSalvar } from '../regras/blocos.js';
-import { FASES, calcularEstrelas, montarHortas } from '../regras/fases.js';
+import { BLOCOS, CONDICOES, contarBlocos, copiarPlano, planoParaSalvar } from '../regras/blocos.js';
+import { FASES, calcularEstrelas, montarHortas, planoInicialDaFase, solucaoDaFase } from '../regras/fases.js';
+import { acharRepeticao, esqueleto, nomeDoBloco, sugestaoDeRepita } from '../regras/padroes.js';
 import { CORES_PARTICULAS, Desenho } from './Desenho.js';
 import { EditorDeBlocos } from './EditorDeBlocos.js';
 import { sons } from './sons.js';
@@ -18,6 +19,9 @@ const VELOCIDADES = [
 
 const DESLOCAMENTO = { cima: [0, -1], direita: [1, 0], baixo: [0, 1], esquerda: [-1, 0] };
 
+// Tentativas erradas antes de acender o botão de dica (o aluno pensa primeiro)
+const TENTATIVAS_PARA_DICA = 2;
+
 export class TelaFase {
   constructor({ alvo, topo, indice, progresso, aoVoltar, aoAbrirFase, aoGanharEstrelas }) {
     this.alvo = alvo;
@@ -29,7 +33,11 @@ export class TelaFase {
     this.aoVoltar = aoVoltar;
     this.aoAbrirFase = aoAbrirFase;
 
-    this.plano = copiarPlano(progresso.plano(this.fase.id), this.fase.blocos);
+    // Plano salvo do aluno; na primeira vez, o plano que a fase já traz começado
+    const salvo = progresso.temPlano(this.fase.id) ? progresso.plano(this.fase.id) : planoInicialDaFase(this.fase);
+    this.plano = copiarPlano(salvo, this.fase.blocos);
+    this.tentativas = 0;
+    this.dica = 0; // 0: nenhuma; 1: caminho pintado no mapa; 2: esqueleto do plano
     this.hortas = montarHortas(this.fase);
     this.estadoHortas = this.hortas.map(() => null);
     this.indiceHorta = 0;
@@ -59,6 +67,8 @@ export class TelaFase {
     this.botaoRodar = h('button', { type: 'button', class: 'botao-jogo botao-rodar', onClick: () => this.alternarRodar() });
     this.botaoPasso = h('button', { type: 'button', class: 'botao-jogo botao-claro', onClick: () => this.darPasso() }, '⏭ Passo a passo');
     this.botaoRecomecar = h('button', { type: 'button', class: 'botao-jogo botao-claro', onClick: () => this.recomecar() }, '↺ Recomeçar');
+    this.botaoDica = h('button', { type: 'button', class: 'botao-jogo botao-dica', onClick: () => this.darDica() });
+    this.dicaCaixa = h('div', { class: 'dica-caixa', hidden: true });
     this.botoesVelocidade = VELOCIDADES.map((v) =>
       h('button', {
         type: 'button',
@@ -75,7 +85,7 @@ export class TelaFase {
     substituirFilhos(
       this.topo,
       h('button', { type: 'button', class: 'botao-topo', onClick: () => this.aoVoltar() }, '☰ Fases'),
-      h('span', { class: 'topo-fase-numero', text: fase.id }),
+      h('span', { class: 'topo-fase-numero', text: fase.rotulo }),
       h('h1', { class: 'topo-fase-titulo', text: fase.titulo }),
       (this.melhorEl = h('span', { class: 'topo-fase-melhor', title: 'Seu melhor resultado nesta fase', text: '★'.repeat(melhor) + '☆'.repeat(3 - melhor) }))
     );
@@ -87,6 +97,7 @@ export class TelaFase {
         'section',
         { class: 'painel fase-palco' },
         h('div', { class: 'fala' }, h('span', { class: 'fala-robo', 'aria-hidden': 'true', text: '🤖' }), this.falaTexto),
+        this.dicaCaixa,
         this.abas,
         this.molduraCanvas,
         this.objetivos,
@@ -96,6 +107,7 @@ export class TelaFase {
           this.botaoRodar,
           this.botaoPasso,
           this.botaoRecomecar,
+          this.botaoDica,
           h('div', { class: 'velocidade', role: 'group', 'aria-label': 'Velocidade' }, this.botoesVelocidade)
         )
       ),
@@ -114,6 +126,17 @@ export class TelaFase {
         h(
           'div',
           { class: 'plano-rodape' },
+          fase.blocos.includes('repita') &&
+            h(
+              'button',
+              {
+                type: 'button',
+                class: 'botao-jogo botao-claro botao-pequeno botao-embrulhar',
+                title: 'Coloca o plano inteiro dentro de um Repita',
+                onClick: () => this.porTudoNumRepita(),
+              },
+              '🔁 Pôr tudo num Repita'
+            ),
           h('button', { type: 'button', class: 'botao-jogo botao-claro botao-pequeno', onClick: () => this.limparPlano() }, '🗑 Limpar tudo')
         )
       ),
@@ -141,6 +164,7 @@ export class TelaFase {
     this.mostrarHorta(0);
     this.atualizarContador();
     this.atualizarControles();
+    this.atualizarDica();
     this.laco = requestAnimationFrame((t) => this.quadro(t));
   }
 
@@ -195,7 +219,17 @@ export class TelaFase {
     this.indiceHorta = i;
     this.horta = this.hortas[i].clonar();
     const { robo } = this.horta;
-    this.visual = { x: robo.x, y: robo.y, dir: robo.dir, pulo: 0, tremor: 0, balao: null, particulas: this.particulas };
+    this.visual = {
+      x: robo.x,
+      y: robo.y,
+      dir: robo.dir,
+      pulo: 0,
+      tremor: 0,
+      balao: null,
+      particulas: this.particulas,
+      rastro: [], // caminho do robô, uma cor por volta do Repita de fora
+      fantasma: this.dica >= 1 && this.modo === 'parado' ? this.caminhoDaSolucao(this.horta) : null,
+    };
     this.ajustarCanvas();
     this.atualizarAbas();
     this.atualizarObjetivos();
@@ -295,16 +329,152 @@ export class TelaFase {
 
   atualizarContador() {
     const n = contarBlocos(this.plano);
-    const { meta } = this.fase;
+    const { meta, memoria } = this.fase;
     substituirFilhos(
       this.contador,
-      h('span', { text: `${n} ${n === 1 ? 'bloco' : 'blocos'}` }),
+      memoria
+        ? h('span', {
+            class: `memoria${n > memoria ? ' cheia' : ''}`,
+            title: 'Na memória do robô só cabe esse número de blocos',
+            text: `🧠 ${n}/${memoria} blocos`,
+          })
+        : h('span', { text: `${n} ${n === 1 ? 'bloco' : 'blocos'}` }),
       h('span', {
         class: `meta${n > 0 && n <= meta ? ' ok' : ''}`,
         title: 'Use no máximo esse número de blocos para ganhar uma estrela',
         text: `★ meta: até ${meta}`,
       })
     );
+  }
+
+  /** O plano não cabe na memória? Então o robô nem começa, e sugere o Repita */
+  memoriaEstourada() {
+    const { memoria } = this.fase;
+    const n = contarBlocos(this.plano);
+    if (!memoria || n <= memoria) return false;
+    sons.tocar('errar');
+    const repeticao = acharRepeticao(this.plano);
+    let texto = `🧠 Meu plano tem ${n} blocos, mas na minha memória só cabem ${memoria}!`;
+    if (repeticao) {
+      texto += ` ${sugestaoDeRepita(repeticao)}`;
+      this.editor.marcar(repeticao.ids, 'repetido');
+    } else {
+      texto += ' Procure o pedaço do caminho que se repete e use o Repita.';
+    }
+    this.falar(texto, 'erro');
+    this.registrarTentativa();
+    return true;
+  }
+
+  porTudoNumRepita() {
+    if (this.modo !== 'parado') return;
+    if (!this.plano.length) {
+      this.falar('Primeiro monte o plano que vai ficar dentro do Repita.', 'erro');
+      return;
+    }
+    this.editor.porTudoNumRepita();
+    this.falar('Pronto: o plano inteiro está dentro de um Repita. Agora escolha quantas vezes ele repete (no − e no +).');
+  }
+
+  // ---------- dicas ----------
+
+  registrarTentativa() {
+    this.tentativas += 1;
+    this.atualizarDica();
+  }
+
+  atualizarDica() {
+    const faltam = TENTATIVAS_PARA_DICA - this.tentativas;
+    const travada = faltam > 0;
+    this.botaoDica.disabled = travada || this.dica >= 2;
+    this.botaoDica.classList.toggle('acesa', !travada && this.dica < 2);
+    this.botaoDica.title = travada ? `A dica aparece depois de ${TENTATIVAS_PARA_DICA} tentativas` : 'Ver uma dica';
+    this.botaoDica.textContent = travada ? `💡 Dica (tente mais ${faltam}x)` : this.dica === 0 ? '💡 Dica' : this.dica === 1 ? '💡 Outra dica' : '💡 Dicas vistas';
+  }
+
+  /** Dica 1: o caminho pintado no mapa. Dica 2: o esqueleto do plano */
+  darDica() {
+    if (this.modo !== 'parado' || this.tentativas < TENTATIVAS_PARA_DICA || this.dica >= 2) return;
+    this.dica += 1;
+    sons.tocar('pergunta');
+    if (this.dica === 1) this.dicaCaminho();
+    else this.dicaEsqueleto();
+    this.atualizarDica();
+  }
+
+  dicaCaminho() {
+    this.recomecar({ manterFala: true });
+    const fora = solucaoDaFase(this.fase).filter((b) => b.tipo === 'repita');
+    let texto = 'Pintei o caminho na horta. Que pedaço dele se repete?';
+    if (fora.length === 1) {
+      texto = `Pintei o caminho na horta: são ${fora[0].vezes} pedaços iguais, um de cada cor. Cada pedaço é uma volta do Repita. Monte o plano de UM pedaço e coloque dentro do Repita!`;
+    }
+    this.falar(`💡 ${texto}`);
+  }
+
+  dicaEsqueleto() {
+    const forma = esqueleto(solucaoDaFase(this.fase));
+    if (!forma.length) {
+      this.dicaCaixa.hidden = true;
+      this.falar('💡 Siga o caminho pintado, um passo de cada vez. Use o ⏭ Passo a passo para ver onde o robô erra.');
+      return;
+    }
+    const desenhar = (lista) =>
+      h(
+        'ul',
+        { class: 'esqueleto-lista' },
+        lista.map((b) =>
+          h(
+            'li',
+            {},
+            h('span', { class: `esqueleto-bloco cat-${BLOCOS[b.tipo].categoria}` }, `${BLOCOS[b.tipo].icone} ${nomeDoBloco(b)}`),
+            desenhar(b.corpo),
+            b.corpo.length === 0 && h('span', { class: 'esqueleto-vazio', text: '? o que vai aqui dentro?' })
+          )
+        )
+      );
+    substituirFilhos(
+      this.dicaCaixa,
+      h('strong', { class: 'dica-titulo', text: '💡 A forma do plano' }),
+      desenhar(forma),
+      h(
+        'button',
+        {
+          type: 'button',
+          class: 'botao-jogo botao-claro botao-pequeno',
+          onClick: () => {
+            this.editor.trocarPlano(copiarPlano(forma, this.fase.blocos));
+            this.falar('Coloquei a forma no plano. Agora complete o que vai dentro de cada Repita!');
+          },
+        },
+        'Começar com essa forma (troca o seu plano)'
+      )
+    );
+    this.dicaCaixa.hidden = false;
+    const aninhado = forma.some((b) => b.corpo.length > 0);
+    this.falar(
+      aninhado
+        ? '💡 Esta é a forma do plano: um Repita dentro do outro. Falta você descobrir o que vai dentro deles (e o que vem antes ou depois)!'
+        : '💡 Esta é a forma do plano. Falta você descobrir o que vai dentro do Repita (e o que vem antes ou depois dele)!'
+    );
+  }
+
+  /** Caminho da solução de referência na horta atual, para a dica (sem mexer na horta de verdade) */
+  caminhoDaSolucao(horta) {
+    const copia = horta.clonar();
+    const plano = copiarPlano(solucaoDaFase(this.fase)); // copiarPlano dá ids aos blocos
+    const deFora = new Set(plano.map((b) => b.id));
+    const segmentos = [];
+    let cor = null;
+    const execucao = executar(plano, copia);
+    for (let passo = execucao.next(); !passo.done; passo = execucao.next()) {
+      const ev = passo.value;
+      if (ev.tipo === 'volta' && deFora.has(ev.bloco)) cor = ev.volta - 1;
+      if (ev.tipo === 'acao' && ev.acao === 'andar' && ev.resultado.ok) {
+        segmentos.push({ de: ev.resultado.de, para: { x: copia.robo.x, y: copia.robo.y }, cor });
+      }
+    }
+    return segmentos;
   }
 
   atualizarControles() {
@@ -347,7 +517,7 @@ export class TelaFase {
 
   // ---------- execução ----------
 
-  recomecar() {
+  recomecar({ manterFala = false } = {}) {
     this.token += 1;
     this.modo = 'parado';
     this.execucao = null;
@@ -356,7 +526,7 @@ export class TelaFase {
     this.fecharResultado();
     this.mostrarHorta(this.indiceHorta);
     this.atualizarControles();
-    this.falar(this.fase.fala);
+    if (!manterFala) this.falar(this.fase.fala);
   }
 
   alternarRodar() {
@@ -376,7 +546,7 @@ export class TelaFase {
   }
 
   async rodarTudo() {
-    if (this.planoVazio()) return;
+    if (this.planoVazio() || this.memoriaEstourada()) return;
     this.token += 1;
     const token = this.token;
     this.modo = 'rodando';
@@ -420,6 +590,7 @@ export class TelaFase {
   }
 
   async executarAnimado(token) {
+    this.voltaDeFora = null;
     const execucao = executar(this.plano, this.horta);
     for (;;) {
       const passo = execucao.next();
@@ -432,12 +603,13 @@ export class TelaFase {
   async darPasso() {
     if (this.modo === 'rodando' || this.animandoPasso) return;
     if (this.modo !== 'passo') {
-      if (this.planoVazio()) return;
+      if (this.planoVazio() || this.memoriaEstourada()) return;
       this.token += 1;
       this.fecharResultado();
       this.editor.limparDestaques();
       this.mostrarHorta(this.indiceHorta);
       this.execucao = executar(this.plano, this.horta);
+      this.voltaDeFora = null;
       this.modo = 'passo';
       this.atualizarControles();
     }
@@ -467,6 +639,7 @@ export class TelaFase {
   }
 
   mostrarFalha(resultado, i) {
+    this.registrarTentativa();
     if (resultado.bloco) this.editor.destacar(resultado.bloco, 'com-erro');
     const onde = this.hortas.length > 1 ? ` (na horta ${i + 1})` : '';
     const dica = this.hortas.length > 1 && i > 0 ? ' Lembre: o mesmo plano precisa servir para todas as hortas.' : '';
@@ -478,6 +651,9 @@ export class TelaFase {
     const base = this.velocidade.ms;
     this.editor.destacar(ev.bloco);
     if (ev.tipo === 'volta') {
+      this.editor.mostrarVolta(ev.bloco, ev.volta, ev.total);
+      // Cada volta do Repita de fora pinta o caminho de uma cor
+      if (this.plano.some((b) => b.id === ev.bloco)) this.voltaDeFora = ev.volta - 1;
       if (explicar) this.falar(`🔁 Repita: volta ${ev.volta} de ${ev.total}.`);
       await this.animar(base * 0.3);
     } else if (ev.tipo === 'pergunta') {
@@ -506,6 +682,7 @@ export class TelaFase {
       if (resultado.ok) {
         const de = resultado.de;
         const para = { x: horta.robo.x, y: horta.robo.y };
+        visual.rastro.push({ de, para, cor: this.voltaDeFora });
         sons.tocar('andar');
         await this.animar(base, (t) => {
           visual.x = de.x + (para.x - de.x) * t;
@@ -581,7 +758,7 @@ export class TelaFase {
           item(blocos <= this.fase.meta, `Usou ${blocos} ${blocos === 1 ? 'bloco' : 'blocos'} (meta: até ${this.fase.meta})`),
           item(moedasPegas >= moedasTotal, `Pegou ${moedasPegas} de ${moedasTotal} moedas`)
         ),
-        estrelas < 3 && h('p', { class: 'resultado-dica', text: 'Dá para melhorar o plano e ganhar mais estrelas!' }),
+        estrelas < 3 && h('p', { class: 'resultado-dica', text: this.dicaDeMelhoria(blocos) }),
         h(
           'div',
           { class: 'resultado-botoes' },
@@ -602,6 +779,12 @@ export class TelaFase {
         sons.tocar('estrela', { tom: i * 3 });
       }, 400 + i * 350);
     });
+  }
+
+  dicaDeMelhoria(blocos) {
+    const repeticao = blocos > this.fase.meta && acharRepeticao(this.plano);
+    if (repeticao) return `Para a estrela da meta: ${sugestaoDeRepita(repeticao)}`;
+    return 'Dá para melhorar o plano e ganhar mais estrelas!';
   }
 
   fecharResultado() {

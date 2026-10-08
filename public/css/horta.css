@@ -1381,3 +1381,136 @@ body.arrastando-bloco * {
     animation: none;
   }
 }
+
+/* =========================================================
+   Ajudas para o Repita: contador de voltas no bloco, memória
+   do robô, blocos repetidos marcados e as dicas.
+   ========================================================= */
+
+/* Contador "volta 2 de 4" no próprio bloco, enquanto o robô roda */
+.volta-contador {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: white;
+  color: var(--cat-repeticao-escuro);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.volta-contador.pulou {
+  animation: volta-pulo 0.35s ease;
+}
+
+@keyframes volta-pulo {
+  40% {
+    transform: scale(1.18);
+  }
+}
+
+.volta-bolinhas {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.volta-bolinha {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1.5px solid var(--cat-repeticao);
+}
+
+.volta-bolinha.cheia {
+  background: var(--cat-repeticao);
+}
+
+/* O corpo do Repita que está rodando fica iluminado */
+.bloco.repetindo > .bloco-corpo {
+  background: rgba(232, 115, 12, 0.1);
+  border-left-color: #ffb347;
+}
+
+/* Memória do robô no contador do plano */
+.plano-contador .memoria {
+  color: #1f53b8;
+  background: #e3ecff;
+  border-radius: 999px;
+  padding: 1px 9px;
+}
+
+.plano-contador .memoria.cheia {
+  color: #b3261e;
+  background: #ffe1dc;
+  animation: tremer 0.35s ease 2;
+}
+
+/* Blocos repetidos que caberiam num Repita */
+.bloco.repetido > .bloco-linha {
+  outline: 3px dashed #ffb347;
+  outline-offset: 2px;
+}
+
+.plano-rodape {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Botão de dica: apagado até o aluno tentar, aceso depois */
+.botao-dica {
+  background: #fff3c4;
+  color: #7a5700;
+  box-shadow: 0 3px 0 #d9b44a;
+}
+
+.botao-dica.acesa {
+  background: #ffd84d;
+  animation: pulsar 1.4s ease-in-out infinite;
+}
+
+.dica-caixa {
+  background: #fffbea;
+  border: 2px dashed #e0b84a;
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.dica-titulo {
+  font-size: 0.92rem;
+}
+
+.esqueleto-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 16px;
+  display: grid;
+  gap: 4px;
+}
+
+.dica-caixa > .esqueleto-lista {
+  padding-left: 0;
+}
+
+.esqueleto-bloco {
+  display: inline-block;
+  background: var(--cor-bloco);
+  color: white;
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.esqueleto-vazio {
+  display: block;
+  margin: 4px 0 0 16px;
+  color: var(--tinta-suave);
+  font-weight: 700;
+  font-size: 0.82rem;
+  font-style: italic;
+}

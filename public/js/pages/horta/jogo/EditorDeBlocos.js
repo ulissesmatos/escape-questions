@@ -243,6 +243,32 @@ export class EditorDeBlocos {
     this.mudou();
   }
 
+  /** Troca o plano inteiro (ex.: começar pelo esqueleto da dica) */
+  trocarPlano(novo) {
+    if (this.travado) return;
+    this.plano.splice(0, this.plano.length, ...novo);
+    this.cursor = { lista: this.plano, indice: this.plano.length };
+    sons.tocar('encaixar');
+    this.mudou();
+  }
+
+  /**
+   * Coloca o plano inteiro dentro de um Repita novo: o passo de "pegar o que
+   * já funciona e repetir". O cursor vai para o fim de dentro do Repita.
+   */
+  porTudoNumRepita() {
+    if (this.travado || !this.plano.length) return false;
+    const repita = novoBloco('repita');
+    repita.vezes = 2;
+    repita.corpo = this.plano.splice(0);
+    this.plano.push(repita);
+    this.cursor = { lista: repita.corpo, indice: repita.corpo.length };
+    sons.tocar('encaixar');
+    this.mudou();
+    this.piscar(repita.id);
+    return true;
+  }
+
   piscar(id) {
     const el = this.areaEl.querySelector(`[data-id="${id}"]`);
     if (!el) return;
@@ -268,6 +294,44 @@ export class EditorDeBlocos {
   limparDestaques() {
     this.destacar(null, 'executando');
     this.destacar(null, 'com-erro');
+    this.limparVoltas();
+    this.marcar([], 'repetido');
+  }
+
+  /**
+   * Contador no próprio bloco Repita enquanto o robô roda ("volta 2 de 4",
+   * com bolinhas). Com um Repita dentro de outro, os dois contadores andam:
+   * o de dentro recomeça a cada volta do de fora, como um relógio.
+   */
+  mostrarVolta(id, volta, total) {
+    const el = this.areaEl.querySelector(`[data-id="${id}"]`);
+    if (!el) return;
+    el.classList.add('repetindo');
+    const linha = el.querySelector(':scope > .bloco-linha');
+    let contador = linha.querySelector('.volta-contador');
+    if (!contador) {
+      contador = h('span', { class: 'volta-contador', 'aria-live': 'polite' });
+      linha.appendChild(contador);
+    }
+    const bolinhas = total <= 12 ? Array.from({ length: total }, (_, i) => h('span', { class: `volta-bolinha${i < volta ? ' cheia' : ''}` })) : [];
+    substituirFilhos(contador, h('span', { class: 'volta-texto', text: `volta ${volta} de ${total}` }), h('span', { class: 'volta-bolinhas', 'aria-hidden': 'true' }, bolinhas));
+    contador.classList.remove('pulou');
+    void contador.offsetWidth; // reinicia a animação
+    contador.classList.add('pulou');
+  }
+
+  limparVoltas() {
+    for (const el of this.areaEl.querySelectorAll('.volta-contador')) el.remove();
+    for (const el of this.areaEl.querySelectorAll('.repetindo')) el.classList.remove('repetindo');
+  }
+
+  /** Marca vários blocos (ex.: os repetidos que dariam um Repita) */
+  marcar(ids, classe) {
+    for (const el of this.areaEl.querySelectorAll(`.${classe}`)) el.classList.remove(classe);
+    for (const id of ids) {
+      const el = this.areaEl.querySelector(`[data-id="${id}"]`);
+      if (el) el.classList.add(classe);
+    }
   }
 
   // ---------- arrastar ----------

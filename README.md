@@ -27,8 +27,9 @@ professor gerencia tudo pela área `/admin.html`.
 - **Robô na Horta** (`/horta.html`): lógica com blocos de montar, sem falar em
   programação. O aluno monta o "plano do robô" (andar, virar, colher, plantar,
   regar, repetir, "se", "repita até") e o robô executa na horta em pixel art.
-  São 18 fases em 4 mundos. A partir do mundo 3 a horta é sorteada e o mesmo
-  plano precisa funcionar em 3 hortas, então decorar o caminho não resolve.
+  São 23 fases em 5 mundos; o mundo 3 ensina, aos poucos, o Repita dentro do
+  Repita. A partir do mundo 4 a horta é sorteada e o mesmo plano precisa
+  funcionar em 3 hortas, então decorar o caminho não resolve.
 - **Laboratório de Experimentos** (`/laboratorio`): competição em tempo real
   (Socket.IO). Os alunos entram numa sala com um código de 4 letras, fazem a
   ação no computador (atalhos de teclado) e depois respondem o que aconteceu,
@@ -132,15 +133,29 @@ fica em 60 fps.
     fim trave o jogo.
   - `fases.js`: mundos, fases, geradores das hortas sorteadas e cálculo das
     estrelas (completar, usar no máximo a meta de blocos e pegar as moedas).
+    Cada fase tem uma solução de referência (`solucao`), e pode ter
+    `memoria` (limite de blocos, para obrigar o Repita) e `planoInicial`
+    (plano já começado). O número na tela ("3-2") vem da posição; o `id`
+    guarda o progresso e não muda.
+  - `padroes.js`: o detector de repetição (percebe o mesmo pedaço várias vezes
+    seguidas e sugere um Repita, ou um Repita dentro de outro) e o esqueleto
+    da solução usado na dica.
 - **Jogo** (`public/js/pages/horta/jogo/`): `Desenho.js` (canvas),
   `EditorDeBlocos.js` (clicar para adicionar, arrastar para mover, soltar fora
   para jogar fora), `TelaFase.js`, `TelaMapa.js`, `sons.js` (usa o sintetizador
   da Oficina) e `Progresso.js`.
+- **Ajudas para o Repita:** o bloco Repita mostra "volta 2 de 4" enquanto o
+  robô roda (com Repita dentro de Repita, os dois contadores andam juntos); o
+  caminho fica pintado com uma cor por volta do Repita de fora; o botão "Pôr
+  tudo num Repita" embrulha o plano inteiro; e, depois de 2 tentativas
+  erradas, o botão 💡 Dica mostra o caminho pintado na horta e depois a forma
+  do plano (só os Repita).
 - **Progresso:** fica no navegador (estrelas e o último plano de cada fase).
   `horta.html?tudo` libera todas as fases para o professor conhecer o jogo.
 - **Nova fase:** adicione em `FASES` (`fases.js`) com um mapa fixo ou um
-  gerador. Coloque uma solução de referência em `test/horta.test.js`: o teste
-  confere se ela funciona em 40 sorteios, dentro da meta e pegando as moedas.
+  gerador e a `solucao` de referência. O teste confere se ela funciona em 40
+  sorteios, cabe na memória, fica dentro da meta e pega as moedas; nos mundos 2
+  e 3 confere também que sem Repita o plano não cabe na memória.
 
 ## Oficina de PCs (jogo)
 
