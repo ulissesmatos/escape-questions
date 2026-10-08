@@ -1,10 +1,16 @@
 const crypto = require('crypto');
+const Random = require('../../shared/Random');
 const { validarNome, chaveNome } = require('./nomes');
 const { tarefaParaAluno, LETRAS } = require('./tarefas');
 
 /**
  * Uma sala do Laboratório de Experimentos: alunos, fase da partida,
  * cronômetro, respostas e pontuação.
+ *
+ * Cada tarefa tem duas etapas para o aluno: primeiro ele vê só a instrução e
+ * faz a ação no computador; depois de um tempo mínimo, aparecem as opções de
+ * "o que aconteceu?" e ele responde uma vez. A resposta certa só vai para o
+ * navegador depois disso.
  *
  * Só regras, sem rede nem banco: o serviço chama os métodos e depois avisa os
  * navegadores. Todo método que muda algo recebe `agora` (ms), o que deixa os
@@ -15,13 +21,15 @@ const { tarefaParaAluno, LETRAS } = require('./tarefas');
  *   espera → (livre)   livre            → final
  */
 
-const PONTOS = Object.freeze({ aposta: 10, conclusao: 10, velocidade: [5, 3, 1], explicacao: 5 });
-const LIMITES = Object.freeze({ registroMin: 15, registroMax: 1000, explicacaoMin: 10, explicacaoMax: 600, alunos: 60, destaques: 3 });
+const PONTOS = Object.freeze({ acerto: 10, participacao: 2, velocidade: [5, 3, 1] });
+const LIMITES = Object.freeze({ alunos: 60 });
 const MODOS = ['rodadas', 'livre'];
 
 // Aluno que caiu há pouco (recarregou a página) ainda conta como presente,
 // para a rodada não terminar sozinha enquanto ele volta
 const TOLERANCIA_QUEDA_MS = 20 * 1000;
+// Folga na trava de tempo mínimo (relógios e rede não são exatos)
+const FOLGA_TEMPO_MINIMO_MS = 1500;
 
 /** Erro de regra, com mensagem para mostrar na tela */
 class ErroSala extends Error {}
@@ -49,8 +57,6 @@ class Sala {
     this.pausas = []; // [{ inicio, fim }]: o tempo pausado não conta no tempo dos alunos
 
     this.alunos = new Map(); // id → { id, token, nome, entrouEm, respostas, conexoes, desconectouEm }
-    this.destaques = []; // [{ alunoId, tarefaId }] escolhidos pelo professor
-    this.destaquesVisiveis = false;
   }
 
   // ---------------------------------------------------------------- alunos
@@ -88,7 +94,6 @@ class Sala {
   expulsar(alunoId) {
     this.aluno(alunoId);
     this.alunos.delete(alunoId);
-    this.destaques = this.destaques.filter((d) => d.alunoId !== alunoId);
   }
 
   validarNomeLivre(nome, ignorarId = null) {
@@ -137,7 +142,6 @@ class Sala {
     this.liberadaEm = agora;
     this.fimEm = agora + this.duracaoSeg * 1000;
     this.restanteMs = null;
-    this.destaquesVisiveis = false;
   }
 
   /** Rodadas: fecha a tarefa atual e mostra o ranking parcial */
@@ -201,12 +205,12 @@ class Sala {
     return false;
   }
 
-  /** Rodadas: todos os alunos presentes já registraram a tarefa atual? */
+  /** Rodadas: todos os alunos presentes já responderam a tarefa atual? */
   todosConcluiram(agora = Date.now()) {
     if (this.modo !== 'rodadas' || this.fase !== 'tarefa') return false;
     const tarefa = this.tarefas[this.indice];
     const presentes = [...this.alunos.values()].filter((a) => this.presente(a, agora));
-    return presentes.length > 0 && presentes.every((a) => a.respostas[tarefa.id]?.registro);
+    return presentes.length > 0 && presentes.every((a) => a.respostas[tarefa.id]?.resposta);
   }
 
   // ---------------------------------------------------------------- ações do aluno
@@ -233,10 +237,18 @@ class Sala {
     return aluno.respostas[tarefaId];
   }
 
-  /** De quando conta o tempo do aluno nessa tarefa */
+  /** De quando conta o tempo do aluno nessa tarefa (null: ainda não abriu, no modo livre) */
   inicioDaTarefa(aluno, resposta) {
     if (this.modo === 'rodadas') return Math.max(this.liberadaEm, aluno.entrouEm);
-    return resposta.abertaEm ?? Math.max(this.iniciadaEm, aluno.entrouEm);
+    return resposta?.abertaEm ?? null;
+  }
+
+  /** Quanto falta (ms) para o aluno poder responder: tempo para fazer a ação */
+  faltaEsperar(aluno, tarefa, agora) {
+    const minimo = (tarefa.tempoMinimo || 0) * 1000;
+    const inicio = this.inicioDaTarefa(aluno, aluno.respostas[tarefa.id]);
+    if (inicio === null) return minimo;
+    return Math.max(0, minimo - this.tempoAtivo(inicio, agora));
   }
 
   /** Modo livre: o aluno abriu a tarefa (começa a contar o tempo dele) */
@@ -250,74 +262,29 @@ class Sala {
     return true;
   }
 
-  apostar(alunoId, tarefaId, letra, agora = Date.now()) {
+  /** Resposta única de "o que aconteceu?". Só aqui a resposta certa é revelada. */
+  responder(alunoId, tarefaId, letra, agora = Date.now()) {
     const aluno = this.aluno(alunoId);
     const { tarefa, indice } = this.tarefa(tarefaId);
     this.exigirAberta(indice);
     const resposta = this.resposta(aluno, tarefaId);
-    if (resposta.aposta) throw new ErroSala('Sua aposta já está travada.');
+    if (resposta.resposta) throw new ErroSala('Você já respondeu essa tarefa.');
     const posicao = LETRAS.indexOf(String(letra));
     if (posicao < 0 || posicao >= tarefa.opcoes.length) throw new ErroSala('Escolha uma das opções.');
+
+    // Trava contra chute: precisa ter passado o tempo de fazer a ação
     if (this.modo === 'livre' && resposta.abertaEm == null) resposta.abertaEm = agora;
-    resposta.aposta = LETRAS[posicao];
-    resposta.apostaEm = agora;
-  }
+    const falta = this.faltaEsperar(aluno, tarefa, agora);
+    if (falta > FOLGA_TEMPO_MINIMO_MS) throw new ErroSala(`Faça o experimento primeiro! Faltam ${Math.ceil(falta / 1000)} segundos.`);
 
-  /** Envia o registro: só aqui a resposta certa é revelada para o aluno */
-  registrar(alunoId, tarefaId, texto, agora = Date.now()) {
-    const aluno = this.aluno(alunoId);
-    const { tarefa, indice } = this.tarefa(tarefaId);
-    this.exigirAberta(indice);
-    const resposta = this.resposta(aluno, tarefaId);
-    if (!resposta.aposta) throw new ErroSala('Primeiro faça a sua aposta.');
-    if (resposta.registro) throw new ErroSala('Você já registrou essa tarefa.');
-    const limpo = String(texto ?? '').trim().slice(0, LIMITES.registroMax);
-    if (limpo.length < LIMITES.registroMin) throw new ErroSala(`Escreva pelo menos ${LIMITES.registroMin} letras sobre o que aconteceu.`);
-
-    resposta.ordem = this.concluiram(tarefaId);
-    resposta.registro = limpo;
-    resposta.registroEm = agora;
-    resposta.acertou = resposta.aposta === tarefa.correta;
+    const acertou = LETRAS[posicao] === tarefa.correta;
+    // Bônus de velocidade só entre quem acertou (contado antes de gravar esta resposta)
+    resposta.ordem = acertou ? this.acertaram(tarefaId) : null;
+    resposta.resposta = LETRAS[posicao];
+    resposta.respondidaEm = agora;
+    resposta.acertou = acertou;
     resposta.tempoMs = this.tempoAtivo(this.inicioDaTarefa(aluno, resposta), agora);
     return this.revelacao(tarefa, resposta);
-  }
-
-  explicar(alunoId, tarefaId, texto, agora = Date.now()) {
-    const aluno = this.aluno(alunoId);
-    this.tarefa(tarefaId);
-    const resposta = aluno.respostas[tarefaId];
-    if (!resposta?.registro) throw new ErroSala('Registre o que aconteceu antes de explicar.');
-    if (resposta.explicacao) throw new ErroSala('Você já enviou sua explicação.');
-    const limpo = String(texto ?? '').trim().slice(0, LIMITES.explicacaoMax);
-    if (limpo.length < LIMITES.explicacaoMin) throw new ErroSala(`Escreva pelo menos ${LIMITES.explicacaoMin} letras.`);
-    resposta.explicacao = limpo;
-    resposta.explicacaoEm = agora;
-    resposta.explicacaoStatus = 'pendente';
-  }
-
-  /** Professor aprova (+5) ou recusa a explicação. Pode mudar de ideia depois. */
-  avaliarExplicacao(alunoId, tarefaId, aprovada) {
-    const resposta = this.aluno(alunoId).respostas[tarefaId];
-    if (!resposta?.explicacao) throw new ErroSala('Esse aluno não enviou explicação para essa tarefa.');
-    resposta.explicacaoStatus = aprovada ? 'aprovada' : 'recusada';
-  }
-
-  /** Marca/desmarca um registro para mostrar no telão (no máximo 3) */
-  alternarDestaque(alunoId, tarefaId) {
-    const existente = this.destaques.findIndex((d) => d.alunoId === alunoId && d.tarefaId === tarefaId);
-    if (existente >= 0) {
-      this.destaques.splice(existente, 1);
-      return false;
-    }
-    if (!this.aluno(alunoId).respostas[tarefaId]?.registro) throw new ErroSala('Esse aluno ainda não registrou essa tarefa.');
-    if (this.destaques.length >= LIMITES.destaques) throw new ErroSala(`Escolha no máximo ${LIMITES.destaques} respostas. Desmarque uma antes.`);
-    this.destaques.push({ alunoId, tarefaId });
-    return true;
-  }
-
-  mostrarDestaques(visiveis) {
-    if (visiveis && !this.destaques.length) throw new ErroSala('Marque com a estrela até 3 registros para mostrar.');
-    this.destaquesVisiveis = Boolean(visiveis);
   }
 
   // ---------------------------------------------------------------- pontos e ranking
@@ -333,39 +300,49 @@ class Sala {
     return Math.max(0, fim - inicio - pausado);
   }
 
-  concluiram(tarefaId) {
+  contar(tarefaId, condicao) {
     let total = 0;
-    for (const aluno of this.alunos.values()) if (aluno.respostas[tarefaId]?.registro) total++;
+    for (const aluno of this.alunos.values()) {
+      const r = aluno.respostas[tarefaId];
+      if (r?.resposta && condicao(r)) total++;
+    }
     return total;
   }
 
+  responderam(tarefaId) {
+    return this.contar(tarefaId, () => true);
+  }
+
+  acertaram(tarefaId) {
+    return this.contar(tarefaId, (r) => r.acertou);
+  }
+
   static pontosDaResposta(resposta) {
-    if (!resposta?.registro) return null;
+    if (!resposta?.resposta) return null;
     const pontos = {
-      aposta: resposta.acertou ? PONTOS.aposta : 0,
-      conclusao: PONTOS.conclusao,
-      velocidade: PONTOS.velocidade[resposta.ordem] || 0,
-      explicacao: resposta.explicacaoStatus === 'aprovada' ? PONTOS.explicacao : 0,
+      acerto: resposta.acertou ? PONTOS.acerto : 0,
+      participacao: resposta.acertou ? 0 : PONTOS.participacao,
+      velocidade: resposta.acertou ? PONTOS.velocidade[resposta.ordem] || 0 : 0,
     };
-    pontos.total = pontos.aposta + pontos.conclusao + pontos.velocidade + pontos.explicacao;
+    pontos.total = pontos.acerto + pontos.participacao + pontos.velocidade;
     return pontos;
   }
 
   resumo(aluno) {
-    const r = { pontos: 0, apostasCertas: 0, concluidas: 0, tempoTotalMs: 0 };
+    const r = { pontos: 0, acertos: 0, respondidas: 0, tempoTotalMs: 0 };
     for (const tarefa of this.tarefas) {
       const resposta = aluno.respostas[tarefa.id];
       const pontos = Sala.pontosDaResposta(resposta);
       if (!pontos) continue;
       r.pontos += pontos.total;
-      r.concluidas += 1;
+      r.respondidas += 1;
       r.tempoTotalMs += resposta.tempoMs || 0;
-      if (resposta.acertou) r.apostasCertas += 1;
+      if (resposta.acertou) r.acertos += 1;
     }
     return r;
   }
 
-  /** Mais pontos; empate: mais apostas certas, depois menos tempo total */
+  /** Mais pontos; empate: mais acertos, depois menos tempo total */
   ranking(agora = Date.now()) {
     const linhas = [...this.alunos.values()].map((a) => ({
       id: a.id,
@@ -376,7 +353,7 @@ class Sala {
     linhas.sort(
       (a, b) =>
         b.pontos - a.pontos ||
-        b.apostasCertas - a.apostasCertas ||
+        b.acertos - a.acertos ||
         a.tempoTotalMs - b.tempoTotalMs ||
         a.nome.localeCompare(b.nome, 'pt-BR')
     );
@@ -392,16 +369,22 @@ class Sala {
     return {
       correta: tarefa.correta,
       textoCorreta: tarefa.opcoes[LETRAS.indexOf(tarefa.correta)],
-      acertou: resposta?.aposta ? resposta.aposta === tarefa.correta : null,
+      acertou: resposta?.resposta ? resposta.resposta === tarefa.correta : null,
       explicacao: tarefa.explicacao,
       pontos: Sala.pontosDaResposta(resposta),
     };
   }
 
-  /** A resposta certa só aparece depois do registro (ou quando a tarefa fechou para todos) */
+  /** A resposta certa só aparece depois de responder (ou quando a tarefa fechou para todos) */
   podeRevelar(indice, resposta) {
-    if (resposta?.registro || this.fase === 'final') return true;
+    if (resposta?.resposta || this.fase === 'final') return true;
     return this.modo === 'rodadas' && (indice < this.indice || (indice === this.indice && this.fase === 'parcial'));
+  }
+
+  /** Ordem das opções para este aluno: embaralhada, mas sempre a mesma (recarregar não muda) */
+  ordemDasOpcoes(alunoId, tarefa) {
+    const semente = crypto.createHash('sha256').update(`${alunoId}:${tarefa.id}`).digest().readUInt32BE(0);
+    return new Random(semente).shuffle(tarefa.opcoes.map((_, i) => i));
   }
 
   tarefasLiberadas() {
@@ -426,12 +409,12 @@ class Sala {
       iniciadaEm: this.iniciadaEm,
       totalAlunos: alunos.length,
       conectados: alunos.filter((a) => this.presente(a, agora)).length,
-      concluiram: atual ? this.concluiram(atual.id) : null,
+      responderam: atual ? this.responderam(atual.id) : null,
     };
   }
 
   static rankingPublico(ranking) {
-    return ranking.map(({ id, nome, pontos, apostasCertas, concluidas, posicao }) => ({ id, nome, pontos, apostasCertas, concluidas, posicao }));
+    return ranking.map(({ id, nome, pontos, acertos, respondidas, posicao }) => ({ id, nome, pontos, acertos, respondidas, posicao }));
   }
 
   visaoAluno(alunoId, agora = Date.now(), ranking = this.ranking(agora)) {
@@ -441,19 +424,17 @@ class Sala {
     return {
       agora,
       sala: this.resumoPublico(agora),
-      eu: { id: aluno.id, nome: aluno.nome, pontos: meu.pontos, posicao: meu.posicao, apostasCertas: meu.apostasCertas, concluidas: meu.concluidas },
+      eu: { id: aluno.id, nome: aluno.nome, pontos: meu.pontos, posicao: meu.posicao, acertos: meu.acertos, respondidas: meu.respondidas },
       tarefas: this.tarefasLiberadas().map((tarefa, indice) => {
         const resposta = aluno.respostas[tarefa.id];
+        const comecou = this.inicioDaTarefa(aluno, resposta) !== null;
         return {
-          ...tarefaParaAluno(tarefa),
+          ...tarefaParaAluno(tarefa, { ordem: this.ordemDasOpcoes(alunoId, tarefa) }),
           numero: indice + 1,
           aberta: this.estaAberta(indice),
-          minha: {
-            aposta: resposta?.aposta || null,
-            registro: resposta?.registro || null,
-            explicacao: resposta?.explicacao || null,
-            explicacaoStatus: resposta?.explicacaoStatus || null,
-          },
+          // Quando (no relógio do servidor) o aluno pode responder; null = ainda não abriu
+          liberaEm: comecou ? agora + this.faltaEsperar(aluno, tarefa, agora) : null,
+          minha: { resposta: resposta?.resposta || null },
           revelacao: this.podeRevelar(indice, resposta) ? this.revelacao(tarefa, resposta) : null,
         };
       }),
@@ -466,10 +447,10 @@ class Sala {
     return {
       agora,
       sala: this.resumoPublico(agora),
-      tarefa: atual ? { ...tarefaParaAluno(atual), numero: this.indice + 1 } : null,
-      progresso: this.modo === 'livre' ? this.tarefas.map((t) => ({ titulo: t.titulo, concluiram: this.concluiram(t.id) })) : null,
+      // Sem as opções: no telão aparece só o que fazer
+      tarefa: atual ? { ...tarefaParaAluno(atual, { comOpcoes: false }), numero: this.indice + 1 } : null,
+      progresso: this.modo === 'livre' ? this.tarefas.map((t) => ({ titulo: t.titulo, responderam: this.responderam(t.id) })) : null,
       ranking: Sala.rankingPublico(ranking),
-      destaques: this.destaquesVisiveis ? this.listarDestaques() : [],
     };
   }
 
@@ -490,17 +471,7 @@ class Sala {
         ),
       })),
       ranking,
-      destaques: this.destaques,
-      destaquesVisiveis: this.destaquesVisiveis,
     };
-  }
-
-  listarDestaques() {
-    return this.destaques.map(({ alunoId, tarefaId }) => {
-      const aluno = this.alunos.get(alunoId);
-      const tarefa = this.tarefas.find((t) => t.id === tarefaId);
-      return { nome: aluno.nome, tarefa: tarefa.titulo, registro: aluno.respostas[tarefaId].registro };
-    });
   }
 
   resumoParaLista(agora = Date.now()) {
@@ -520,7 +491,8 @@ class Sala {
 
   static deJSON(dados) {
     const sala = new Sala({ codigo: dados.codigo, modo: dados.modo, duracaoSeg: dados.duracaoSeg, tarefas: dados.tarefas, agora: dados.criadaEm });
-    const { alunos = [], ...resto } = dados;
+    // Campos de versões antigas (aposta, registro, destaques) são ignorados
+    const { alunos = [], destaques, destaquesVisiveis, ...resto } = dados; // eslint-disable-line no-unused-vars
     Object.assign(sala, resto);
     // Quem estava na sala volta como "caiu agora": tem a tolerância para reconectar
     const agora = Date.now();

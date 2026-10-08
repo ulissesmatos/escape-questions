@@ -9,7 +9,6 @@ const PADRAO = require('../src/modules/laboratorio/tasks.json');
 
 const PIN = '4321';
 const ALUNOS = 30;
-const REGISTRO = 'A tela mostrou a área de trabalho e as janelas sumiram.';
 
 /** Servidor de verdade (HTTP + Socket.IO) numa porta livre, com as salas em memória */
 async function subirServidor() {
@@ -82,6 +81,14 @@ test('partida completa com 30 alunos em tempo real', async (t) => {
   assert.equal(errado.status, 401);
   const { token } = await (await fetch(`${srv.url}/api/laboratorio/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ senha: PIN }) })).json();
 
+  // Tarefas sem tempo mínimo, para o teste não esperar (a trava é testada em laboratorio.test.js)
+  const semEspera = await fetch(`${srv.url}/api/laboratorio/tarefas`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ tarefas: PADRAO.map((t) => ({ ...t, tempoMinimo: 0 })) }),
+  });
+  assert.equal(semEspera.status, 200);
+
   const prof = srv.novoSocket();
   await assert.rejects(pedir(prof, 'prof:criar', {}), /PIN/, 'sem login não cria sala');
   await assert.rejects(pedir(prof, 'prof:entrar', { token: 'falso.token' }), /PIN/);
@@ -111,27 +118,28 @@ test('partida completa com 30 alunos em tempo real', async (t) => {
     assert.ok(!json.includes('"correta"'), 'resposta certa vazou antes do registro');
   }
 
-  // Todos apostam e registram ao mesmo tempo; metade acerta
+  // Todos respondem ao mesmo tempo; metade acerta
+  const certa = PADRAO[0].correta;
+  const errada = certa === 'a' ? 'b' : 'a';
   const inicio = Date.now();
   const fimDaRodada = esperarEstado(telao, (e) => e.sala.fase === 'parcial');
   const revelacoes = await Promise.all(
-    alunos.map(async (s, i) => {
-      await pedir(s, 'aluno:apostar', { tarefaId: tarefa.id, letra: i % 2 ? 'b' : 'a' });
-      return (await pedir(s, 'aluno:registrar', { tarefaId: tarefa.id, texto: REGISTRO })).revelacao;
-    })
+    alunos.map(async (s, i) => (await pedir(s, 'aluno:responder', { tarefaId: tarefa.id, letra: i % 2 ? certa : errada })).revelacao)
   );
   const estadoTelao = await fimDaRodada;
   const duracao = Date.now() - inicio;
-  t.diagnostic(`30 apostas + 30 registros + fim automático da rodada em ${duracao} ms`);
+  t.diagnostic(`30 respostas + fim automático da rodada em ${duracao} ms`);
   assert.ok(duracao < 3000, `lento demais: ${duracao} ms`);
 
-  assert.ok(revelacoes.every((r) => r.correta === 'b'));
+  assert.ok(revelacoes.every((r) => r.correta === certa));
   assert.equal(revelacoes.filter((r) => r.acertou).length, ALUNOS / 2);
-  // Bônus de velocidade só para os 3 primeiros
+  // Bônus de velocidade só para os 3 primeiros que acertaram; quem errou leva +2
   assert.deepEqual(revelacoes.map((r) => r.pontos.velocidade).filter(Boolean).sort(), [1, 3, 5]);
+  assert.ok(revelacoes.filter((r) => !r.acertou).every((r) => r.pontos.total === 2));
   assert.equal(estadoTelao.ranking.length, ALUNOS);
-  assert.equal(estadoTelao.sala.concluiram, ALUNOS);
+  assert.equal(estadoTelao.sala.responderam, ALUNOS);
   assert.ok(!JSON.stringify(estadoTelao).includes('"token"'), 'telão não recebe tokens');
+  await assert.rejects(pedir(alunos[0], 'aluno:responder', { tarefaId: tarefa.id, letra: certa }), /não está liberada|já respondeu/);
 
   // Queda de conexão: volta com o token e mantém os pontos
   const pontosAntes = estadoTelao.ranking.find((r) => r.nome === 'Aluno 2').pontos;

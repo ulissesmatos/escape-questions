@@ -14,8 +14,9 @@ const { normalizar } = require('../../shared/texto');
  */
 
 const LETRAS = ['a', 'b', 'c', 'd'];
-const PERGUNTA_PADRAO = 'O que vai acontecer?';
-const LIMITES = { tarefas: 30, titulo: 80, instrucao: 600, pergunta: 200, opcao: 200, explicacao: 600, nota: 400, teclas: 4, combo: 40 };
+const PERGUNTA_PADRAO = 'O que aconteceu?';
+const TEMPO_MINIMO_PADRAO = 15;
+const LIMITES = { tarefas: 30, titulo: 80, instrucao: 600, pergunta: 200, opcao: 200, explicacao: 600, nota: 400, teclas: 4, combo: 40, tempoMinimo: 300 };
 
 function texto(valor, max) {
   return typeof valor === 'string' ? valor.replace(/\s+/g, ' ').trim().slice(0, max) : '';
@@ -47,14 +48,18 @@ function validarTarefas(lista) {
     if (!instrucao) throw new Error(`${onde}: informe a instrução.`);
 
     const opcoes = (Array.isArray(t.opcoes) ? t.opcoes : []).map((o) => texto(o, LIMITES.opcao)).filter(Boolean);
-    if (opcoes.length < 2 || opcoes.length > 4) throw new Error(`${onde}: use de 2 a 4 opções de aposta.`);
+    if (opcoes.length < 2 || opcoes.length > 4) throw new Error(`${onde}: use de 2 a 4 opções de resposta.`);
 
     const correta = String(t.correta ?? '').trim().toLowerCase();
     const indice = LETRAS.indexOf(correta);
     if (indice < 0 || indice >= opcoes.length) throw new Error(`${onde}: marque qual opção é a correta.`);
 
     const explicacao = texto(t.explicacao, LIMITES.explicacao);
-    if (!explicacao) throw new Error(`${onde}: escreva a explicação que aparece depois do registro.`);
+    if (!explicacao) throw new Error(`${onde}: escreva a explicação que aparece depois da resposta.`);
+
+    // Segundos que o aluno espera antes de poder responder (tempo para fazer a ação)
+    const tempo = Number(t.tempoMinimo ?? TEMPO_MINIMO_PADRAO);
+    const tempoMinimo = Number.isFinite(tempo) ? Math.min(LIMITES.tempoMinimo, Math.max(0, Math.round(tempo))) : TEMPO_MINIMO_PADRAO;
 
     // Teclas: lista de atalhos como "Windows + D"
     const teclas = (Array.isArray(t.teclas) ? t.teclas : [])
@@ -71,6 +76,7 @@ function validarTarefas(lista) {
       titulo,
       instrucao,
       teclas,
+      tempoMinimo,
       pergunta: texto(t.pergunta, LIMITES.pergunta) || PERGUNTA_PADRAO,
       opcoes,
       correta,
@@ -80,15 +86,22 @@ function validarTarefas(lista) {
   });
 }
 
-/** O que o aluno pode ver ANTES de registrar: sem a resposta certa e sem a explicação */
-function tarefaParaAluno(tarefa) {
+/**
+ * O que o aluno pode ver ANTES de responder: sem a resposta certa e sem a
+ * explicação. `ordem` embaralha as opções (cada aluno vê numa ordem, para o
+ * vizinho não soprar "é a B"); `letra` continua sendo a letra original, que
+ * é o que volta para o servidor, e não diz qual é a certa.
+ */
+function tarefaParaAluno(tarefa, { ordem = null, comOpcoes = true } = {}) {
+  const indices = ordem || tarefa.opcoes.map((_, i) => i);
   return {
     id: tarefa.id,
     titulo: tarefa.titulo,
     instrucao: tarefa.instrucao,
     teclas: tarefa.teclas,
+    tempoMinimo: tarefa.tempoMinimo,
     pergunta: tarefa.pergunta,
-    opcoes: tarefa.opcoes.map((textoOpcao, i) => ({ letra: LETRAS[i], texto: textoOpcao })),
+    opcoes: comOpcoes ? indices.map((i) => ({ letra: LETRAS[i], texto: tarefa.opcoes[i] })) : [],
   };
 }
 

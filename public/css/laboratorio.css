@@ -438,10 +438,6 @@ input.campo-nome {
   scroll-margin-top: 120px;
 }
 
-.tarefa-card textarea {
-  scroll-margin-top: 140px;
-}
-
 .tarefa-cabecalho {
   margin-bottom: 14px;
 }
@@ -669,38 +665,6 @@ input.campo-nome {
   padding: 10px 14px;
 }
 
-.tarefa-card textarea {
-  font-size: 1.1rem;
-  border-width: 2px;
-  background: var(--resposta-bg);
-  border-color: var(--resposta-border);
-}
-
-.tarefa-card textarea:focus {
-  border-color: var(--resposta-border-focus);
-  box-shadow: 0 0 0 4px rgba(217, 154, 0, 0.18);
-}
-
-.tarefa-card .rotulo-grande {
-  margin: 4px 0 -6px;
-}
-
-.linha-contador {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: -6px;
-}
-
-.contador {
-  font-weight: 800;
-  color: var(--resposta-text);
-}
-
-.contador.ok {
-  color: var(--sucesso);
-}
-
 /* Resultado */
 
 .veredito {
@@ -801,46 +765,6 @@ input.campo-nome {
   padding: 6px 12px;
   font-weight: 700;
   font-size: 0.9rem;
-}
-
-.meu-registro {
-  margin: 0;
-  border-left: 4px solid var(--border-strong);
-  padding: 4px 0 4px 14px;
-}
-
-.meu-registro p {
-  margin: 0;
-  white-space: pre-wrap;
-}
-
-.explicacao-form,
-.explicacao-enviada {
-  border-top: 1.5px dashed var(--border-strong);
-  padding-top: 14px;
-  display: grid;
-  gap: 10px;
-}
-
-.explicacao-form textarea {
-  background: white;
-  border-color: var(--border-strong);
-}
-
-.explicacao-enviada p {
-  margin: 0;
-}
-
-.explicacao-status {
-  font-weight: 800;
-}
-
-.explicacao-aprovada .explicacao-status {
-  color: var(--sucesso);
-}
-
-.explicacao-pendente .explicacao-status {
-  color: var(--resposta-text);
 }
 
 /* ---------- Rodadas e modo livre ---------- */
@@ -1414,55 +1338,6 @@ body.pagina-telao {
   animation: aparecerOverlay 0.3s ease;
 }
 
-.telao-destaques {
-  width: 100%;
-  color: white;
-  text-align: center;
-}
-
-.telao-destaques h2 {
-  font-size: clamp(2rem, 4vw, 4rem);
-  margin: 0 0 4vh;
-}
-
-.telao-destaques-lista {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2vw;
-}
-
-.telao-destaque {
-  margin: 0;
-  padding: 3vh 2vw;
-  color: var(--text);
-  text-align: left;
-  animation: entrarModal 0.5s ease both;
-}
-
-.telao-destaque:nth-child(2) {
-  animation-delay: 0.25s;
-}
-
-.telao-destaque:nth-child(3) {
-  animation-delay: 0.5s;
-}
-
-.telao-destaque blockquote {
-  margin: 0 0 2vh;
-  font-size: clamp(1.2rem, 2vw, 2rem);
-  font-weight: 600;
-  line-height: 1.5;
-}
-
-.telao-destaque figcaption {
-  font-size: clamp(1rem, 1.5vw, 1.5rem);
-  color: var(--text-muted);
-}
-
-.telao-destaque figcaption strong {
-  color: var(--accent-dark);
-}
-
 .telao-pausa {
   display: grid;
   justify-items: center;
@@ -1935,11 +1810,6 @@ body.pagina-professor {
   color: var(--text-muted);
 }
 
-.registro-destaque {
-  border: 2px solid #facc15;
-  background: #fffbeb;
-}
-
 .registro-cabeca {
   display: flex;
   align-items: center;
@@ -1951,17 +1821,6 @@ body.pagina-professor {
   color: var(--text-muted);
   font-size: 0.9rem;
   font-weight: 600;
-}
-
-.registro-texto {
-  margin: 8px 0 0;
-  font-size: 1.05rem;
-  white-space: pre-wrap;
-}
-
-.registro-explicacao {
-  margin: 6px 0 0;
-  color: var(--text-muted);
 }
 
 .ponto-online {
@@ -1993,87 +1852,6 @@ body.pagina-professor {
 .aposta-chip.errada {
   background: var(--erro-bg);
   color: var(--erro);
-}
-
-.btn-estrela {
-  margin-left: auto;
-  border: 1.5px solid var(--border-strong);
-  background: white;
-  border-radius: 10px;
-  width: 42px;
-  height: 38px;
-  font-size: 1.25rem;
-  cursor: pointer;
-  color: #a16207;
-}
-
-.btn-estrela.ativa {
-  background: #fef3c7;
-  border-color: #facc15;
-}
-
-/* Explicações */
-
-.explicacoes-lista {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 10px;
-}
-
-.explicacao-item {
-  padding: 14px 18px;
-  display: grid;
-  gap: 6px;
-}
-
-.explicacao-item.explicacao-pendente {
-  border-left: 5px solid #facc15;
-}
-
-.explicacao-item.explicacao-aprovada {
-  border-left: 5px solid var(--sucesso-forte);
-}
-
-.explicacao-cabeca {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.explicacao-texto {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.explicacao-item p {
-  margin: 0;
-}
-
-.explicacao-acoes {
-  display: flex;
-  gap: 8px;
-}
-
-.status-chip {
-  border-radius: 999px;
-  padding: 2px 10px;
-  font-weight: 800;
-  font-size: 0.8rem;
-  background: var(--surface-2);
-}
-
-.status-pendente {
-  background: #fef3c7;
-  color: #a16207;
-}
-
-.status-aprovada {
-  background: var(--sucesso-bg);
-  color: var(--sucesso);
 }
 
 /* Tabelas */

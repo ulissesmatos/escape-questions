@@ -15,7 +15,7 @@ const ESPERA_TRANSMISSAO_MS = 120;
  *
  * Toda mudança gera um retrato completo e personalizado para cada tela
  * ('estado'). O aluno recebe só o que pode ver: a resposta certa de uma
- * tarefa só vai no retrato dele depois que ele registrar.
+ * tarefa só vai no retrato dele depois que ele responder.
  *
  * Pedidos usam o callback do Socket.IO (ack): resposta { ok: true, ... } ou { erro }.
  */
@@ -116,22 +116,10 @@ function ligarLaboratorio(io, { servico, auth }) {
       return {};
     });
 
-    pedido('aluno:apostar', ({ tarefaId, letra }) => {
+    pedido('aluno:responder', ({ tarefaId, letra }) => {
       const { codigo, id } = alunoAtual();
-      servico.alterar(codigo, (sala, agora) => sala.apostar(id, String(tarefaId), letra, agora));
-      return {};
-    });
-
-    pedido('aluno:registrar', ({ tarefaId, texto }) => {
-      const { codigo, id } = alunoAtual();
-      const revelacao = servico.alterar(codigo, (sala, agora) => sala.registrar(id, String(tarefaId), texto, agora));
+      const revelacao = servico.alterar(codigo, (sala, agora) => sala.responder(id, String(tarefaId), letra, agora));
       return { revelacao };
-    });
-
-    pedido('aluno:explicar', ({ tarefaId, texto }) => {
-      const { codigo, id } = alunoAtual();
-      servico.alterar(codigo, (sala, agora) => sala.explicar(id, String(tarefaId), texto, agora));
-      return {};
     });
 
     // ------------------------------------------------------------ telão (sem controles)
@@ -192,9 +180,6 @@ function ligarLaboratorio(io, { servico, auth }) {
         io.to(`aluno:${d.alunoId}`).emit('expulso');
         io.in(`aluno:${d.alunoId}`).disconnectSockets(true);
       },
-      avaliar: (sala, agora, d) => sala.avaliarExplicacao(String(d.alunoId), String(d.tarefaId), d.aprovada === true),
-      destacar: (sala, agora, d) => sala.alternarDestaque(String(d.alunoId), String(d.tarefaId)),
-      mostrarDestaques: (sala, agora, d) => sala.mostrarDestaques(d.visiveis === true),
     };
 
     pedido('prof:acao', (dados) => {

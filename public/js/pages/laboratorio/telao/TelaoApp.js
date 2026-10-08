@@ -5,8 +5,8 @@ import { Cronometro, RankingAnimado, podio, atalho, textoComTeclas, avisoConexao
 /**
  * Telão para projetar (/laboratorio/telao/CODIGO). Não tem controles: só
  * acompanha a sala. Mostra o código, a tarefa atual, o cronômetro, quantos
- * já concluíram, o ranking ao vivo (animado quando alguém sobe) e, no fim,
- * o pódio. As respostas criativas aparecem por cima quando o professor manda.
+ * já responderam, o ranking ao vivo (animado quando alguém sobe) e, no fim,
+ * o pódio. As opções de resposta nunca aparecem aqui: só o que fazer.
  */
 export class TelaoApp {
   constructor(raiz) {
@@ -141,13 +141,13 @@ export class TelaoApp {
     ];
   }
 
-  barraConcluiram(sala) {
-    const total = Math.max(sala.conectados, sala.concluiram || 0);
-    const pct = total ? Math.round(((sala.concluiram || 0) / total) * 100) : 0;
+  barraResponderam(sala) {
+    const total = Math.max(sala.conectados, sala.responderam || 0);
+    const pct = total ? Math.round(((sala.responderam || 0) / total) * 100) : 0;
     return h(
       'div',
       { class: 'telao-concluiram' },
-      h('div', { class: 'telao-concluiram-texto' }, h('strong', { text: `${sala.concluiram || 0} de ${total}` }), ' já concluíram'),
+      h('div', { class: 'telao-concluiram-texto' }, h('strong', { text: `${sala.responderam || 0} de ${total}` }), ' já responderam'),
       h('div', { class: 'telao-barra' }, h('span', { style: { width: `${pct}%` } }))
     );
   }
@@ -161,9 +161,9 @@ export class TelaoApp {
         h('h1', { class: 'telao-titulo-gigante', text: tarefa.titulo }),
         tarefa.teclas.length > 0 && h('div', { class: 'telao-atalhos' }, tarefa.teclas.map((combo) => atalho(combo))),
         h('p', { class: 'telao-instrucao' }, textoComTeclas(tarefa.instrucao)),
-        h('p', { class: 'telao-lembrete', text: '🎯 Aposte primeiro, depois faça e registre!' })
+        h('p', { class: 'telao-lembrete', text: '👀 Faça o experimento e preste atenção: depois vem a pergunta!' })
       ),
-      this.barraConcluiram(sala),
+      this.barraResponderam(sala),
     ];
   }
 
@@ -175,7 +175,7 @@ export class TelaoApp {
         { class: 'telao-bloco cartao telao-parcial' },
         h('span', { class: 'telao-etiqueta', text: `Tarefa ${tarefa.numero} encerrada` }),
         h('h1', { class: 'telao-titulo-gigante', text: '🏁 Ranking parcial' }),
-        h('p', { class: 'telao-instrucao', text: `${tarefa.titulo}: ${sala.concluiram} ${sala.concluiram === 1 ? 'aluno concluiu' : 'alunos concluíram'}.` }),
+        h('p', { class: 'telao-instrucao', text: `${tarefa.titulo}: ${sala.responderam} ${sala.responderam === 1 ? 'aluno respondeu' : 'alunos responderam'}.` }),
         h('p', { class: 'telao-lembrete', text: ultima ? 'Foi a última tarefa! O resultado final vem aí...' : 'Prepare-se para a próxima tarefa!' })
       ),
     ];
@@ -197,8 +197,8 @@ export class TelaoApp {
               'li',
               {},
               h('span', { class: 'telao-progresso-nome', text: `${i + 1}. ${p.titulo}` }),
-              h('span', { class: 'telao-barra' }, h('span', { style: { width: `${Math.min(100, Math.round((p.concluiram / total) * 100))}%` } })),
-              h('strong', { text: String(p.concluiram) })
+              h('span', { class: 'telao-barra' }, h('span', { style: { width: `${Math.min(100, Math.round((p.responderam / total) * 100))}%` } })),
+              h('strong', { text: String(p.responderam) })
             )
           )
         )
@@ -218,24 +218,8 @@ export class TelaoApp {
     ];
   }
 
-  desenharSobreposicao({ sala, destaques }) {
-    if (destaques.length) {
-      this.sobreposicao.replaceChildren(
-        h(
-          'div',
-          { class: 'telao-destaques' },
-          h('h2', { text: '✨ Respostas mais criativas' }),
-          h(
-            'div',
-            { class: 'telao-destaques-lista' },
-            destaques.map((d) =>
-              h('figure', { class: 'telao-destaque cartao' }, h('blockquote', { text: `"${d.registro}"` }), h('figcaption', {}, h('strong', { text: d.nome }), ` · ${d.tarefa}`))
-            )
-          )
-        )
-      );
-      this.sobreposicao.hidden = false;
-    } else if (sala.pausada) {
+  desenharSobreposicao({ sala }) {
+    if (sala.pausada) {
       this.sobreposicao.replaceChildren(h('div', { class: 'telao-pausa' }, h('span', { 'aria-hidden': 'true', text: '⏸️' }), h('strong', { text: 'Partida pausada' }), h('p', { text: 'Olhos aqui na frente!' })));
       this.sobreposicao.hidden = false;
     } else {

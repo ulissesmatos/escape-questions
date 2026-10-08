@@ -31,7 +31,8 @@ export class EditorTarefas extends Component {
           { class: 'editor-dicas' },
           h('li', {}, 'Na instrução, escreva as teclas entre colchetes para destacar: ', h('code', { text: '[Ctrl] + [Z]' }), ' vira ', ...textoComTeclas('[Ctrl] + [Z]')),
           h('li', { text: 'Em "Atalhos em destaque", separe os atalhos com ponto e vírgula. Ex.: Windows + Shift + S; Ctrl + V' }),
-          h('li', { text: 'Use de 2 a 4 opções de aposta e marque a correta. O aluno só vê a resposta depois de enviar o registro.' }),
+          h('li', { text: 'O aluno primeiro só vê a instrução. As opções aparecem depois do tempo mínimo, embaralhadas para cada aluno.' }),
+          h('li', { text: 'Prefira perguntas sobre algo que só quem fez vê na tela ("o que apareceu?"), em vez de "o que vai acontecer?".' }),
           h('li', { text: 'As mudanças valem para as próximas salas. Salas já abertas continuam com as tarefas de quando foram criadas.' })
         )
       ),
@@ -98,9 +99,10 @@ export class EditorTarefas extends Component {
       campo('Título', h('input', { type: 'text', maxlength: 80, value: t.titulo, 'data-campo': 'titulo' })),
       campo('Instrução (o que o aluno faz)', h('textarea', { rows: 2, maxlength: 600, value: t.instrucao, 'data-campo': 'instrucao' })),
       campo('Atalhos em destaque (opcional)', h('input', { type: 'text', value: (t.teclas || []).join('; '), placeholder: 'Windows + D', 'data-campo': 'teclas' })),
-      campo('Pergunta da aposta', h('input', { type: 'text', maxlength: 200, value: t.pergunta, 'data-campo': 'pergunta' })),
+      campo('Tempo mínimo para fazer (segundos)', h('input', { type: 'number', min: 0, max: 300, value: t.tempoMinimo ?? 15, class: 'campo campo-curto', 'data-campo': 'tempoMinimo' })),
+      campo('Pergunta (aparece depois de fazer)', h('input', { type: 'text', maxlength: 200, value: t.pergunta, 'data-campo': 'pergunta' })),
       h('div', { class: 'editor-campo' }, h('span', { class: 'rotulo', text: 'Opções (marque a correta)' }), h('div', { class: 'editor-opcoes' }, opcoes)),
-      campo('Explicação (aparece depois do registro)', h('textarea', { rows: 2, maxlength: 600, value: t.explicacao, 'data-campo': 'explicacao' })),
+      campo('Explicação (aparece depois da resposta)', h('textarea', { rows: 2, maxlength: 600, value: t.explicacao, 'data-campo': 'explicacao' })),
       campo('Nota para o professor (só você vê)', h('input', { type: 'text', maxlength: 400, value: t.notaProfessor || '', 'data-campo': 'notaProfessor' }))
     );
   }
@@ -115,6 +117,7 @@ export class EditorTarefas extends Component {
         titulo: valor('titulo'),
         instrucao: valor('instrucao'),
         teclas: valor('teclas').split(';').map((x) => x.trim()).filter(Boolean),
+        tempoMinimo: Number(valor('tempoMinimo')),
         pergunta: valor('pergunta'),
         opcoes: [...fs.querySelectorAll('[data-opcao]')].map((el) => el.value.trim()),
         correta: marcada ? marcada.value : '',
@@ -149,7 +152,7 @@ export class EditorTarefas extends Component {
 
   adicionar() {
     this.tarefas = this.lerFormularios();
-    this.tarefas.push({ titulo: '', instrucao: '', teclas: [], pergunta: 'O que vai acontecer?', opcoes: ['', '', '', ''], correta: 'a', explicacao: '', notaProfessor: '' });
+    this.tarefas.push({ titulo: '', instrucao: '', teclas: [], tempoMinimo: 15, pergunta: 'O que aconteceu?', opcoes: ['', '', '', ''], correta: 'a', explicacao: '', notaProfessor: '' });
     this.desenharLista();
     const ultimo = this.lista.lastElementChild;
     ultimo.scrollIntoView({ behavior: 'smooth', block: 'center' });

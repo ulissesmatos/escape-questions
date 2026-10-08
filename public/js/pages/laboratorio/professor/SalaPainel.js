@@ -9,7 +9,7 @@ const LETRAS = ['a', 'b', 'c', 'd'];
 
 /**
  * Painel de uma sala: código e links, botões de controle da partida e abas
- * (registros ao vivo, explicações para aprovar, alunos e ranking).
+ * (respostas ao vivo, alunos e ranking).
  *
  * O estado chega a cada mudança; o desenho é agrupado por quadro de
  * animação e as partes fixas (abas, seletor de tarefa) não são recriadas,
@@ -72,11 +72,9 @@ export class SalaPainel extends Component {
     this.desenharCabecalho();
     this.desenharControles();
 
-    const pendentes = this.explicacoes().filter((e) => e.status === 'pendente').length;
     const abas = new Tabs({
       abas: [
-        { id: 'aovivo', rotulo: '📡 Registros ao vivo' },
-        { id: 'explicacoes', rotulo: '🤔 Explicações', contador: pendentes },
+        { id: 'aovivo', rotulo: '📡 Respostas ao vivo' },
         { id: 'alunos', rotulo: '🧑‍🔬 Alunos', contador: sala.totalAlunos },
         { id: 'ranking', rotulo: '🏆 Ranking' },
       ],
@@ -90,7 +88,6 @@ export class SalaPainel extends Component {
 
     const conteudo = {
       aovivo: () => this.abaAoVivo(),
-      explicacoes: () => this.abaExplicacoes(),
       alunos: () => this.abaAlunos(),
       ranking: () => this.abaRanking(),
     }[this.aba]();
@@ -146,22 +143,14 @@ export class SalaPainel extends Component {
       grupo.push(botao('🏁 Finalizar partida', 'btn-contorno', () => this.confirmarFinalizar()));
     }
 
-    const destaques = this.estado.destaques.length;
-    const visiveis = this.estado.destaquesVisiveis;
-    const extras = [
-      botao(visiveis ? '🙈 Esconder do telão' : `✨ Mostrar respostas mais criativas (${destaques}/3)`, visiveis ? 'btn-escuro' : 'btn-suave', () => this.acao('mostrarDestaques', { visiveis: !visiveis }), {
-        disabled: !visiveis && !destaques,
-        title: 'Marque até 3 registros com a ⭐ na aba "Registros ao vivo"',
-      }),
-      botao('⬇️ Exportar CSV', 'btn-contorno', () => this.exportar()),
-    ];
+    const extras = [botao('⬇️ Exportar CSV', 'btn-contorno', () => this.exportar())];
     this.controles.replaceChildren(h('div', { class: 'painel-controles-principal' }, grupo), h('div', { class: 'painel-controles-extra' }, extras));
   }
 
   async confirmarFinalizar() {
     const ok = await ConfirmDialog.perguntar({
       titulo: 'Finalizar a partida?',
-      mensagem: 'Ninguém poderá mais enviar registros e o telão mostra o pódio.',
+      mensagem: 'Ninguém poderá mais responder e o telão mostra o pódio.',
       textoConfirmar: 'Finalizar',
     });
     if (ok) this.acao('finalizar');
@@ -176,27 +165,12 @@ export class SalaPainel extends Component {
     return tarefas;
   }
 
-  explicacoes() {
-    const lista = [];
-    for (const aluno of this.estado.alunos) {
-      for (const tarefa of this.estado.tarefas) {
-        const r = aluno.respostas[tarefa.id];
-        if (r && r.explicacao) lista.push({ aluno, tarefa, r, status: r.explicacaoStatus });
-      }
-    }
-    return lista.sort((a, b) => (a.status === 'pendente') - (b.status === 'pendente') || a.r.explicacaoEm - b.r.explicacaoEm).reverse();
-  }
-
-  ehDestaque(alunoId, tarefaId) {
-    return this.estado.destaques.some((d) => d.alunoId === alunoId && d.tarefaId === tarefaId);
-  }
-
-  // ------------------------------------------------------------ aba: registros ao vivo
+  // ------------------------------------------------------------ aba: respostas ao vivo
 
   abaAoVivo() {
     const liberadas = this.tarefasLiberadas();
     if (!liberadas.length) {
-      return h('div', { class: 'estado-vazio' }, h('span', { class: 'estado-vazio-icone', text: '⏳' }), h('strong', { text: 'A partida ainda não começou' }), h('p', { text: 'Quando os alunos começarem, os registros aparecem aqui em tempo real.' }));
+      return h('div', { class: 'estado-vazio' }, h('span', { class: 'estado-vazio-icone', text: '⏳' }), h('strong', { text: 'A partida ainda não começou' }), h('p', { text: 'Quando os alunos começarem, as respostas aparecem aqui em tempo real.' }));
     }
     const { sala } = this.estado;
     // Segue a tarefa atual nas rodadas, a não ser que o professor tenha escolhido outra
@@ -226,13 +200,14 @@ export class SalaPainel extends Component {
 
     const alunos = this.estado.alunos.map((a) => ({ aluno: a, r: a.respostas[tarefa.id] || {} }));
     const contagem = Object.fromEntries(LETRAS.slice(0, tarefa.opcoes.length).map((l) => [l, 0]));
-    for (const { r } of alunos) if (r.aposta) contagem[r.aposta] += 1;
-    const registraram = alunos.filter(({ r }) => r.registro).length;
+    for (const { r } of alunos) if (r.resposta) contagem[r.resposta] += 1;
+    const responderam = alunos.filter(({ r }) => r.resposta).length;
+    const acertaram = alunos.filter(({ r }) => r.acertou).length;
 
-    // Quem registrou primeiro aparece em cima; depois quem só apostou; por fim quem não começou
+    // Quem respondeu primeiro aparece em cima; depois quem ainda não respondeu
     alunos.sort((a, b) => {
-      const peso = (x) => (x.r.registro ? 0 : x.r.aposta ? 1 : 2);
-      return peso(a) - peso(b) || (a.r.ordem ?? 99) - (b.r.ordem ?? 99) || a.aluno.nome.localeCompare(b.aluno.nome, 'pt-BR');
+      const peso = (x) => (x.r.resposta ? 0 : 1);
+      return peso(a) - peso(b) || (a.r.respondidaEm ?? 0) - (b.r.respondidaEm ?? 0) || a.aluno.nome.localeCompare(b.aluno.nome, 'pt-BR');
     });
 
     const correta = LETRAS.indexOf(tarefa.correta);
@@ -242,7 +217,7 @@ export class SalaPainel extends Component {
       h(
         'div',
         { class: 'cartao aovivo-tarefa' },
-        h('div', { class: 'aovivo-topo' }, seletor, h('span', { class: 'aovivo-contagem', text: `✍️ ${registraram} de ${alunos.length} registraram` })),
+        h('div', { class: 'aovivo-topo' }, seletor, h('span', { class: 'aovivo-contagem', text: `🔍 ${responderam} de ${alunos.length} responderam · 🎯 ${acertaram} ${acertaram === 1 ? 'acertou' : 'acertaram'}` })),
         h('p', { class: 'aovivo-instrucao' }, textoComTeclas(tarefa.instrucao)),
         h(
           'div',
@@ -257,68 +232,29 @@ export class SalaPainel extends Component {
             )
           )
         ),
+        h('p', { class: 'texto-suave', text: 'Cada aluno vê as opções embaralhadas: as letras acima são as do cadastro da tarefa.' }),
         tarefa.notaProfessor && h('p', { class: 'nota-professor' }, h('strong', { text: '📌 Nota para você: ' }), tarefa.notaProfessor)
       ),
-      h('ul', { class: 'registros-lista' }, alunos.map(({ aluno, r }) => this.linhaRegistro(aluno, tarefa, r)))
+      h('ul', { class: 'registros-lista' }, alunos.map(({ aluno, r }) => this.linhaResposta(aluno, tarefa, r)))
     );
   }
 
-  linhaRegistro(aluno, tarefa, r) {
-    const destaque = this.ehDestaque(aluno.id, tarefa.id);
+  linhaResposta(aluno, tarefa, r) {
     let status;
-    if (r.registro) status = `${r.ordem < 3 ? `${MEDALHAS[r.ordem]} ` : ''}${r.ordem + 1}º a concluir · ${formatarDuracao(r.tempoMs)} · +${r.pontos ? r.pontos.total : 0} pts`;
-    else if (r.aposta) status = '🖱️ Apostou, fazendo a ação...';
-    else status = '⏳ Ainda não apostou';
+    if (r.resposta && r.acertou) status = `${r.ordem < 3 ? `${MEDALHAS[r.ordem]} ` : ''}${r.ordem + 1}º a acertar · ${formatarDuracao(r.tempoMs)} · +${r.pontos ? r.pontos.total : 0} pts`;
+    else if (r.resposta) status = `${formatarDuracao(r.tempoMs)} · +${r.pontos ? r.pontos.total : 0} pts`;
+    else status = '⏳ Ainda não respondeu';
 
     return h(
       'li',
-      { class: `registro-item${r.registro ? '' : ' registro-pendente'}${destaque ? ' registro-destaque' : ''}` },
+      { class: `registro-item${r.resposta ? '' : ' registro-pendente'}` },
       h(
         'div',
         { class: 'registro-cabeca' },
         h('span', { class: `ponto-online${aluno.conectado ? ' on' : ''}`, title: aluno.conectado ? 'Online' : 'Desconectado' }),
         h('strong', { text: aluno.nome }),
-        r.aposta && h('span', { class: `aposta-chip ${r.aposta === tarefa.correta ? 'certa' : 'errada'}`, title: 'Aposta' }, `Apostou ${r.aposta.toUpperCase()} ${r.aposta === tarefa.correta ? '✓' : '✗'}`),
-        h('span', { class: 'registro-status', text: status }),
-        r.registro &&
-          h('button', {
-            type: 'button',
-            class: `btn-estrela${destaque ? ' ativa' : ''}`,
-            'aria-pressed': String(destaque),
-            title: destaque ? 'Tirar dos destaques' : 'Destacar no telão (até 3)',
-            text: destaque ? '⭐' : '☆',
-            onClick: () => this.acao('destacar', { alunoId: aluno.id, tarefaId: tarefa.id }),
-          })
-      ),
-      r.registro && h('p', { class: 'registro-texto', text: r.registro }),
-      r.explicacao && h('p', { class: 'registro-explicacao' }, h('strong', { text: '🤔 Por quê: ' }), r.explicacao)
-    );
-  }
-
-  // ------------------------------------------------------------ aba: explicações
-
-  abaExplicacoes() {
-    const lista = this.explicacoes();
-    if (!lista.length) {
-      return h('div', { class: 'estado-vazio' }, h('span', { class: 'estado-vazio-icone', text: '🤔' }), h('strong', { text: 'Nenhuma explicação ainda' }), h('p', { text: 'Depois do registro, o aluno pode explicar por que acha que aconteceu. Aprovar vale +5 pontos.' }));
-    }
-    return h(
-      'ul',
-      { class: 'explicacoes-lista' },
-      lista.map(({ aluno, tarefa, r, status }) =>
-        h(
-          'li',
-          { class: `cartao explicacao-item explicacao-${status}` },
-          h('div', { class: 'explicacao-cabeca' }, h('strong', { text: aluno.nome }), h('span', { class: 'texto-suave', text: tarefa.titulo }), h('span', { class: `status-chip status-${status}`, text: { pendente: '⏳ Pendente', aprovada: '✅ Aprovada', recusada: '✖ Recusada' }[status] })),
-          h('p', { class: 'explicacao-texto', text: r.explicacao }),
-          h('p', { class: 'texto-suave' }, h('strong', { text: 'Registro: ' }), r.registro),
-          h(
-            'div',
-            { class: 'explicacao-acoes' },
-            status !== 'aprovada' && h('button', { type: 'button', class: 'btn btn-primario btn-pequeno', text: '✅ Aprovar (+5)', onClick: () => this.acao('avaliar', { alunoId: aluno.id, tarefaId: tarefa.id, aprovada: true }) }),
-            status !== 'recusada' && h('button', { type: 'button', class: 'btn btn-contorno btn-pequeno', text: '✖ Recusar', onClick: () => this.acao('avaliar', { alunoId: aluno.id, tarefaId: tarefa.id, aprovada: false }) })
-          )
-        )
+        r.resposta && h('span', { class: `aposta-chip ${r.acertou ? 'certa' : 'errada'}` }, `${r.resposta.toUpperCase()} ${r.acertou ? '✓ acertou' : '✗ errou'}`),
+        h('span', { class: 'registro-status', text: status })
       )
     );
   }
@@ -350,7 +286,7 @@ export class SalaPainel extends Component {
               h('td', {}, h('span', { class: `ponto-online${a.conectado ? ' on' : ''}`, title: a.conectado ? 'Online' : 'Desconectado' })),
               h('td', {}, h('strong', { text: a.nome })),
               h('td', { text: String(r.pontos) }),
-              h('td', { text: `${r.concluidas}/${this.estado.tarefas.length}` }),
+              h('td', { text: `${r.respondidas}/${this.estado.tarefas.length}` }),
               h('td', { class: 'texto-suave', text: formatarDataHora(a.entrouEm) }),
               h(
                 'td',
@@ -411,7 +347,7 @@ export class SalaPainel extends Component {
       h(
         'table',
         { class: 'tabela-lab' },
-        h('thead', {}, h('tr', {}, ['#', 'Nome', 'Pontos', 'Apostas certas', 'Tarefas', 'Tempo total'].map((t) => h('th', { text: t })))),
+        h('thead', {}, h('tr', {}, ['#', 'Nome', 'Pontos', 'Acertos', 'Respondidas', 'Tempo total'].map((t) => h('th', { text: t })))),
         h(
           'tbody',
           {},
@@ -422,14 +358,14 @@ export class SalaPainel extends Component {
               h('td', { text: r.posicao <= 3 ? MEDALHAS[r.posicao - 1] : `${r.posicao}º` }),
               h('td', {}, h('strong', { text: r.nome })),
               h('td', { text: String(r.pontos) }),
-              h('td', { text: String(r.apostasCertas) }),
-              h('td', { text: String(r.concluidas) }),
+              h('td', { text: String(r.acertos) }),
+              h('td', { text: String(r.respondidas) }),
               h('td', { text: formatarDuracao(r.tempoTotalMs) })
             )
           )
         )
       ),
-      h('p', { class: 'texto-suave legenda', text: 'Desempate: mais apostas certas, depois menor tempo total.' })
+      h('p', { class: 'texto-suave legenda', text: 'Desempate: mais acertos, depois menor tempo total.' })
     );
   }
 
@@ -438,8 +374,8 @@ export class SalaPainel extends Component {
     const data = new Date().toISOString().slice(0, 10);
     baixarCsv(
       `laboratorio-${sala.codigo}-${data}.csv`,
-      ['Posição', 'Nome', 'Pontos', 'Apostas certas', 'Tarefas concluídas', 'Tempo total (s)', 'Tempo total'],
-      ranking.map((r) => [r.posicao, r.nome, r.pontos, r.apostasCertas, r.concluidas, Math.round(r.tempoTotalMs / 1000), formatarDuracao(r.tempoTotalMs)])
+      ['Posição', 'Nome', 'Pontos', 'Acertos', 'Tarefas respondidas', 'Tempo total (s)', 'Tempo total'],
+      ranking.map((r) => [r.posicao, r.nome, r.pontos, r.acertos, r.respondidas, Math.round(r.tempoTotalMs / 1000), formatarDuracao(r.tempoTotalMs)])
     );
   }
 }

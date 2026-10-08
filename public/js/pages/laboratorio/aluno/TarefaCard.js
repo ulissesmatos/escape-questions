@@ -2,67 +2,55 @@ import { Component } from '../../../core/Component.js';
 import { h } from '../../../core/dom.js';
 import { textoComTeclas, atalho } from '../comum.js';
 
-const MIN_REGISTRO = 15;
-const MIN_EXPLICACAO = 10;
+const ROTULOS = ['A', 'B', 'C', 'D'];
 
 const ETAPAS = [
-  { id: 'aposta', icone: '🎯', rotulo: 'Aposta' },
-  { id: 'acao', icone: '🖱️', rotulo: 'Ação' },
-  { id: 'registro', icone: '✍️', rotulo: 'Registro' },
-  { id: 'resultado', icone: '🔍', rotulo: 'Resultado' },
+  { id: 'acao', icone: '🖱️', rotulo: 'Faça' },
+  { id: 'pergunta', icone: '🔍', rotulo: 'Responda' },
+  { id: 'resultado', icone: '🏁', rotulo: 'Resultado' },
 ];
 
 /**
- * Uma tarefa na tela do aluno, em 4 etapas:
- *   1. Aposta: escolhe o que vai acontecer e trava (sem ver a resposta)
- *   2. Ação: faz no computador
- *   3. Registro: escreve o que aconteceu (mínimo 15 letras)
- *   4. Resultado: vê a resposta certa, a explicação e os pontos; pode
- *      mandar o "por quê" para o professor aprovar
+ * Uma tarefa na tela do aluno, sem nada para escrever:
+ *   1. Faça: só a instrução. O botão "Já fiz" libera depois do tempo mínimo
+ *      (o servidor confere esse tempo de novo ao receber a resposta).
+ *   2. Responda: só agora aparecem as opções de "o que aconteceu?", numa
+ *      ordem embaralhada para cada aluno. Uma resposta só.
+ *   3. Resultado: certo ou errado, a resposta certa, a explicação e os pontos.
  *
- * O cartão só é redesenhado quando muda algo dele (não a cada envio dos
- * colegas), e o texto digitado fica guardado como rascunho, então nada se
- * perde se a página recarregar.
+ * O cartão só é redesenhado quando muda algo dele (não a cada resposta dos
+ * colegas). "Já fiz" fica guardado no navegador: recarregar a página não
+ * volta para a etapa 1.
  *
  * props: { tarefa, total, pausada, conexao, rascunhos, onProxima?, onErro }
  */
 export class TarefaCard extends Component {
-  constructor(props) {
-    super(props);
-    this.fezAcao = false;
-  }
-
   /** Atualiza com o estado novo; só redesenha se algo deste cartão mudou */
   definir(tarefa, pausada) {
-    const assinatura = JSON.stringify([tarefa.minha, tarefa.revelacao, tarefa.aberta, pausada]);
+    const assinatura = JSON.stringify([tarefa.minha, tarefa.revelacao, tarefa.aberta, tarefa.liberaEm !== null, pausada]);
     this.props.tarefa = tarefa;
     this.props.pausada = pausada;
+    if (tarefa.liberaEm !== null) this.liberaEm = tarefa.liberaEm;
     if (assinatura === this.assinatura) return;
     this.assinatura = assinatura;
-    this.redesenhar();
+    this.atualizar();
   }
 
-  redesenhar() {
-    if (!this.el) return;
-    const foco = document.activeElement && this.el.contains(document.activeElement) ? document.activeElement.name : null;
-    this.atualizar();
-    if (foco) {
-      const campo = this.el.querySelector(`[name="${foco}"]`);
-      if (campo) {
-        campo.focus({ preventScroll: true });
-        if (campo.setSelectionRange) campo.setSelectionRange(campo.value.length, campo.value.length);
-      }
-    }
+  aoMontar() {
+    // Um relógio só para a contagem do botão "Já fiz" (sobrevive aos redesenhos)
+    if (!this.relogio) this.relogio = this.agendar(() => this.contarTempo(), 250, { repetir: true });
+    this.contarTempo();
+  }
+
+  get chaveFez() {
+    return `fez:${this.props.tarefa.id}`;
   }
 
   get etapa() {
     const { minha, revelacao } = this.props.tarefa;
-    if (revelacao && minha.registro) return 'resultado';
+    if (revelacao && minha.resposta) return 'resultado';
     if (revelacao) return 'perdida';
-    if (!minha.aposta) return 'aposta';
-    // Quem já tinha começado a escrever (e recarregou a página) volta direto ao registro
-    const temRascunho = Boolean(this.props.rascunhos.ler(`registro:${this.props.tarefa.id}`, ''));
-    return this.fezAcao || temRascunho ? 'registro' : 'acao';
+    return this.props.rascunhos.ler(this.chaveFez, false) ? 'pergunta' : 'acao';
   }
 
   get bloqueada() {
@@ -72,10 +60,10 @@ export class TarefaCard extends Component {
   render() {
     const { tarefa, total } = this.props;
     const etapa = this.etapa;
+    this.botaoPronto = null;
     const conteudo = {
-      aposta: () => this.etapaAposta(),
       acao: () => this.etapaAcao(),
-      registro: () => this.etapaRegistro(),
+      pergunta: () => this.etapaPergunta(),
       resultado: () => this.etapaResultado(),
       perdida: () => this.etapaPerdida(),
     }[etapa]();
@@ -96,9 +84,9 @@ export class TarefaCard extends Component {
 
   passos(etapa) {
     const perdida = etapa === 'perdida';
-    const atual = perdida ? 3 : ETAPAS.findIndex((e) => e.id === etapa);
-    // Tempo esgotado: só a aposta (se houve) conta como feita
-    const feito = (i) => i < atual && (!perdida || (i === 0 && Boolean(this.props.tarefa.minha.aposta)));
+    const atual = perdida ? 2 : ETAPAS.findIndex((e) => e.id === etapa);
+    // Tempo esgotado: nenhuma etapa anterior conta como feita
+    const feito = (i) => i < atual && !perdida;
     return h(
       'ol',
       { class: 'passos', 'aria-label': 'Etapas da tarefa' },
@@ -129,15 +117,62 @@ export class TarefaCard extends Component {
     return null;
   }
 
-  // ------------------------------------------------------------ 1. aposta
+  /** Rótulo (A, B, C...) na ordem em que ESTE aluno vê as opções */
+  opcaoVista(letra) {
+    const i = this.props.tarefa.opcoes.findIndex((o) => o.letra === letra);
+    return i < 0 ? null : { rotulo: ROTULOS[i], texto: this.props.tarefa.opcoes[i].texto };
+  }
 
-  etapaAposta() {
+  letraVisual(rotulo) {
+    return h('span', { class: 'opcao-letra', 'data-letra': rotulo.toLowerCase(), text: rotulo });
+  }
+
+  // ------------------------------------------------------------ 1. faça
+
+  etapaAcao() {
+    this.botaoPronto = h('button', {
+      type: 'button',
+      class: 'btn btn-primario btn-grande',
+      onClick: () => {
+        if (this.botaoPronto.disabled) return;
+        this.props.rascunhos.salvar(this.chaveFez, true);
+        this.atualizar();
+        this.el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      },
+    });
+    return h(
+      'div',
+      { class: 'etapa' },
+      h('div', { class: 'bloco-faca' }, h('span', { class: 'bloco-rotulo', text: '🖱️ Faça no computador' }), this.instrucao()),
+      h('p', { class: 'alerta-calma' }, '👀 ', h('strong', { text: 'Preste atenção no que acontece na tela!' }), ' Depois você vai responder uma pergunta sobre isso.'),
+      this.aviso(),
+      h('div', { class: 'etapa-acoes' }, this.botaoPronto)
+    );
+  }
+
+  /** Contagem regressiva do botão "Já fiz" */
+  contarTempo() {
+    if (!this.botaoPronto) return;
+    const { tarefa, conexao } = this.props;
+    // Antes do servidor confirmar o início (modo livre), conta a partir de agora
+    if (this.liberaEm == null) this.liberaEm = conexao.agora() + tarefa.tempoMinimo * 1000;
+    const falta = Math.ceil((this.liberaEm - conexao.agora()) / 1000);
+    const esperando = falta > 0;
+    const texto = esperando ? `⏳ Faça o experimento... ${falta} s` : '✅ Pronto, já fiz!';
+    if (this.botaoPronto.textContent !== texto) this.botaoPronto.textContent = texto;
+    this.botaoPronto.disabled = esperando || this.bloqueada;
+  }
+
+  // ------------------------------------------------------------ 2. responda
+
+  etapaPergunta() {
     const { tarefa } = this.props;
     let escolhida = null;
-    const botaoTravar = h('button', { type: 'submit', class: 'btn btn-primario btn-grande', disabled: true }, '🔒 Travar minha aposta');
+    const botao = h('button', { type: 'submit', class: 'btn btn-primario btn-grande', disabled: true }, '✅ Confirmar resposta');
 
-    const opcoes = tarefa.opcoes.map((o) => {
-      const botao = h(
+    const lista = h('div', { class: 'aposta-opcoes', role: 'radiogroup', 'aria-label': tarefa.pergunta });
+    tarefa.opcoes.forEach((o, i) => {
+      const opcao = h(
         'button',
         {
           type: 'button',
@@ -147,165 +182,79 @@ export class TarefaCard extends Component {
           disabled: this.bloqueada,
           onClick: () => {
             escolhida = o.letra;
-            for (const outro of lista.children) outro.setAttribute('aria-checked', String(outro === botao));
-            botaoTravar.disabled = this.bloqueada;
+            for (const outra of lista.children) outra.setAttribute('aria-checked', String(outra === opcao));
+            botao.disabled = this.bloqueada;
           },
         },
-        h('span', { class: 'opcao-letra', 'data-letra': o.letra, text: o.letra.toUpperCase() }),
+        this.letraVisual(ROTULOS[i]),
         h('span', { class: 'opcao-texto', text: o.texto })
       );
-      return botao;
+      lista.appendChild(opcao);
     });
-    const lista = h('div', { class: 'aposta-opcoes', role: 'radiogroup', 'aria-label': tarefa.pergunta }, opcoes);
 
     const form = h(
       'form',
       { class: 'etapa' },
-      h('div', { class: 'bloco-voce-vai' }, h('span', { class: 'bloco-rotulo', text: '🧪 O experimento' }), this.instrucao()),
-      h('p', { class: 'alerta-calma' }, '✋ ', h('strong', { text: 'Ainda não faça!' }), ' Primeiro aposte o que vai acontecer.'),
-      h('h3', { class: 'pergunta', text: `🎯 ${tarefa.pergunta}` }),
+      h('details', { class: 'lembrete' }, h('summary', { text: 'Ver a instrução de novo' }), this.instrucao({ compacta: true })),
+      h('h3', { class: 'pergunta', text: `🔍 ${tarefa.pergunta}` }),
       lista,
       this.aviso(),
-      h('div', { class: 'etapa-acoes' }, botaoTravar, h('span', { class: 'dica', text: 'Depois de travar, não dá para mudar.' }))
+      h('div', { class: 'etapa-acoes' }, botao, h('span', { class: 'dica', text: 'Você só pode responder uma vez.' }))
     );
     this.ouvir(form, 'submit', async (e) => {
       e.preventDefault();
-      if (!escolhida) return;
-      botaoTravar.disabled = true;
-      botaoTravar.textContent = 'Travando...';
-      try {
-        await this.props.conexao.pedir('aluno:apostar', { tarefaId: tarefa.id, letra: escolhida });
-        tarefa.minha.aposta = escolhida;
-        this.definir({ ...tarefa }, this.props.pausada);
-      } catch (erro) {
-        this.emitir('Erro', erro.message);
-        botaoTravar.disabled = false;
-        botaoTravar.textContent = '🔒 Travar minha aposta';
-      }
-    });
-    return form;
-  }
-
-  minhaAposta() {
-    const { tarefa } = this.props;
-    const opcao = tarefa.opcoes.find((o) => o.letra === tarefa.minha.aposta);
-    return h(
-      'div',
-      { class: 'minha-aposta' },
-      h('span', { class: 'bloco-rotulo', text: '🔒 Sua aposta' }),
-      h('span', {}, h('span', { class: 'opcao-letra', 'data-letra': tarefa.minha.aposta, text: tarefa.minha.aposta.toUpperCase() }), ' ', opcao ? opcao.texto : '')
-    );
-  }
-
-  // ------------------------------------------------------------ 2. ação
-
-  etapaAcao() {
-    return h(
-      'div',
-      { class: 'etapa' },
-      this.minhaAposta(),
-      h('div', { class: 'bloco-faca' }, h('span', { class: 'bloco-rotulo', text: '🖱️ Agora faça no computador' }), this.instrucao()),
-      this.aviso(),
-      h(
-        'div',
-        { class: 'etapa-acoes' },
-        h('button', {
-          type: 'button',
-          class: 'btn btn-primario btn-grande',
-          disabled: this.bloqueada,
-          onClick: () => {
-            this.fezAcao = true;
-            this.redesenhar();
-            const campo = this.el.querySelector('textarea');
-            if (campo) campo.focus();
-          },
-        }, '✅ Já fiz! Registrar o que aconteceu')
-      )
-    );
-  }
-
-  // ------------------------------------------------------------ 3. registro
-
-  etapaRegistro() {
-    const { tarefa, rascunhos } = this.props;
-    const chave = `registro:${tarefa.id}`;
-    const campo = h('textarea', {
-      name: 'registro',
-      rows: 5,
-      maxlength: 1000,
-      placeholder: 'Conte com suas palavras o que você viu na tela...',
-      value: rascunhos.ler(chave, ''),
-      disabled: this.bloqueada,
-      'aria-describedby': `contador-${tarefa.id}`,
-    });
-    const contador = h('span', { class: 'contador', id: `contador-${tarefa.id}` });
-    const botao = h('button', { type: 'submit', class: 'btn btn-primario btn-grande' }, '📨 Enviar registro');
-
-    const atualizarContador = () => {
-      const faltam = MIN_REGISTRO - campo.value.trim().length;
-      contador.textContent = faltam > 0 ? `Faltam ${faltam} letras` : '✓ Pronto para enviar';
-      contador.classList.toggle('ok', faltam <= 0);
-      botao.disabled = faltam > 0 || this.bloqueada;
-    };
-    this.ouvir(campo, 'input', () => {
-      rascunhos.salvar(chave, campo.value);
-      atualizarContador();
-    });
-    atualizarContador();
-
-    const form = h(
-      'form',
-      { class: 'etapa' },
-      this.minhaAposta(),
-      h('details', { class: 'lembrete' }, h('summary', { text: 'Ver a instrução de novo' }), this.instrucao({ compacta: true })),
-      h('label', { class: 'rotulo-grande', for: `registro-${tarefa.id}`, text: '✍️ O que aconteceu de verdade?' }),
-      Object.assign(campo, { id: `registro-${tarefa.id}` }),
-      h('div', { class: 'linha-contador' }, contador, h('span', { class: 'dica', text: 'Mínimo de 15 letras' })),
-      this.aviso(),
-      h('div', { class: 'etapa-acoes' }, botao)
-    );
-    this.ouvir(form, 'submit', async (e) => {
-      e.preventDefault();
-      if (botao.disabled) return;
+      if (!escolhida || botao.disabled) return;
       botao.disabled = true;
       botao.textContent = 'Enviando...';
       try {
-        const { revelacao } = await this.props.conexao.pedir('aluno:registrar', { tarefaId: tarefa.id, texto: campo.value });
-        rascunhos.remover(chave);
-        this.definir({ ...tarefa, minha: { ...tarefa.minha, registro: campo.value.trim() }, revelacao }, this.props.pausada);
+        const { revelacao } = await this.props.conexao.pedir('aluno:responder', { tarefaId: tarefa.id, letra: escolhida });
+        this.definir({ ...tarefa, minha: { resposta: escolhida }, revelacao }, this.props.pausada);
         this.el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } catch (erro) {
         this.emitir('Erro', erro.message);
-        botao.textContent = '📨 Enviar registro';
-        atualizarContador();
+        botao.disabled = false;
+        botao.textContent = '✅ Confirmar resposta';
       }
     });
     return form;
   }
 
-  // ------------------------------------------------------------ 4. resultado
+  // ------------------------------------------------------------ 3. resultado
 
-  revelacaoBloco() {
-    const { tarefa } = this.props;
-    const r = tarefa.revelacao;
+  blocoCerta() {
+    const r = this.props.tarefa.revelacao;
+    const certa = this.opcaoVista(r.correta);
     return h(
       'div',
       { class: 'revelacao' },
       h('span', { class: 'bloco-rotulo', text: '✅ Resposta certa' }),
-      h('p', { class: 'revelacao-certa' }, h('span', { class: 'opcao-letra', text: r.correta.toUpperCase() }), ' ', r.textoCorreta),
+      h('p', { class: 'revelacao-certa' }, certa && this.letraVisual(certa.rotulo), ' ', r.textoCorreta),
       h('p', { class: 'revelacao-explicacao' }, h('strong', { text: '💡 Por quê? ' }), r.explicacao)
     );
   }
 
+  minhaResposta() {
+    const vista = this.opcaoVista(this.props.tarefa.minha.resposta);
+    if (!vista) return null;
+    return h(
+      'div',
+      { class: 'minha-aposta' },
+      h('span', { class: 'bloco-rotulo', text: 'Sua resposta' }),
+      h('span', {}, this.letraVisual(vista.rotulo), ' ', vista.texto)
+    );
+  }
+
+  botaoProxima() {
+    return this.props.onProxima && h('div', { class: 'etapa-acoes' }, h('button', { type: 'button', class: 'btn btn-escuro btn-grande', onClick: () => this.emitir('Proxima') }, 'Próxima tarefa →'));
+  }
+
   etapaResultado() {
-    const { tarefa } = this.props;
-    const r = tarefa.revelacao;
-    const p = r.pontos || { aposta: 0, conclusao: 0, velocidade: 0, explicacao: 0, total: 0 };
+    const r = this.props.tarefa.revelacao;
+    const p = r.pontos || { acerto: 0, participacao: 0, velocidade: 0, total: 0 };
     const chips = [
-      p.aposta && ['🎯', `+${p.aposta} aposta certa`],
-      p.conclusao && ['✅', `+${p.conclusao} tarefa concluída`],
+      p.acerto && ['🎯', `+${p.acerto} acertou`],
       p.velocidade && ['⚡', `+${p.velocidade} bônus de velocidade`],
-      p.explicacao && ['🧠', `+${p.explicacao} explicação aprovada`],
+      p.participacao && ['🙌', `+${p.participacao} participação`],
     ].filter(Boolean);
 
     return h(
@@ -315,77 +264,21 @@ export class TarefaCard extends Component {
         'div',
         { class: `veredito ${r.acertou ? 'veredito-acertou' : 'veredito-errou'}` },
         h('span', { class: 'veredito-icone', 'aria-hidden': 'true', text: r.acertou ? '🎉' : '🤔' }),
-        h('div', {}, h('strong', { text: r.acertou ? 'Você acertou a aposta!' : 'Não foi dessa vez!' }), h('span', { text: r.acertou ? 'Mandou bem, cientista!' : 'Errar a aposta faz parte do experimento.' }))
+        h('div', {}, h('strong', { text: r.acertou ? 'Você acertou!' : 'Não foi dessa vez!' }), h('span', { text: r.acertou ? 'Mandou bem, cientista!' : 'Veja o que acontece de verdade:' }))
       ),
-      this.minhaAposta(),
-      this.revelacaoBloco(),
+      !r.acertou && this.minhaResposta(),
+      this.blocoCerta(),
       h(
         'div',
         { class: 'pontos-ganhos' },
         h('strong', { class: 'pontos-total', text: `+${p.total} pontos` }),
         h('div', { class: 'pontos-chips' }, chips.map(([icone, texto]) => h('span', { class: 'chip-ponto' }, h('span', { 'aria-hidden': 'true', text: icone }), ` ${texto}`)))
       ),
-      h('blockquote', { class: 'meu-registro' }, h('span', { class: 'bloco-rotulo', text: '✍️ Seu registro' }), h('p', { text: tarefa.minha.registro })),
-      this.blocoExplicacao(),
-      this.props.onProxima && h('div', { class: 'etapa-acoes' }, h('button', { type: 'button', class: 'btn btn-escuro btn-grande', onClick: () => this.emitir('Proxima') }, 'Próxima tarefa →'))
+      this.botaoProxima()
     );
-  }
-
-  blocoExplicacao() {
-    const { tarefa, rascunhos } = this.props;
-    const { explicacao, explicacaoStatus } = tarefa.minha;
-    if (explicacao) {
-      const status = {
-        pendente: ['⏳', 'Aguardando o professor avaliar', 'pendente'],
-        aprovada: ['✅', 'Aprovada pelo professor! +5 pontos', 'aprovada'],
-        recusada: ['💬', 'Não foi aprovada desta vez. Converse com o professor.', 'recusada'],
-      }[explicacaoStatus] || ['⏳', 'Enviada', 'pendente'];
-      return h(
-        'div',
-        { class: `explicacao-enviada explicacao-${status[2]}` },
-        h('span', { class: 'bloco-rotulo', text: '🤔 Sua explicação' }),
-        h('p', { text: explicacao }),
-        h('span', { class: 'explicacao-status' }, `${status[0]} ${status[1]}`)
-      );
-    }
-
-    const chave = `explicacao:${tarefa.id}`;
-    const campo = h('textarea', { name: 'explicacao', rows: 3, maxlength: 600, value: rascunhos.ler(chave, ''), placeholder: 'Ex.: acho que acontece porque...' });
-    const botao = h('button', { type: 'submit', class: 'btn btn-suave' }, 'Enviar explicação');
-    const atualizar = () => {
-      botao.disabled = campo.value.trim().length < MIN_EXPLICACAO;
-    };
-    this.ouvir(campo, 'input', () => {
-      rascunhos.salvar(chave, campo.value);
-      atualizar();
-    });
-    atualizar();
-
-    const form = h(
-      'form',
-      { class: 'explicacao-form' },
-      h('label', { class: 'rotulo-grande', for: `explicacao-${tarefa.id}` }, '🤔 Por que você acha que aconteceu? ', h('span', { class: 'rotulo-opcional', text: '(opcional, vale +5 se o professor aprovar)' })),
-      Object.assign(campo, { id: `explicacao-${tarefa.id}` }),
-      h('div', { class: 'etapa-acoes' }, botao)
-    );
-    this.ouvir(form, 'submit', async (e) => {
-      e.preventDefault();
-      if (botao.disabled) return;
-      botao.disabled = true;
-      try {
-        await this.props.conexao.pedir('aluno:explicar', { tarefaId: tarefa.id, texto: campo.value });
-        rascunhos.remover(chave);
-        this.definir({ ...tarefa, minha: { ...tarefa.minha, explicacao: campo.value.trim(), explicacaoStatus: 'pendente' } }, this.props.pausada);
-      } catch (erro) {
-        this.emitir('Erro', erro.message);
-        atualizar();
-      }
-    });
-    return form;
   }
 
   etapaPerdida() {
-    const { tarefa } = this.props;
     return h(
       'div',
       { class: 'etapa' },
@@ -393,11 +286,10 @@ export class TarefaCard extends Component {
         'div',
         { class: 'veredito veredito-tempo' },
         h('span', { class: 'veredito-icone', 'aria-hidden': 'true', text: '⏰' }),
-        h('div', {}, h('strong', { text: 'Esta tarefa foi encerrada.' }), h('span', { text: 'Você não enviou o registro a tempo, mas veja o que acontece:' }))
+        h('div', {}, h('strong', { text: 'Esta tarefa foi encerrada.' }), h('span', { text: 'Você não respondeu a tempo, mas veja o que acontece:' }))
       ),
-      tarefa.minha.aposta && this.minhaAposta(),
-      this.revelacaoBloco(),
-      this.props.onProxima && h('div', { class: 'etapa-acoes' }, h('button', { type: 'button', class: 'btn btn-escuro btn-grande', onClick: () => this.emitir('Proxima') }, 'Próxima tarefa →'))
+      this.blocoCerta(),
+      this.botaoProxima()
     );
   }
 }

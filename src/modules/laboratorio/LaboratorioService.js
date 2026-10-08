@@ -120,7 +120,7 @@ class LaboratorioService extends EventEmitter {
 
   /**
    * Executa uma mudança na sala e avisa as telas. Depois de cada ação, se no
-   * modo rodadas todos os alunos presentes já registraram, a rodada fecha.
+   * modo rodadas todos os alunos presentes já responderam, a rodada fecha.
    */
   alterar(codigo, mudanca) {
     const sala = this.sala(codigo);

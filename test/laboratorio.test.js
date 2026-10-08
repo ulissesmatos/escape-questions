@@ -2,15 +2,16 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const { Sala, ErroSala } = require('../src/modules/laboratorio/Sala');
-const { validarTarefas } = require('../src/modules/laboratorio/tarefas');
+const { validarTarefas, CatalogoDeTarefas } = require('../src/modules/laboratorio/tarefas');
 const { nomeOfensivo, validarNome } = require('../src/modules/laboratorio/nomes');
 const { LaboratorioService } = require('../src/modules/laboratorio/LaboratorioService');
-const { CatalogoDeTarefas } = require('../src/modules/laboratorio/tarefas');
 const { RepositorioEmMemoria } = require('../src/modules/laboratorio/repositorios');
 const PADRAO = require('../src/modules/laboratorio/tasks.json');
 
 const TAREFAS = validarTarefas(PADRAO);
-const REGISTRO = 'As janelas sumiram e apareceu a área de trabalho.';
+const T1 = TAREFAS[0]; // tempo mínimo de 10 s, correta "a"
+const ERRADA = 'b';
+const DEPOIS = T1.tempoMinimo * 1000; // instante em que já dá para responder (tarefa liberada em 0)
 
 function novaSala(opcoes = {}) {
   return new Sala({ codigo: 'TEST', tarefas: TAREFAS, agora: 0, ...opcoes });
@@ -23,156 +24,149 @@ function entrar(sala, nome, agora = 0) {
   return aluno;
 }
 
-test('tasks.json tem as 10 tarefas válidas e todas com resposta correta', () => {
+test('tasks.json tem as 10 tarefas válidas, com resposta certa e tempo mínimo', () => {
   assert.equal(TAREFAS.length, 10);
-  for (const t of TAREFAS) assert.ok(t.opcoes[['a', 'b', 'c', 'd'].indexOf(t.correta)]);
+  for (const t of TAREFAS) {
+    assert.ok(t.opcoes[['a', 'b', 'c', 'd'].indexOf(t.correta)]);
+    assert.ok(t.tempoMinimo >= 10, `${t.id} sem tempo mínimo`);
+  }
 });
 
-test('o aluno nunca recebe a resposta certa antes de registrar', () => {
+test('o aluno nunca recebe a resposta certa antes de responder', () => {
   const sala = novaSala();
   const ana = entrar(sala, 'Ana');
   sala.iniciar(0);
-  const tarefa = TAREFAS[0];
 
   const antes = JSON.stringify(sala.visaoAluno(ana.id, 1000));
-  assert.ok(!antes.includes(tarefa.explicacao), 'explicação vazou');
+  assert.ok(!antes.includes(T1.explicacao), 'explicação vazou');
   assert.ok(!antes.includes('"correta"'), 'campo correta vazou');
 
-  sala.apostar(ana.id, tarefa.id, 'a', 2000);
-  const depoisDaAposta = sala.visaoAluno(ana.id, 2000);
-  assert.equal(depoisDaAposta.tarefas[0].revelacao, null, 'apostar não revela');
-
-  const revelacao = sala.registrar(ana.id, tarefa.id, REGISTRO, 3000);
-  assert.equal(revelacao.correta, 'b');
+  const revelacao = sala.responder(ana.id, T1.id, ERRADA, DEPOIS);
+  assert.equal(revelacao.correta, T1.correta);
   assert.equal(revelacao.acertou, false);
-  assert.equal(sala.visaoAluno(ana.id, 3000).tarefas[0].revelacao.correta, 'b');
+  assert.equal(sala.visaoAluno(ana.id, DEPOIS).tarefas[0].revelacao.correta, T1.correta);
 });
 
-test('aposta trava e não pode mudar; registro exige 15 letras', () => {
+test('opções embaralhadas por aluno, sempre na mesma ordem para o mesmo aluno', () => {
+  const sala = novaSala();
+  const alunos = ['Ana', 'Bia', 'Caio', 'Duda', 'Eva', 'Fabi'].map((n) => entrar(sala, n));
+  sala.iniciar(0);
+  const ordens = alunos.map((a) => sala.visaoAluno(a.id, 0).tarefas[0].opcoes.map((o) => o.letra).join(''));
+  assert.ok(new Set(ordens).size > 1, 'todos receberam a mesma ordem');
+  for (const ordem of ordens) assert.equal([...ordem].sort().join(''), 'abcd');
+  assert.equal(sala.visaoAluno(alunos[0].id, 5000).tarefas[0].opcoes.map((o) => o.letra).join(''), ordens[0], 'recarregar não muda a ordem');
+});
+
+test('trava de tempo: só responde depois do tempo mínimo (sem contar a pausa), e uma vez só', () => {
   const sala = novaSala();
   const ana = entrar(sala, 'Ana');
   sala.iniciar(0);
-  const id = TAREFAS[0].id;
-  assert.throws(() => sala.registrar(ana.id, id, REGISTRO, 10), /aposta/);
-  sala.apostar(ana.id, id, 'b', 10);
-  assert.throws(() => sala.apostar(ana.id, id, 'c', 20), /travada/);
-  assert.throws(() => sala.registrar(ana.id, id, 'curto demais', 30), /15/);
-  assert.throws(() => sala.registrar(ana.id, id, '              x', 30), /15/, 'espaços não contam');
-  sala.registrar(ana.id, id, REGISTRO, 40);
-  assert.throws(() => sala.registrar(ana.id, id, REGISTRO, 50), /já registrou/);
+  assert.equal(sala.visaoAluno(ana.id, 0).tarefas[0].liberaEm, DEPOIS);
+
+  assert.throws(() => sala.responder(ana.id, T1.id, 'a', 3000), /Faça o experimento primeiro! Faltam 7 segundos/);
+
+  sala.pausar(4000);
+  sala.retomar(34000); // 30 s pausados não contam como tempo de experimento
+  assert.throws(() => sala.responder(ana.id, T1.id, 'a', 35000), /Faltam 5 segundos/);
+  assert.equal(sala.visaoAluno(ana.id, 35000).tarefas[0].liberaEm, 40000);
+
+  sala.responder(ana.id, T1.id, 'a', 40000);
+  assert.equal(ana.respostas[T1.id].tempoMs, 10000);
+  assert.throws(() => sala.responder(ana.id, T1.id, 'b', 41000), /já respondeu/);
 });
 
-test('pontuação: aposta, conclusão, velocidade e explicação aprovada', () => {
-  const sala = novaSala({ modo: 'livre' });
-  const alunos = ['Ana', 'Bia', 'Caio', 'Duda'].map((n) => entrar(sala, n));
-  sala.iniciar(0);
-  const id = TAREFAS[0].id;
-  alunos.forEach((a, i) => {
-    sala.apostar(a.id, id, i === 3 ? 'a' : 'b', 100);
-    sala.registrar(a.id, id, REGISTRO, 1000 * (i + 1));
-  });
-  const pontos = alunos.map((a) => sala.resumo(a).pontos);
-  // 10 aposta + 10 conclusão + 5/3/1/0 de velocidade; a Duda errou a aposta
-  assert.deepEqual(pontos, [25, 23, 21, 10]);
-
-  sala.explicar(alunos[3].id, id, 'Porque o atalho minimiza tudo.', 5000);
-  assert.equal(sala.resumo(alunos[3]).pontos, 10, 'explicação pendente não vale ponto');
-  sala.avaliarExplicacao(alunos[3].id, id, true);
-  assert.equal(sala.resumo(alunos[3]).pontos, 15);
-  sala.avaliarExplicacao(alunos[3].id, id, false);
-  assert.equal(sala.resumo(alunos[3]).pontos, 10, 'professor pode voltar atrás');
-});
-
-test('desempate: empatados em pontos, ganha quem acertou mais apostas e depois quem foi mais rápido', () => {
+test('pontuação: +10 acerto, +2 quem erra, velocidade só entre quem acertou', () => {
   const sala = novaSala({ modo: 'livre' });
   sala.iniciar(0);
-  const t = TAREFAS[0];
-  const [eva, f1, f2, ana, caio] = ['Eva', 'Fabi', 'Gui', 'Ana', 'Caio'].map((n) => entrar(sala, n));
-  // [aluno, aposta, terminou em (ms)]: todos abrem a tarefa no instante 0
-  for (const [aluno, letra, fim] of [[eva, 'a', 1000], [f1, 'b', 2000], [f2, 'b', 3000], [ana, 'b', 5000], [caio, 'b', 9000]]) {
-    sala.abrir(aluno.id, t.id, 0);
-    sala.apostar(aluno.id, t.id, letra, 0);
-    sala.registrar(aluno.id, t.id, REGISTRO, fim);
-  }
-  sala.explicar(eva.id, t.id, 'Porque o Windows esconde as janelas.', 9500);
-  sala.avaliarExplicacao(eva.id, t.id, true);
-
-  const ranking = sala.ranking(10000);
-  // Eva: 0 aposta + 10 + 5 (1ª) + 5 explicação = 20 | Ana e Caio: 10 + 10 + 0 = 20
-  assert.deepEqual(ranking.map((r) => [r.nome, r.pontos]), [['Fabi', 23], ['Gui', 21], ['Ana', 20], ['Caio', 20], ['Eva', 20]]);
-  assert.equal(ranking.find((r) => r.nome === 'Ana').tempoTotalMs, 5000);
+  const alunos = ['Ana', 'Bia', 'Caio', 'Duda', 'Eva'].map((n) => entrar(sala, n));
+  alunos.forEach((a) => sala.abrir(a.id, T1.id, 0));
+  // Ana erra primeiro (não ganha bônus); depois Bia, Caio, Duda e Eva acertam nessa ordem
+  sala.responder(alunos[0].id, T1.id, ERRADA, DEPOIS);
+  alunos.slice(1).forEach((a, i) => sala.responder(a.id, T1.id, 'a', DEPOIS + 1000 * (i + 1)));
+  assert.deepEqual(alunos.map((a) => sala.resumo(a).pontos), [2, 15, 13, 11, 10]);
 });
 
-test('desempate com mesmos pontos: apostas certas e depois tempo', () => {
+test('desempate: mais acertos, depois menor tempo total', () => {
   const sala = novaSala({ modo: 'livre' });
   sala.iniciar(0);
   const [a, b, c] = ['Ana', 'Bia', 'Caio'].map((n) => entrar(sala, n));
   // Pontos montados à mão para isolar o critério de desempate
   sala.resumo = (aluno) => ({
-    [a.id]: { pontos: 50, apostasCertas: 2, concluidas: 3, tempoTotalMs: 90000 },
-    [b.id]: { pontos: 50, apostasCertas: 3, concluidas: 3, tempoTotalMs: 99000 },
-    [c.id]: { pontos: 50, apostasCertas: 2, concluidas: 3, tempoTotalMs: 60000 },
+    [a.id]: { pontos: 24, acertos: 2, respondidas: 3, tempoTotalMs: 90000 },
+    [b.id]: { pontos: 24, acertos: 3, respondidas: 3, tempoTotalMs: 99000 },
+    [c.id]: { pontos: 24, acertos: 2, respondidas: 3, tempoTotalMs: 60000 },
   })[aluno.id];
   assert.deepEqual(sala.ranking(0).map((r) => r.nome), ['Bia', 'Caio', 'Ana']);
 });
 
-test('rodadas: cronômetro fecha a tarefa, pausa congela e o tempo pausado não conta', () => {
+test('empate natural em pontos é decidido pelo tempo', () => {
+  const sala = novaSala({ modo: 'livre' });
+  sala.iniciar(0);
+  const alunos = ['Fabi', 'Gui', 'Hugo', 'Ana', 'Caio'].map((n) => entrar(sala, n));
+  alunos.forEach((a) => sala.abrir(a.id, T1.id, 0));
+  // Os 3 primeiros levam o bônus; Ana e Caio acertam depois (10 cada), Ana mais rápida
+  [15000, 16000, 17000, 20000, 30000].forEach((quando, i) => sala.responder(alunos[i].id, T1.id, 'a', quando));
+  assert.deepEqual(sala.ranking(40000).map((r) => [r.nome, r.pontos]), [['Fabi', 15], ['Gui', 13], ['Hugo', 11], ['Ana', 10], ['Caio', 10]]);
+});
+
+test('rodadas: cronômetro fecha a tarefa e a próxima é liberada', () => {
   const sala = novaSala({ duracaoSeg: 60 });
   const ana = entrar(sala, 'Ana');
   entrar(sala, 'Bia');
   sala.iniciar(0);
-  assert.equal(sala.fase, 'tarefa');
-  const id = TAREFAS[0].id;
-
   sala.pausar(10000);
-  assert.throws(() => sala.apostar(ana.id, id, 'b', 15000), /pausada/);
   assert.equal(sala.verificarTempo(500000), false, 'pausado não acaba');
-  sala.retomar(40000); // ficou 30 s pausado → o fim passa de 60 s para 90 s
-
-  sala.apostar(ana.id, id, 'b', 41000);
-  sala.registrar(ana.id, id, REGISTRO, 50000);
-  assert.equal(ana.respostas[id].tempoMs, 20000, '50 s menos 30 s pausados');
-
+  sala.retomar(40000); // o fim passa de 60 s para 90 s
   assert.equal(sala.verificarTempo(89000), false);
   assert.equal(sala.verificarTempo(90000), true);
   assert.equal(sala.fase, 'parcial');
-  assert.throws(() => sala.apostar(ana.id, TAREFAS[1].id, 'a', 91000), /não está liberada/);
-
+  assert.throws(() => sala.responder(ana.id, TAREFAS[1].id, 'a', 91000), /não está liberada/);
   sala.proxima(100000);
   assert.equal(sala.indice, 1);
   assert.equal(sala.fase, 'tarefa');
 });
 
-test('rodadas: termina sozinha quando todos os presentes registram; quem caiu há pouco ainda conta', () => {
+test('rodadas: termina sozinha quando todos os presentes respondem; quem caiu há pouco ainda conta', () => {
   const sala = novaSala();
   const ana = entrar(sala, 'Ana');
   const bia = entrar(sala, 'Bia');
   const caio = sala.entrar('Caio', 0); // nunca conectou: não segura a rodada
   caio.desconectouEm = -60000;
   sala.iniciar(0);
-  const id = TAREFAS[0].id;
-  for (const a of [ana, bia]) sala.apostar(a.id, id, 'b', 100);
-  sala.registrar(ana.id, id, REGISTRO, 1000);
+  sala.responder(ana.id, T1.id, 'a', DEPOIS);
 
   bia.conexoes = 0;
-  bia.desconectouEm = 1500; // recarregou a página
-  assert.equal(sala.todosConcluiram(2000), false, 'Bia caiu há 0,5 s: ainda conta como presente');
-  assert.equal(sala.todosConcluiram(60000), true, 'depois da tolerância, não segura mais a rodada');
+  bia.desconectouEm = DEPOIS + 500; // recarregou a página
+  assert.equal(sala.todosConcluiram(DEPOIS + 1000), false, 'Bia caiu há 0,5 s: ainda conta como presente');
+  assert.equal(sala.todosConcluiram(DEPOIS + 60000), true, 'depois da tolerância, não segura mais a rodada');
 });
 
-test('aluno atrasado recebe a tarefa atual; aluno não vê tarefas futuras', () => {
+test('aluno atrasado recebe a tarefa atual e o tempo mínimo conta a partir da entrada dele', () => {
   const sala = novaSala();
   entrar(sala, 'Ana');
   sala.iniciar(0);
   sala.proxima(1000);
   sala.proxima(2000); // tarefa 3 liberada
-  const atrasado = entrar(sala, 'Zeca', 2500);
-  const visao = sala.visaoAluno(atrasado.id, 2500);
-  assert.equal(visao.tarefas.length, 3);
+  const atrasado = entrar(sala, 'Zeca', 5000);
+  const visao = sala.visaoAluno(atrasado.id, 5000);
+  assert.equal(visao.tarefas.length, 3, 'não vê tarefas futuras');
   assert.equal(visao.tarefas[2].aberta, true);
   assert.equal(visao.tarefas[0].aberta, false);
   assert.ok(visao.tarefas[0].revelacao, 'tarefas já fechadas mostram a resposta');
   assert.equal(visao.tarefas[2].revelacao, null);
+  assert.equal(visao.tarefas[2].liberaEm, 5000 + TAREFAS[2].tempoMinimo * 1000);
+});
+
+test('modo livre: o tempo mínimo começa quando o aluno abre a tarefa', () => {
+  const sala = novaSala({ modo: 'livre' });
+  const ana = entrar(sala, 'Ana');
+  sala.iniciar(0);
+  assert.equal(sala.visaoAluno(ana.id, 0).tarefas[1].liberaEm, null);
+  assert.throws(() => sala.responder(ana.id, TAREFAS[1].id, 'a', 50000), /Faça o experimento/, 'sem abrir, não pula a espera');
+  // Tentar responder sem abrir já começa a contar
+  sala.responder(ana.id, TAREFAS[1].id, 'a', 50000 + TAREFAS[1].tempoMinimo * 1000);
+  sala.abrir(ana.id, TAREFAS[2].id, 100000);
+  assert.equal(sala.visaoAluno(ana.id, 100000).tarefas[2].liberaEm, 100000 + TAREFAS[2].tempoMinimo * 1000);
 });
 
 test('nomes: repetidos (sem acento e maiúsculas) e ofensivos são bloqueados', () => {
@@ -191,39 +185,18 @@ test('nomes: repetidos (sem acento e maiúsculas) e ofensivos são bloqueados', 
 });
 
 test('reconexão pelo token mantém os pontos; renomear não deixa nome repetido', () => {
-  const sala = novaSala({ modo: 'livre' });
+  const sala = novaSala();
   const ana = entrar(sala, 'Ana');
   entrar(sala, 'Bia');
   sala.iniciar(0);
-  const id = TAREFAS[0].id;
-  sala.apostar(ana.id, id, 'b', 10);
-  sala.registrar(ana.id, id, REGISTRO, 20);
+  sala.responder(ana.id, T1.id, 'a', DEPOIS);
 
   const restaurada = Sala.deJSON(JSON.parse(JSON.stringify(sala.paraJSON())));
   const deNovo = restaurada.porToken(ana.token);
   assert.equal(deNovo.id, ana.id);
-  assert.equal(restaurada.resumo(deNovo).pontos, 25);
+  assert.equal(restaurada.resumo(deNovo).pontos, 15);
   assert.equal(restaurada.porToken('token-falso'), null);
   assert.throws(() => restaurada.renomear(ana.id, 'BIA'), /Já tem alguém/);
-});
-
-test('destaques: no máximo 3 e só registros enviados', () => {
-  const sala = novaSala({ modo: 'livre' });
-  sala.iniciar(0);
-  const id = TAREFAS[0].id;
-  const alunos = ['Ana', 'Bia', 'Caio', 'Duda'].map((n) => {
-    const a = entrar(sala, n);
-    sala.apostar(a.id, id, 'b', 1);
-    sala.registrar(a.id, id, REGISTRO, 2);
-    return a;
-  });
-  assert.throws(() => sala.mostrarDestaques(true), /Marque/);
-  alunos.slice(0, 3).forEach((a) => sala.alternarDestaque(a.id, id));
-  assert.throws(() => sala.alternarDestaque(alunos[3].id, id), /no máximo 3/);
-  sala.mostrarDestaques(true);
-  assert.equal(sala.visaoTelao(3).destaques.length, 3);
-  sala.expulsar(alunos[0].id);
-  assert.equal(sala.visaoTelao(3).destaques.length, 2, 'expulso sai dos destaques');
 });
 
 test('serviço: código de 4 letras, salva no repositório e recupera depois de reiniciar', async () => {
@@ -256,7 +229,9 @@ test('editor de tarefas: valida e avisa o professor do que falta', () => {
   const base = { titulo: 'X', instrucao: 'Faça', opcoes: ['a', 'b', 'c'], correta: 'b', explicacao: 'Porque sim.' };
   assert.throws(() => validarTarefas([{ ...base, correta: 'd' }]), /Tarefa 1: marque/);
   assert.throws(() => validarTarefas([{ ...base, opcoes: ['só uma'] }]), /2 a 4/);
-  const [t1, t2] = validarTarefas([base, base]);
+  const [t1, t2] = validarTarefas([base, { ...base, tempoMinimo: 9999 }]);
   assert.notEqual(t1.id, t2.id, 'ids repetidos são corrigidos');
-  assert.equal(t1.pergunta, 'O que vai acontecer?');
+  assert.equal(t1.pergunta, 'O que aconteceu?');
+  assert.equal(t1.tempoMinimo, 15, 'tempo mínimo padrão');
+  assert.equal(t2.tempoMinimo, 300, 'tempo mínimo tem limite');
 });

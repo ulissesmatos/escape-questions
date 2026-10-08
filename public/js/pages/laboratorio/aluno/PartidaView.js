@@ -26,7 +26,7 @@ export class PartidaView extends Component {
     this.nome = h('strong');
     this.pontos = h('strong', { class: 'stat-numero', text: '0' });
     this.posicao = h('strong', { class: 'stat-numero', text: '-' });
-    this.concluidas = h('strong', { class: 'stat-numero', text: '0' });
+    this.respondidas = h('strong', { class: 'stat-numero', text: '0' });
 
     const topo = h(
       'header',
@@ -37,7 +37,7 @@ export class PartidaView extends Component {
         { class: 'partida-stats' },
         h('div', { class: 'stat stat-pontos' }, h('span', { class: 'stat-icone', 'aria-hidden': 'true', text: '⭐' }), h('div', {}, this.pontos, h('span', { class: 'stat-rotulo', text: 'pontos' }))),
         h('div', { class: 'stat stat-posicao' }, h('span', { class: 'stat-icone', 'aria-hidden': 'true', text: '🏆' }), h('div', {}, this.posicao, (this.deTotal = h('span', { class: 'stat-rotulo', text: 'no ranking' })))),
-        h('div', { class: 'stat' }, h('span', { class: 'stat-icone', 'aria-hidden': 'true', text: '✅' }), h('div', {}, this.concluidas, (this.deTarefas = h('span', { class: 'stat-rotulo', text: 'tarefas' }))))
+        h('div', { class: 'stat' }, h('span', { class: 'stat-icone', 'aria-hidden': 'true', text: '✅' }), h('div', {}, this.respondidas, (this.deTarefas = h('span', { class: 'stat-rotulo', text: 'tarefas' }))))
       ),
       this.cronometro.montar()
     );
@@ -66,7 +66,7 @@ export class PartidaView extends Component {
     this.pontos.textContent = String(eu.pontos);
     this.posicao.textContent = sala.totalAlunos ? posicaoTexto(eu.posicao) : '-';
     this.deTotal.textContent = `de ${sala.totalAlunos}`;
-    this.concluidas.textContent = String(eu.concluidas);
+    this.respondidas.textContent = String(eu.respondidas);
     this.deTarefas.textContent = `de ${sala.totalTarefas}`;
     this.cronometro.definir(sala);
     this.pausa.hidden = !sala.pausada;
@@ -130,10 +130,10 @@ export class PartidaView extends Component {
       h(
         'ol',
         { class: 'espera-regras' },
-        h('li', {}, h('strong', { text: '🎯 Aposte' }), ' o que vai acontecer (+10 se acertar)'),
-        h('li', {}, h('strong', { text: '🖱️ Faça' }), ' a ação no computador'),
-        h('li', {}, h('strong', { text: '✍️ Registre' }), ' o que aconteceu (+10, e bônus para os mais rápidos)'),
-        h('li', {}, h('strong', { text: '🤔 Explique' }), ' o porquê (+5 se o professor aprovar)')
+        h('li', {}, h('strong', { text: '🖱️ Faça' }), ' o experimento no computador e preste atenção na tela'),
+        h('li', {}, h('strong', { text: '🔍 Responda' }), ' o que aconteceu: acertou, +10 pontos'),
+        h('li', {}, h('strong', { text: '⚡ Seja rápido' }), ': os 3 primeiros a acertar ganham bônus (+5, +3, +1)'),
+        h('li', {}, h('strong', { text: '🙌 Errou?' }), ' Ainda ganha +2 por participar')
       )
     );
   }
@@ -182,10 +182,10 @@ export class PartidaView extends Component {
       return;
     }
     this.statusRodada.hidden = false;
-    const feito = Boolean(atual.minha.registro);
+    const feito = Boolean(atual.minha.resposta);
     this.statusRodada.textContent = feito
-      ? `👏 Pronto! ${sala.concluiram} de ${sala.conectados} colegas já concluíram. Aguarde a próxima tarefa.`
-      : `👥 ${sala.concluiram} de ${sala.conectados} colegas já concluíram esta tarefa.`;
+      ? `👏 Pronto! ${sala.responderam} de ${sala.conectados} colegas já responderam. Aguarde a próxima tarefa.`
+      : `👥 ${sala.responderam} de ${sala.conectados} colegas já responderam esta tarefa.`;
   }
 
   secaoRanking(ranking, titulo) {
@@ -200,7 +200,7 @@ export class PartidaView extends Component {
   escolherTarefaLivre() {
     const { tarefas } = this.estado;
     if (this.selecionada && tarefas.some((t) => t.id === this.selecionada)) return;
-    const pendente = tarefas.find((t) => !t.minha.registro) || tarefas[0];
+    const pendente = tarefas.find((t) => !t.minha.resposta) || tarefas[0];
     this.selecionar(pendente.id, { redesenhar: false });
   }
 
@@ -208,7 +208,7 @@ export class PartidaView extends Component {
     this.selecionada = tarefaId;
     const tarefa = this.estado.tarefas.find((t) => t.id === tarefaId);
     // Começa a contar o tempo desta tarefa (modo livre)
-    if (tarefa && !tarefa.minha.registro) this.props.conexao.pedir('aluno:abrir', { tarefaId }).catch(() => {});
+    if (tarefa && !tarefa.minha.resposta) this.props.conexao.pedir('aluno:abrir', { tarefaId }).catch(() => {});
     if (redesenhar) {
       this.cena = this.calcularCena();
       this.montarCena();
@@ -220,7 +220,7 @@ export class PartidaView extends Component {
     const { tarefas } = this.estado;
     const atual = tarefas.findIndex((t) => t.id === this.selecionada);
     const ordem = [...tarefas.slice(atual + 1), ...tarefas.slice(0, atual)];
-    const proxima = ordem.find((t) => !t.minha.registro);
+    const proxima = ordem.find((t) => !t.minha.resposta);
     if (proxima) this.selecionar(proxima.id);
     else this.emitir('Erro', 'Você já fez todas as tarefas! 🎉 Aguarde o professor encerrar.');
   }
@@ -240,19 +240,19 @@ export class PartidaView extends Component {
     const { tarefas } = this.estado;
     this.navegacao.replaceChildren(
       ...tarefas.map((t) => {
-        const status = t.minha.registro ? '✅' : t.minha.aposta ? '✍️' : '';
+        const status = t.minha.resposta ? '✅' : '';
         return h(
           'button',
           {
             type: 'button',
-            class: `nav-tarefa${t.id === this.selecionada ? ' ativa' : ''}${t.minha.registro ? ' feita' : ''}`,
+            class: `nav-tarefa${t.id === this.selecionada ? ' ativa' : ''}${t.minha.resposta ? ' feita' : ''}`,
             'aria-current': t.id === this.selecionada ? 'true' : null,
             title: t.titulo,
             onClick: () => t.id !== this.selecionada && this.selecionar(t.id),
           },
           h('span', { class: 'nav-numero', text: String(t.numero) }),
           h('span', { class: 'nav-titulo', text: t.titulo }),
-          status && h('span', { class: 'nav-status', 'aria-label': t.minha.registro ? 'concluída' : 'aposta feita', text: status })
+          status && h('span', { class: 'nav-status', 'aria-label': 'respondida', text: status })
         );
       })
     );
@@ -273,7 +273,7 @@ export class PartidaView extends Component {
           'div',
           { class: 'final-voce' },
           h('strong', { text: `Você ficou em ${posicaoTexto(eu.posicao)} lugar de ${sala.totalAlunos}` }),
-          h('span', { text: `${eu.pontos} pontos · ${eu.apostasCertas} apostas certas · ${eu.concluidas} tarefas` }),
+          h('span', { text: `${eu.pontos} pontos · ${eu.acertos} acertos · ${eu.respondidas} tarefas` }),
           h('p', { text: mensagem })
         )
       ),

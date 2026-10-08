@@ -30,10 +30,10 @@ professor gerencia tudo pela área `/admin.html`.
   São 18 fases em 4 mundos. A partir do mundo 3 a horta é sorteada e o mesmo
   plano precisa funcionar em 3 hortas, então decorar o caminho não resolve.
 - **Laboratório de Experimentos** (`/laboratorio`): competição em tempo real
-  (Socket.IO). Os alunos entram numa sala com um código de 4 letras, apostam o
-  que vai acontecer, fazem a ação no computador (atalhos de teclado) e
-  registram o que viram. O professor controla pelo painel com PIN e projeta o
-  ranking no telão. Detalhes abaixo.
+  (Socket.IO). Os alunos entram numa sala com um código de 4 letras, fazem a
+  ação no computador (atalhos de teclado) e depois respondem o que aconteceu,
+  sem precisar escrever nada. O professor controla pelo painel com PIN e
+  projeta o ranking no telão. Detalhes abaixo.
 
 ## Como rodar
 
@@ -285,29 +285,37 @@ entregar uma pergunta.
 | `/laboratorio/professor` | Professor: PIN, criar sala, controlar a partida |
 | `/laboratorio/telao/ABCD` | Telão para projetar (sem controles; tecla F = tela cheia) |
 
-**Como funciona cada tarefa:** 1. aposta (trava e não muda), 2. ação no
-computador, 3. registro "O que aconteceu de verdade?" (mínimo 15 letras),
-4. resultado: só agora aparecem a resposta certa, a explicação e os pontos. O
-aluno pode mandar "Por que você acha que aconteceu?" para o professor aprovar.
-A resposta certa nunca vai para o navegador do aluno antes do registro: o
-servidor corrige e só então revela.
+**Como funciona cada tarefa (sem escrever nada):**
+
+1. **Faça:** aparece só a instrução, com as teclas em destaque. O botão "Já
+   fiz" fica travado durante o tempo mínimo da tarefa (`tempoMinimo`), com
+   contagem regressiva.
+2. **Responda:** só agora aparecem as opções de "o que aconteceu?", numa ordem
+   embaralhada para cada aluno (o vizinho não consegue soprar "é a B"). Uma
+   resposta só.
+3. **Resultado:** certo ou errado, a resposta certa, a explicação e os pontos.
+
+As perguntas são de observação (algo que só quem fez vê na tela), para não dar
+para acertar sem fazer. O servidor confere o tempo mínimo de novo ao receber a
+resposta, e a resposta certa nunca vai para o navegador antes disso.
 
 **Modos:** *Rodadas* (o professor libera uma tarefa por vez, com cronômetro;
-quando o tempo acaba ou todos os presentes registram, aparece o ranking
-parcial) ou *Livre* (todas liberadas, cada um no seu ritmo).
+quando o tempo acaba ou todos os presentes respondem, aparece o ranking
+parcial) ou *Livre* (todas liberadas, cada um no seu ritmo; o tempo mínimo
+conta a partir de quando o aluno abre a tarefa).
 
-**Pontos:** aposta certa +10, registro enviado +10, velocidade +5/+3/+1 para
-os 3 primeiros a registrar, explicação aprovada +5. Desempate: mais apostas
-certas, depois menor tempo total (o tempo pausado não conta).
+**Pontos:** acertou +10; bônus de velocidade +5/+3/+1 para os 3 primeiros
+**que acertarem**; errou +2 pela participação. Desempate: mais acertos, depois
+menor tempo total (o tempo pausado não conta).
 
-**Painel:** pausar/retomar, +1 minuto, encerrar a tarefa, registros ao vivo
-(com a distribuição das apostas), aprovar explicações, renomear ou expulsar
-aluno, marcar até 3 registros com ⭐ e mostrá-los no telão, exportar CSV.
+**Painel:** pausar/retomar, +1 minuto, encerrar a tarefa, respostas ao vivo
+(quem respondeu, quem acertou e quantos escolheram cada opção), renomear ou
+expulsar aluno, exportar CSV.
 
 **Conexão:** o aluno recebe um token guardado no navegador; se a página
 recarregar ou a internet cair, ele volta para a mesma sala com os mesmos pontos
-(o texto que estava digitando também fica salvo). Quem entra atrasado recebe a
-tarefa atual. Nomes repetidos (ignorando acento e maiúsculas) e palavrões são
+(e não volta para a etapa "Faça" se já tinha passado dela). Quem entra
+atrasado recebe a tarefa atual, com o tempo mínimo contando a partir da entrada. Nomes repetidos (ignorando acento e maiúsculas) e palavrões são
 bloqueados (`src/modules/laboratorio/nomes.js`).
 
 **Salas:** a partida roda em memória e é salva no PostgreSQL a cada 2 segundos
@@ -327,16 +335,19 @@ nada. Salas paradas há 12 horas são apagadas.
   "titulo": "Desfazer",
   "instrucao": "No Bloco de Notas, escreva uma frase, apague tudo e aperte [Ctrl] + [Z].",
   "teclas": ["Ctrl + Z"],
-  "pergunta": "O que vai acontecer?",
-  "opcoes": ["Apaga o programa", "Salva o arquivo", "Desfaz a última ação e o texto volta", "Nada acontece"],
-  "correta": "c",
+  "tempoMinimo": 25,
+  "pergunta": "Depois de apertar Ctrl + Z, o que apareceu no Bloco de Notas?",
+  "opcoes": ["O texto que você apagou voltou", "Apareceu a letra Z", "Uma janela pedindo para salvar", "O Bloco de Notas fechou"],
+  "correta": "a",
   "explicacao": "Ctrl + Z desfaz a última ação em quase todos os programas.",
   "notaProfessor": "opcional, só aparece no painel"
 }
 ```
 
 Teclas entre colchetes na instrução viram teclas desenhadas; `teclas` são os
-atalhos mostrados em destaque; `correta` é a letra da opção (a, b, c ou d).
+atalhos mostrados em destaque; `tempoMinimo` são os segundos antes de poder
+responder (padrão 15); `correta` é a letra da opção no arquivo (a, b, c ou d).
+A ordem no arquivo não importa: cada aluno vê as opções embaralhadas.
 
 ## Área do professor (`/admin.html`)
 
