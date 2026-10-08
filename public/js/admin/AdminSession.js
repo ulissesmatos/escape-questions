@@ -4,13 +4,14 @@ import { ApiClient } from '../core/ApiClient.js';
 /**
  * Sessão do professor: guarda só o token (nunca a senha), na sessionStorage
  * — fechar a aba encerra a sessão.
+ * `base` e `prefixo` permitem outra área com login próprio (ex.: o PIN do Laboratório).
  */
 export class AdminSession {
-  constructor({ aoExpirar }) {
-    this.armazenamento = new SafeStorage('session', 'admin:');
+  constructor({ aoExpirar, base = '/api/admin', prefixo = 'admin:' }) {
+    this.armazenamento = new SafeStorage('session', prefixo);
     this.aoExpirar = aoExpirar;
     this.api = new ApiClient({
-      base: '/api/admin',
+      base,
       obterToken: () => this.token,
       aoNaoAutorizado: () => this.expirar(),
     });

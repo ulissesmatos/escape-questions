@@ -1,0 +1,150 @@
+[
+  {
+    "id": "area-de-trabalho",
+    "titulo": "Mostrar a área de trabalho",
+    "instrucao": "Aperte [Windows] + [D]. Depois aperte de novo.",
+    "teclas": ["Windows + D"],
+    "pergunta": "O que vai acontecer?",
+    "opcoes": [
+      "Fecha todos os programas",
+      "Minimiza todas as janelas e mostra a área de trabalho",
+      "Desliga o computador",
+      "Abre o menu Iniciar"
+    ],
+    "correta": "b",
+    "explicacao": "O atalho minimiza tudo para você ver a área de trabalho, e ao apertar de novo as janelas voltam."
+  },
+  {
+    "id": "trocar-janela",
+    "titulo": "Trocar de janela",
+    "instrucao": "Abra 3 programas e aperte [Alt] + [Tab] segurando o Alt.",
+    "teclas": ["Alt + Tab"],
+    "pergunta": "O que vai acontecer?",
+    "opcoes": [
+      "Fecha a janela atual",
+      "Mostra miniaturas dos programas abertos para escolher",
+      "Abre um programa novo",
+      "Tira um print"
+    ],
+    "correta": "b",
+    "explicacao": "É a forma mais rápida de alternar entre programas abertos."
+  },
+  {
+    "id": "desfazer",
+    "titulo": "Desfazer",
+    "instrucao": "No Bloco de Notas, escreva uma frase, apague tudo e aperte [Ctrl] + [Z].",
+    "teclas": ["Ctrl + Z"],
+    "pergunta": "O que vai acontecer?",
+    "opcoes": [
+      "Apaga o programa",
+      "Salva o arquivo",
+      "Desfaz a última ação e o texto volta",
+      "Nada acontece"
+    ],
+    "correta": "c",
+    "explicacao": "Ctrl + Z desfaz a última ação em quase todos os programas."
+  },
+  {
+    "id": "emojis",
+    "titulo": "Emojis",
+    "instrucao": "Aperte [Windows] + [.] e escolha um emoji.",
+    "teclas": ["Windows + ."],
+    "pergunta": "O que vai acontecer?",
+    "opcoes": [
+      "Abre uma lista de emojis e o escolhido aparece onde o cursor está",
+      "Abre o navegador",
+      "Muda o volume",
+      "Tira um print"
+    ],
+    "correta": "a",
+    "explicacao": "O painel de emojis do Windows funciona em qualquer lugar onde dá para digitar."
+  },
+  {
+    "id": "recorte",
+    "titulo": "Recorte de tela",
+    "instrucao": "Aperte [Windows] + [Shift] + [S], recorte um pedaço da tela e cole no Paint com [Ctrl] + [V].",
+    "teclas": ["Windows + Shift + S", "Ctrl + V"],
+    "pergunta": "O que vai acontecer?",
+    "opcoes": [
+      "Desliga a tela",
+      "A tela escurece e você pode recortar uma parte para copiar",
+      "Grava um vídeo",
+      "Fecha o Paint"
+    ],
+    "correta": "b",
+    "explicacao": "É a ferramenta de captura, ótima para fazer prints de partes da tela."
+  },
+  {
+    "id": "gerenciador",
+    "titulo": "Gerenciador de Tarefas",
+    "instrucao": "Aperte [Ctrl] + [Shift] + [Esc].",
+    "teclas": ["Ctrl + Shift + Esc"],
+    "pergunta": "O que o Gerenciador de Tarefas mostra?",
+    "opcoes": [
+      "As fotos do computador",
+      "Os programas abertos e quanto de memória e processador cada um usa",
+      "A lista de senhas",
+      "A previsão do tempo"
+    ],
+    "correta": "b",
+    "explicacao": "Ele mostra o que está pesando no computador e permite fechar programas travados."
+  },
+  {
+    "id": "abas-memoria",
+    "titulo": "Abas e memória",
+    "instrucao": "No Gerenciador de Tarefas, anote a memória usada pelo navegador, abra 10 abas de sites e olhe de novo.",
+    "teclas": [],
+    "pergunta": "A memória usada pelo navegador vai:",
+    "opcoes": [
+      "Diminuir",
+      "Ficar exatamente igual",
+      "Aumentar"
+    ],
+    "correta": "c",
+    "explicacao": "Cada aba usa memória, por isso muitas abas deixam o computador lento."
+  },
+  {
+    "id": "velocidade-programas",
+    "titulo": "Velocidade dos programas",
+    "instrucao": "Cronometre quanto tempo leva para abrir o Bloco de Notas, o Word e o navegador.",
+    "teclas": [],
+    "pergunta": "Qual abre mais rápido?",
+    "opcoes": [
+      "Bloco de Notas",
+      "Word",
+      "Navegador"
+    ],
+    "correta": "a",
+    "explicacao": "Programas mais simples carregam menos coisas e abrem mais rápido."
+  },
+  {
+    "id": "png-jpg",
+    "titulo": "PNG contra JPG",
+    "instrucao": "Faça um desenho simples no Paint e salve como PNG e como JPG. Clique com o botão direito em cada arquivo, em Propriedades, e compare o tamanho.",
+    "teclas": [],
+    "pergunta": "Para um desenho simples com poucas cores, qual arquivo costuma ficar menor?",
+    "opcoes": [
+      "PNG",
+      "JPG",
+      "Sempre iguais"
+    ],
+    "correta": "a",
+    "explicacao": "O PNG comprime muito bem áreas de cor lisa. O JPG é melhor para fotos.",
+    "notaProfessor": "Se o resultado na máquina for diferente, aceite o registro do aluno."
+  },
+  {
+    "id": "dividir-tela",
+    "titulo": "Dividir a tela",
+    "instrucao": "Arraste uma janela até a borda esquerda da tela e outra até a borda direita.",
+    "teclas": [],
+    "pergunta": "O que vai acontecer?",
+    "opcoes": [
+      "As janelas fecham",
+      "Cada janela encaixa ocupando metade da tela",
+      "O computador reinicia",
+      "As janelas ficam invisíveis"
+    ],
+    "correta": "b",
+    "explicacao": "Serve para comparar duas coisas lado a lado, como uma pesquisa e um texto."
+  }
+]

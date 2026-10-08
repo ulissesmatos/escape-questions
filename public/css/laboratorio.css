@@ -1,0 +1,2231 @@
+/* =========================================================
+   Laboratório de Experimentos (aluno, telão e professor).
+   Usa o design system do site (base.css + components.css),
+   com cor de destaque própria e letras maiores: os alunos
+   leem de longe, nos PCs do laboratório.
+   ========================================================= */
+
+body[data-page="laboratorio"] {
+  --accent: #db2777;
+  --accent-dark: #be185d;
+  --accent-light: #fdf2f8;
+  --accent-ring: rgba(219, 39, 119, 0.2);
+
+  --cor-a: #2563eb;
+  --cor-b: #16a34a;
+  --cor-c: #ea580c;
+  --cor-d: #9333ea;
+
+  font-size: 17px;
+}
+
+.lab-container {
+  max-width: 920px;
+}
+
+.rotulo-grande {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 18px 0 8px;
+}
+
+.bloco-rotulo {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.dica {
+  color: var(--text-soft);
+  font-size: 0.88rem;
+}
+
+.btn-link {
+  border: none;
+  background: none;
+  color: var(--accent-dark);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+/* ---------- Teclas desenhadas ---------- */
+
+.tecla {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--fonte);
+  font-size: 0.95em;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text);
+  background: linear-gradient(#ffffff, #eef0f6);
+  border: 1.5px solid #c5cad8;
+  border-bottom-width: 4px;
+  border-radius: 8px;
+  padding: 5px 10px 4px;
+  margin: 0 2px;
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+
+.tecla-logo {
+  color: #0078d4;
+  font-size: 1.05em;
+}
+
+.atalho {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 1.6rem;
+}
+
+.atalho .tecla {
+  padding: 10px 18px 8px;
+  border-radius: 12px;
+  border-bottom-width: 6px;
+  box-shadow: 0 6px 14px rgba(23, 26, 51, 0.08);
+}
+
+.atalho-mais {
+  font-weight: 800;
+  color: var(--text-soft);
+}
+
+/* Letra da opção (A, B, C, D), cada uma com sua cor */
+.opcao-letra {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: white;
+  background: var(--cor-a);
+  flex-shrink: 0;
+}
+
+.opcao-letra[data-letra="b"] {
+  background: var(--cor-b);
+}
+
+.opcao-letra[data-letra="c"] {
+  background: var(--cor-c);
+}
+
+.opcao-letra[data-letra="d"] {
+  background: var(--cor-d);
+}
+
+/* ---------- Aviso de conexão ---------- */
+
+.aviso-conexao {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 300;
+  background: #991b1b;
+  color: white;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 999px;
+  box-shadow: 0 10px 30px rgba(16, 18, 38, 0.3);
+  animation: aparecer 0.2s ease;
+}
+
+/* ---------- Cronômetro ---------- */
+
+.cronometro {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--text);
+  color: white;
+  border-radius: 14px;
+  padding: 8px 16px;
+  font-weight: 800;
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.cronometro-icone {
+  font-size: 0.8em;
+}
+
+.cronometro.acabando {
+  background: var(--erro);
+  animation: pulsar 1s ease-in-out infinite;
+}
+
+.cronometro.pausado {
+  background: var(--text-soft);
+}
+
+.cronometro.pausado .cronometro-valor::after {
+  content: " ⏸";
+}
+
+.cronometro-grande {
+  font-size: 2.6rem;
+  padding: 12px 24px;
+  border-radius: 18px;
+}
+
+@keyframes pulsar {
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+/* ---------- Entrada do aluno ---------- */
+
+.entrada {
+  display: grid;
+  place-items: center;
+  padding: 8px 0 24px;
+}
+
+.entrada-card {
+  width: min(480px, 100%);
+  padding: 32px 28px;
+  text-align: center;
+  background: linear-gradient(180deg, var(--accent-light), white 140px);
+}
+
+.entrada-card label {
+  text-align: left;
+}
+
+.entrada-emoji {
+  font-size: 3.6rem;
+  line-height: 1;
+  margin-bottom: 8px;
+  animation: balancar 3s ease-in-out infinite;
+}
+
+@keyframes balancar {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(6deg); }
+}
+
+.entrada-card h1 {
+  margin: 0 0 8px;
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.entrada-texto {
+  color: var(--text-muted);
+  margin: 0 0 8px;
+}
+
+.entrada-card .erro-msg.mostrar,
+.entrada-card .sucesso-msg.mostrar {
+  margin: 14px 0 0;
+  text-align: left;
+}
+
+.entrada-card .btn {
+  margin-top: 20px;
+}
+
+input.campo-codigo {
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: 0.35em;
+  text-align: center;
+  text-transform: uppercase;
+  padding: 12px 0 12px 0.35em;
+  min-height: 72px;
+  border-width: 2.5px;
+}
+
+input.campo-nome {
+  font-size: 1.25rem;
+  min-height: 56px;
+}
+
+/* ---------- Partida: barra do topo ---------- */
+
+.partida-topo {
+  position: sticky;
+  top: 8px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  box-shadow: var(--sombra-media);
+}
+
+.partida-quem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.partida-quem strong {
+  display: block;
+  font-size: 1.1rem;
+}
+
+.partida-avatar {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.partida-sala {
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.partida-stats {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-2);
+  border-radius: 14px;
+  padding: 6px 14px 6px 10px;
+}
+
+.stat-pontos {
+  background: #fff7d6;
+}
+
+.stat-posicao {
+  background: var(--accent-light);
+}
+
+.stat-icone {
+  font-size: 1.5rem;
+}
+
+.stat-numero {
+  display: block;
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-rotulo {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .partida-stats {
+    margin-left: 0;
+    width: 100%;
+  }
+  .stat {
+    flex: 1;
+    padding: 6px 8px;
+  }
+}
+
+/* ---------- Pausa ---------- */
+
+.overlay-pausa {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(16, 18, 38, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.overlay-pausa-card {
+  background: white;
+  border-radius: 24px;
+  padding: 36px 32px;
+  text-align: center;
+  max-width: 420px;
+  display: grid;
+  gap: 6px;
+}
+
+.overlay-icone {
+  font-size: 3.6rem;
+}
+
+.overlay-pausa-card strong {
+  font-size: 1.8rem;
+}
+
+.overlay-pausa-card p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+/* ---------- Sala de espera ---------- */
+
+.espera {
+  text-align: center;
+  padding: 40px 28px;
+}
+
+.espera-emoji {
+  font-size: 4rem;
+  animation: balancar 3s ease-in-out infinite;
+}
+
+.espera h2 {
+  font-size: 1.8rem;
+  margin: 8px 0;
+}
+
+.espera > p {
+  color: var(--text-muted);
+  margin: 0 0 6px;
+}
+
+.espera-colegas {
+  font-weight: 800;
+  color: var(--accent-dark) !important;
+}
+
+.espera-regras {
+  list-style: none;
+  padding: 0;
+  margin: 24px auto 0;
+  max-width: 560px;
+  display: grid;
+  gap: 8px;
+  text-align: left;
+}
+
+.espera-regras li {
+  background: var(--surface-2);
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
+/* ---------- Cartão da tarefa ---------- */
+
+.tarefa-card {
+  padding: 24px;
+  margin-bottom: 20px;
+  border-top: 6px solid var(--accent);
+  scroll-margin-top: 120px;
+}
+
+.tarefa-card textarea {
+  scroll-margin-top: 140px;
+}
+
+.tarefa-cabecalho {
+  margin-bottom: 14px;
+}
+
+.tarefa-numero {
+  display: inline-block;
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  font-weight: 800;
+  font-size: 0.85rem;
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+
+.tarefa-titulo {
+  font-size: clamp(1.5rem, 3.5vw, 2rem);
+  font-weight: 800;
+  margin: 8px 0 0;
+}
+
+.passos {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 22px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.passo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-2);
+  border-radius: 12px;
+  padding: 8px 10px;
+  color: var(--text-soft);
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.passo-bolinha {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: white;
+  flex-shrink: 0;
+}
+
+.passo.feito {
+  background: var(--sucesso-bg);
+  color: var(--sucesso);
+}
+
+.passo.feito .passo-bolinha {
+  background: var(--sucesso-forte);
+  color: white;
+}
+
+.passo.atual {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 4px 14px var(--accent-ring);
+}
+
+@media (max-width: 640px) {
+  .passo-nome {
+    display: none;
+  }
+  .passo {
+    justify-content: center;
+  }
+}
+
+.etapa {
+  display: grid;
+  gap: 14px;
+}
+
+.etapa-acoes {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.instrucao-texto {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.9;
+  margin: 0;
+}
+
+.instrucao-atalhos {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.instrucao-compacta .instrucao-texto {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.bloco-voce-vai,
+.bloco-faca {
+  border-radius: 16px;
+  padding: 16px 18px;
+}
+
+.bloco-voce-vai {
+  background: var(--surface-2);
+}
+
+.bloco-faca {
+  background: #eef6ff;
+  border: 2px dashed #93c5fd;
+  padding: 22px;
+}
+
+.bloco-faca .instrucao-texto {
+  font-size: 1.4rem;
+}
+
+.alerta-calma {
+  margin: 0;
+  background: #fff7d6;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 600;
+}
+
+.pergunta {
+  font-size: 1.35rem;
+  margin: 6px 0 0;
+}
+
+.aposta-opcoes {
+  display: grid;
+  gap: 10px;
+}
+
+@media (min-width: 760px) {
+  .aposta-opcoes {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.aposta-opcao {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  background: white;
+  border: 2.5px solid var(--border-strong);
+  border-radius: 16px;
+  padding: 14px 16px;
+  min-height: 72px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.aposta-opcao:hover:not(:disabled) {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.aposta-opcao[aria-checked="true"] {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  box-shadow: 0 0 0 4px var(--accent-ring);
+}
+
+.aposta-opcao:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.aposta-opcao .opcao-letra {
+  width: 40px;
+  height: 40px;
+  font-size: 1.15rem;
+}
+
+.aviso-bloqueio {
+  margin: 0;
+  background: var(--bloqueado-bg);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.minha-aposta {
+  background: var(--accent-light);
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-weight: 700;
+}
+
+.minha-aposta > span:last-child {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lembrete summary {
+  cursor: pointer;
+  color: var(--accent-dark);
+  font-weight: 700;
+}
+
+.lembrete .instrucao {
+  margin-top: 8px;
+  background: var(--surface-2);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.tarefa-card textarea {
+  font-size: 1.1rem;
+  border-width: 2px;
+  background: var(--resposta-bg);
+  border-color: var(--resposta-border);
+}
+
+.tarefa-card textarea:focus {
+  border-color: var(--resposta-border-focus);
+  box-shadow: 0 0 0 4px rgba(217, 154, 0, 0.18);
+}
+
+.tarefa-card .rotulo-grande {
+  margin: 4px 0 -6px;
+}
+
+.linha-contador {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: -6px;
+}
+
+.contador {
+  font-weight: 800;
+  color: var(--resposta-text);
+}
+
+.contador.ok {
+  color: var(--sucesso);
+}
+
+/* Resultado */
+
+.veredito {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-radius: 18px;
+  padding: 18px 20px;
+  animation: entrarModal 0.4s ease;
+}
+
+.veredito strong {
+  display: block;
+  font-size: 1.5rem;
+}
+
+.veredito-icone {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.veredito-acertou {
+  background: var(--sucesso-bg);
+  border: 2px solid var(--sucesso-border);
+  color: #14532d;
+}
+
+.veredito-acertou .veredito-icone {
+  animation: pular 0.8s ease 2;
+}
+
+.veredito-errou {
+  background: #fff7ed;
+  border: 2px solid #fed7aa;
+  color: #7c2d12;
+}
+
+.veredito-tempo {
+  background: var(--surface-2);
+  border: 2px solid var(--border-strong);
+}
+
+@keyframes pular {
+  50% {
+    transform: translateY(-10px) scale(1.15);
+  }
+}
+
+.revelacao {
+  background: #f0fdf4;
+  border-radius: 16px;
+  padding: 16px 18px;
+}
+
+.revelacao-certa {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin: 0 0 10px;
+}
+
+.revelacao .opcao-letra {
+  background: var(--sucesso-forte) !important;
+}
+
+.revelacao-explicacao {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.pontos-ganhos {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.pontos-total {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #a16207;
+  background: #fff7d6;
+  border-radius: 14px;
+  padding: 6px 16px;
+}
+
+.pontos-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chip-ponto {
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.meu-registro {
+  margin: 0;
+  border-left: 4px solid var(--border-strong);
+  padding: 4px 0 4px 14px;
+}
+
+.meu-registro p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.explicacao-form,
+.explicacao-enviada {
+  border-top: 1.5px dashed var(--border-strong);
+  padding-top: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.explicacao-form textarea {
+  background: white;
+  border-color: var(--border-strong);
+}
+
+.explicacao-enviada p {
+  margin: 0;
+}
+
+.explicacao-status {
+  font-weight: 800;
+}
+
+.explicacao-aprovada .explicacao-status {
+  color: var(--sucesso);
+}
+
+.explicacao-pendente .explicacao-status {
+  color: var(--resposta-text);
+}
+
+/* ---------- Rodadas e modo livre ---------- */
+
+.faixa-parcial {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--text);
+  color: white;
+  border-radius: 18px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  font-size: 1.05rem;
+}
+
+.faixa-parcial > span {
+  font-size: 2rem;
+}
+
+.status-rodada {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-weight: 700;
+  margin: 0 0 14px;
+}
+
+.secao-ranking {
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.secao-ranking h2 {
+  margin: 0 0 12px;
+}
+
+.titulo-secao {
+  font-size: 1.2rem;
+  margin: 0 0 10px;
+}
+
+.nav-tarefas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.nav-tarefa {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: inherit;
+  text-align: left;
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 8px 10px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.nav-tarefa:hover {
+  border-color: var(--accent);
+}
+
+.nav-tarefa.ativa {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+.nav-tarefa.feita {
+  background: var(--sucesso-bg);
+  border-color: var(--sucesso-border);
+}
+
+.nav-numero {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-2);
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.nav-titulo {
+  font-size: 0.85rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+/* ---------- Ranking ---------- */
+
+.ranking-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.ranking-linha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface-2);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 1.05rem;
+  position: relative;
+}
+
+.ranking-top {
+  background: #fff7d6;
+}
+
+.ranking-eu {
+  background: var(--accent-light);
+  outline: 2.5px solid var(--accent);
+}
+
+.ranking-posicao {
+  width: 34px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 1.1em;
+  flex-shrink: 0;
+}
+
+.ranking-nome {
+  flex: 1;
+  font-weight: 700;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ranking-pontos {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.ranking-subiu {
+  color: var(--sucesso-forte);
+  font-weight: 800;
+  opacity: 0;
+}
+
+.ranking-linha.subiu {
+  animation: brilhar 1.2s ease 2;
+}
+
+.ranking-linha.subiu .ranking-subiu {
+  opacity: 1;
+  animation: subir 0.6s ease infinite alternate;
+}
+
+@keyframes brilhar {
+  50% {
+    background: #dcfce7;
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.25);
+  }
+}
+
+@keyframes subir {
+  to {
+    transform: translateY(-4px);
+  }
+}
+
+/* ---------- Pódio ---------- */
+
+.podio {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: 12px;
+  max-width: 640px;
+  margin: 12px auto 0;
+}
+
+.podio-lugar {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 4px;
+  animation: entrarModal 0.6s ease both;
+}
+
+.podio-1 {
+  animation-delay: 0.6s;
+}
+
+.podio-2 {
+  animation-delay: 0.3s;
+}
+
+.podio-medalha {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.podio-1 .podio-medalha {
+  font-size: 4rem;
+}
+
+.podio-nome {
+  font-size: 1.2rem;
+  overflow-wrap: anywhere;
+}
+
+.podio-pontos {
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.podio-degrau {
+  width: 100%;
+  margin-top: 6px;
+  border-radius: 14px 14px 0 0;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.podio-1 .podio-degrau {
+  height: 160px;
+  background: linear-gradient(#facc15, #eab308);
+}
+
+.podio-2 .podio-degrau {
+  height: 110px;
+  background: linear-gradient(#cbd5e1, #94a3b8);
+}
+
+.podio-3 .podio-degrau {
+  height: 80px;
+  background: linear-gradient(#fdba74, #ea580c);
+}
+
+.final {
+  padding: 28px 20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.final-titulo {
+  font-size: 2rem;
+  margin: 0 0 8px;
+}
+
+.final-voce {
+  display: grid;
+  gap: 4px;
+  margin-top: 24px;
+  background: var(--accent-light);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.final-voce strong {
+  font-size: 1.4rem;
+}
+
+.final-voce p {
+  margin: 6px 0 0;
+  font-weight: 700;
+}
+
+/* =========================================================
+   Telão (projetor): fundo colorido, letras enormes
+   ========================================================= */
+
+body.pagina-telao {
+  padding: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at 10% 0%, #f472b6 0%, transparent 45%),
+    radial-gradient(circle at 100% 100%, #818cf8 0%, transparent 50%), #4c1d95;
+  overflow-x: hidden;
+}
+
+.telao {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 2vh;
+  padding: 2.5vh 2.5vw;
+}
+
+.telao-topo {
+  display: flex;
+  align-items: center;
+  gap: 2vw;
+  color: white;
+}
+
+.telao-marca {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: clamp(1.2rem, 2vw, 2rem);
+  font-weight: 800;
+}
+
+.telao-entre {
+  margin-left: auto;
+  font-size: clamp(1rem, 1.6vw, 1.6rem);
+  opacity: 0.95;
+}
+
+.telao-codigo {
+  display: grid;
+  justify-items: center;
+  background: white;
+  color: var(--text);
+  border-radius: 18px;
+  padding: 8px 22px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.telao-codigo span {
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.telao-codigo strong {
+  font-size: clamp(2.2rem, 4.5vw, 4.5rem);
+  letter-spacing: 0.15em;
+  line-height: 1;
+  color: var(--accent-dark);
+}
+
+.telao-grade {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(300px, 1fr);
+  gap: 2vw;
+  min-height: 0;
+}
+
+.telao-principal {
+  display: flex;
+  flex-direction: column;
+  gap: 2vh;
+  min-width: 0;
+}
+
+.telao-principal-final {
+  grid-column: 1 / -1;
+}
+
+.telao-bloco {
+  padding: 3vh 3vw;
+  border: none;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
+.telao-etiqueta {
+  display: inline-block;
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  font-weight: 800;
+  font-size: clamp(1rem, 1.4vw, 1.4rem);
+  border-radius: 999px;
+  padding: 6px 16px;
+}
+
+.telao-titulo-gigante {
+  font-size: clamp(2.2rem, 4.6vw, 4.8rem);
+  font-weight: 800;
+  margin: 1.5vh 0;
+  line-height: 1.1;
+}
+
+.telao-tarefa-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.telao-atalhos {
+  display: flex;
+  gap: 2vw;
+  flex-wrap: wrap;
+  margin: 2vh 0;
+}
+
+.telao-atalhos .atalho {
+  font-size: clamp(1.8rem, 3.4vw, 3.6rem);
+}
+
+.telao-instrucao {
+  font-size: clamp(1.3rem, 2.2vw, 2.2rem);
+  font-weight: 600;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.telao-lembrete {
+  margin: 2vh 0 0;
+  font-size: clamp(1.1rem, 1.6vw, 1.6rem);
+  font-weight: 700;
+  color: var(--accent-dark);
+}
+
+.telao-concluiram {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 2vh 2vw;
+  color: white;
+}
+
+.telao-concluiram-texto {
+  font-size: clamp(1.3rem, 2.2vw, 2.2rem);
+  margin-bottom: 1vh;
+}
+
+.telao-concluiram-texto strong {
+  font-size: 1.4em;
+}
+
+.telao-barra {
+  display: block;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+}
+
+.telao-barra > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #4ade80, #22c55e);
+  transition: width 0.6s ease;
+}
+
+.telao-espera .telao-passo {
+  font-size: clamp(1.4rem, 2.6vw, 2.6rem);
+  margin: 1vh 0;
+  font-weight: 600;
+}
+
+.telao-codigo-inline {
+  color: var(--accent-dark);
+  letter-spacing: 0.12em;
+}
+
+.telao-contagem {
+  font-size: clamp(1.2rem, 2vw, 2rem);
+  font-weight: 800;
+  margin: 2vh 0 0;
+  color: var(--text-muted);
+}
+
+.telao-nomes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.telao-nome-chip {
+  background: white;
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-weight: 800;
+  font-size: clamp(1rem, 1.4vw, 1.4rem);
+  animation: entrarModal 0.4s ease;
+}
+
+.telao-lateral {
+  padding: 2.5vh 1.8vw;
+  border: none;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
+.telao-lateral-titulo {
+  font-size: clamp(1.3rem, 2vw, 2rem);
+  margin: 0 0 1.5vh;
+}
+
+.telao-lateral .ranking-linha {
+  font-size: clamp(1rem, 1.6vw, 1.6rem);
+  padding: 1vh 1vw;
+}
+
+.telao-vazio {
+  color: var(--text-muted);
+}
+
+.telao-progresso {
+  list-style: none;
+  padding: 0;
+  margin: 1vh 0 0;
+  display: grid;
+  gap: 1.2vh;
+}
+
+.telao-progresso li {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) 3ch;
+  align-items: center;
+  gap: 1vw;
+  font-size: clamp(1rem, 1.5vw, 1.5rem);
+  font-weight: 700;
+}
+
+.telao-progresso .telao-barra {
+  background: var(--surface-2);
+}
+
+.telao-final {
+  background: white;
+  border-radius: var(--raio-lg);
+  text-align: center;
+}
+
+.telao-final .podio {
+  max-width: 1000px;
+}
+
+.telao-final .podio-nome {
+  font-size: clamp(1.5rem, 2.6vw, 2.8rem);
+}
+
+.telao-final .podio-pontos {
+  font-size: clamp(1rem, 1.6vw, 1.6rem);
+}
+
+.telao-final .podio-medalha {
+  font-size: clamp(3rem, 6vw, 6rem);
+}
+
+.telao-final .podio-1 .podio-degrau {
+  height: 30vh;
+}
+
+.telao-final .podio-2 .podio-degrau {
+  height: 21vh;
+}
+
+.telao-final .podio-3 .podio-degrau {
+  height: 15vh;
+}
+
+.telao-sobreposicao {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 4vh 4vw;
+  background: rgba(30, 12, 70, 0.88);
+  backdrop-filter: blur(6px);
+  animation: aparecerOverlay 0.3s ease;
+}
+
+.telao-destaques {
+  width: 100%;
+  color: white;
+  text-align: center;
+}
+
+.telao-destaques h2 {
+  font-size: clamp(2rem, 4vw, 4rem);
+  margin: 0 0 4vh;
+}
+
+.telao-destaques-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2vw;
+}
+
+.telao-destaque {
+  margin: 0;
+  padding: 3vh 2vw;
+  color: var(--text);
+  text-align: left;
+  animation: entrarModal 0.5s ease both;
+}
+
+.telao-destaque:nth-child(2) {
+  animation-delay: 0.25s;
+}
+
+.telao-destaque:nth-child(3) {
+  animation-delay: 0.5s;
+}
+
+.telao-destaque blockquote {
+  margin: 0 0 2vh;
+  font-size: clamp(1.2rem, 2vw, 2rem);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.telao-destaque figcaption {
+  font-size: clamp(1rem, 1.5vw, 1.5rem);
+  color: var(--text-muted);
+}
+
+.telao-destaque figcaption strong {
+  color: var(--accent-dark);
+}
+
+.telao-pausa {
+  display: grid;
+  justify-items: center;
+  color: white;
+  text-align: center;
+}
+
+.telao-pausa span {
+  font-size: clamp(4rem, 10vw, 9rem);
+}
+
+.telao-pausa strong {
+  font-size: clamp(2.5rem, 6vw, 6rem);
+}
+
+.telao-pausa p {
+  font-size: clamp(1.4rem, 2.4vw, 2.4rem);
+  margin: 1vh 0 0;
+}
+
+.telao-tela-cheia {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  opacity: 0.5;
+  z-index: 60;
+}
+
+.telao-tela-cheia:hover {
+  opacity: 1;
+}
+
+.telao-sem-sala {
+  min-height: 100vh;
+  padding: 16px;
+}
+
+@media (max-width: 900px) {
+  .telao-grade {
+    grid-template-columns: 1fr;
+  }
+  .telao-topo {
+    flex-wrap: wrap;
+  }
+  .telao-entre {
+    margin-left: 0;
+    order: 3;
+    width: 100%;
+  }
+  .telao-codigo {
+    margin-left: auto;
+  }
+}
+
+/* =========================================================
+   Painel do professor
+   ========================================================= */
+
+body.pagina-professor {
+  padding: 0 0 48px;
+  font-size: 16px;
+}
+
+.prof-topo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  backdrop-filter: blur(8px);
+}
+
+.prof-marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.6rem;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.prof-marca strong,
+.prof-marca small {
+  display: block;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.prof-marca small {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.prof-menu {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.prof-secao {
+  padding: 22px;
+}
+
+.prof-secao h2 {
+  margin: 0 0 16px;
+  font-size: 1.25rem;
+}
+
+.prof-lobby {
+  display: grid;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (min-width: 960px) {
+  .prof-lobby {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  }
+}
+
+.form-criar {
+  display: grid;
+  gap: 18px;
+}
+
+.form-criar fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.modos {
+  display: grid;
+  gap: 10px;
+}
+
+.modo-opcao {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 2px solid var(--border-strong);
+  border-radius: 16px;
+  padding: 14px 16px;
+  cursor: pointer;
+  margin: 0;
+  font-weight: 500;
+}
+
+.modo-opcao:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+.modo-opcao input {
+  accent-color: var(--accent);
+  width: 20px;
+  height: 20px;
+}
+
+.modo-opcao strong {
+  font-size: 1.05rem;
+}
+
+.modo-icone {
+  font-size: 1.8rem;
+}
+
+.campo-curto {
+  max-width: 140px;
+}
+
+.tarefas-checks {
+  display: grid;
+  gap: 6px;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.tarefa-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.tarefa-check input {
+  accent-color: var(--accent);
+  width: 18px;
+  height: 18px;
+}
+
+.salas-lista {
+  display: grid;
+  gap: 10px;
+}
+
+.sala-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.sala-item-codigo {
+  font-size: 1.6rem;
+  letter-spacing: 0.12em;
+  color: var(--accent-dark);
+}
+
+.sala-item-info {
+  display: grid;
+  flex: 1;
+  min-width: 180px;
+  font-weight: 600;
+}
+
+/* Sala aberta */
+
+.painel-sala {
+  display: grid;
+  gap: 16px;
+}
+
+.painel-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 18px 22px;
+}
+
+.painel-codigo {
+  display: grid;
+  justify-items: center;
+  background: var(--accent-light);
+  border-radius: 16px;
+  padding: 8px 20px;
+}
+
+.painel-codigo span {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-dark);
+}
+
+.painel-codigo strong {
+  font-size: 2.6rem;
+  letter-spacing: 0.15em;
+  line-height: 1.1;
+  color: var(--accent-dark);
+}
+
+.painel-info {
+  display: grid;
+  gap: 4px;
+  flex: 1;
+  min-width: 240px;
+  font-weight: 600;
+}
+
+.painel-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.fase-badge {
+  justify-self: start;
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.fase-tarefa,
+.fase-livre {
+  background: var(--sucesso-bg);
+  color: var(--sucesso);
+}
+
+.fase-parcial {
+  background: #fff7d6;
+  color: #a16207;
+}
+
+.fase-final {
+  background: var(--text);
+  color: white;
+}
+
+.painel-controles {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.painel-controles-principal,
+.painel-controles-extra {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Abas (mesmo componente Tabs da área do professor) */
+
+.abas {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid var(--border);
+  overflow-x: auto;
+}
+
+.aba {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 10px 16px;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.aba:hover {
+  color: var(--text);
+}
+
+.aba.ativa {
+  color: var(--accent-dark);
+  border-bottom-color: var(--accent);
+}
+
+.aba-contador {
+  background: var(--accent);
+  color: white;
+  font-size: 0.75rem;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+/* Registros ao vivo */
+
+.aovivo {
+  display: grid;
+  gap: 14px;
+}
+
+.aovivo-tarefa {
+  padding: 18px 20px;
+  display: grid;
+  gap: 12px;
+}
+
+.aovivo-topo {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.seletor-tarefa {
+  max-width: 420px;
+  font-weight: 700;
+}
+
+.aovivo-contagem {
+  font-weight: 800;
+  margin-left: auto;
+}
+
+.aovivo-instrucao {
+  margin: 0;
+  line-height: 1.9;
+}
+
+.aovivo-apostas {
+  display: grid;
+  gap: 6px;
+}
+
+.aposta-barra {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 6px 12px 6px 6px;
+}
+
+.aposta-barra.correta {
+  background: var(--sucesso-bg);
+  outline: 2px solid var(--sucesso-border);
+}
+
+.aposta-barra.correta .aposta-barra-texto::after {
+  content: "  ✓ correta";
+  color: var(--sucesso);
+  font-weight: 800;
+}
+
+.aposta-barra-texto {
+  flex: 1;
+  font-weight: 600;
+}
+
+.aposta-barra-n {
+  font-size: 1.2rem;
+}
+
+.nota-professor {
+  margin: 0;
+  background: #fff7d6;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.registros-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.registro-item {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 16px;
+}
+
+.registro-pendente {
+  background: transparent;
+  border-style: dashed;
+  color: var(--text-muted);
+}
+
+.registro-destaque {
+  border: 2px solid #facc15;
+  background: #fffbeb;
+}
+
+.registro-cabeca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.registro-status {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.registro-texto {
+  margin: 8px 0 0;
+  font-size: 1.05rem;
+  white-space: pre-wrap;
+}
+
+.registro-explicacao {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+}
+
+.ponto-online {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--bloqueado);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.ponto-online.on {
+  background: var(--sucesso-forte);
+  box-shadow: 0 0 0 3px var(--sucesso-bg);
+}
+
+.aposta-chip {
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.aposta-chip.certa {
+  background: var(--sucesso-bg);
+  color: var(--sucesso);
+}
+
+.aposta-chip.errada {
+  background: var(--erro-bg);
+  color: var(--erro);
+}
+
+.btn-estrela {
+  margin-left: auto;
+  border: 1.5px solid var(--border-strong);
+  background: white;
+  border-radius: 10px;
+  width: 42px;
+  height: 38px;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: #a16207;
+}
+
+.btn-estrela.ativa {
+  background: #fef3c7;
+  border-color: #facc15;
+}
+
+/* Explicações */
+
+.explicacoes-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.explicacao-item {
+  padding: 14px 18px;
+  display: grid;
+  gap: 6px;
+}
+
+.explicacao-item.explicacao-pendente {
+  border-left: 5px solid #facc15;
+}
+
+.explicacao-item.explicacao-aprovada {
+  border-left: 5px solid var(--sucesso-forte);
+}
+
+.explicacao-cabeca {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.explicacao-texto {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.explicacao-item p {
+  margin: 0;
+}
+
+.explicacao-acoes {
+  display: flex;
+  gap: 8px;
+}
+
+.status-chip {
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-weight: 800;
+  font-size: 0.8rem;
+  background: var(--surface-2);
+}
+
+.status-pendente {
+  background: #fef3c7;
+  color: #a16207;
+}
+
+.status-aprovada {
+  background: var(--sucesso-bg);
+  color: var(--sucesso);
+}
+
+/* Tabelas */
+
+.tabela-wrap {
+  overflow-x: auto;
+  padding: 6px;
+}
+
+.tabela-lab {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabela-lab th,
+.tabela-lab td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabela-lab th {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.tabela-lab tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.linha-podio {
+  background: #fffbeb;
+}
+
+.acoes-linha {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.btn-mini-perigo {
+  color: var(--erro);
+  border-color: var(--erro-border);
+}
+
+.legenda {
+  margin: 8px 12px;
+}
+
+.form-renomear {
+  display: grid;
+  gap: 10px;
+}
+
+/* Editor de tarefas */
+
+.editor-tarefas {
+  display: grid;
+  gap: 16px;
+}
+
+.editor-topo h2 {
+  margin-bottom: 8px;
+}
+
+.editor-origem {
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.editor-dicas {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--text-muted);
+  line-height: 1.9;
+}
+
+.editor-lista {
+  display: grid;
+  gap: 14px;
+}
+
+.editor-tarefa {
+  margin: 0;
+  padding: 18px 20px;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.editor-legenda {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  float: left;
+}
+
+.editor-ordem {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.editor-campo {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  font-weight: 500;
+}
+
+.editor-campo .rotulo {
+  margin: 0;
+}
+
+.editor-opcoes {
+  display: grid;
+  gap: 6px;
+}
+
+.editor-opcao {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.editor-correta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.editor-correta input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--sucesso-forte);
+}
+
+.editor-barra {
+  position: sticky;
+  bottom: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: var(--sombra-media);
+}

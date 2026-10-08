@@ -211,6 +211,20 @@ const COMANDOS = [
     ordem INTEGER NOT NULL DEFAULT 0
   )`,
   `CREATE INDEX IF NOT EXISTS pc_submissoes_missao_idx ON pc_submissoes (missao_id, criado_em DESC)`,
+
+  // ---------------- Laboratório de Experimentos ----------------
+  // A partida roda em memória; aqui fica uma cópia para sobreviver a reinícios
+  `CREATE TABLE IF NOT EXISTS lab_salas (
+    codigo TEXT PRIMARY KEY,
+    dados JSONB NOT NULL,
+    atualizado_em TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`,
+  // Tarefas editadas no painel (sem linha = vale o tasks.json)
+  `CREATE TABLE IF NOT EXISTS lab_config (
+    chave TEXT PRIMARY KEY,
+    valor JSONB NOT NULL,
+    atualizado_em TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`,
 ];
 
 async function garantirSchema(db) {

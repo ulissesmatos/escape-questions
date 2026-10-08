@@ -13,10 +13,12 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "pg": "^8.12.0",
-    "phaser": "^4.2.1"
+    "phaser": "^4.2.1",
+    "socket.io": "^4.8.4"
   },
   "devDependencies": {
     "@neutralinojs/neu": "^11.7.2",
-    "esbuild": "^0.28.2"
+    "esbuild": "^0.28.2",
+    "socket.io-client": "^4.8.4"
   }
 }

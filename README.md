@@ -29,6 +29,11 @@ professor gerencia tudo pela área `/admin.html`.
   regar, repetir, "se", "repita até") e o robô executa na horta em pixel art.
   São 18 fases em 4 mundos. A partir do mundo 3 a horta é sorteada e o mesmo
   plano precisa funcionar em 3 hortas, então decorar o caminho não resolve.
+- **Laboratório de Experimentos** (`/laboratorio`): competição em tempo real
+  (Socket.IO). Os alunos entram numa sala com um código de 4 letras, apostam o
+  que vai acontecer, fazem a ação no computador (atalhos de teclado) e
+  registram o que viram. O professor controla pelo painel com PIN e projeta o
+  ranking no telão. Detalhes abaixo.
 
 ## Como rodar
 
@@ -53,6 +58,7 @@ continua valendo.
 | `PORT` | Porta HTTP (padrão 3000) |
 | `SESSION_SECRET` | Opcional. Assina a sessão do professor (se vazio, é derivado da senha) |
 | `ADMIN_SESSION_HOURS` | Opcional. Duração da sessão (padrão 12h) |
+| `PROFESSOR_PIN` | PIN do painel do Laboratório (se vazio, usa o `ADMIN_PASSWORD`) |
 
 ## Arquitetura
 
@@ -90,8 +96,13 @@ public/
   js/pages/escape|hardware|pcbuild/
   js/admin/                   → AdminApp, sessão, seções/abas, editores de pergunta
   fonts/                      → DotGothic16 (fonte do jogo; licença OFL junto)
+  modules/laboratorio/         → Laboratório: Sala (regras e pontos), LaboratorioService
+                                (salas, relógio, salvamento), laboratorioSocket (tempo real),
+                                rotas (PIN e editor), nomes.js (filtro), tasks.json
+  js/pages/laboratorio/       → aluno/, professor/, telao/ + Conexao e comum (teclas, cronômetro, ranking)
 tools/empacotar-oficina.js    → gera a versão da Oficina para baixar (arquivo único)
-test/                         → node:test (tipos de pergunta, motor adaptativo, detector de chute, regras da Oficina e do Robô na Horta)
+test/                         → node:test (tipos de pergunta, motor adaptativo, detector de chute, regras da Oficina,
+                                do Robô na Horta e do Laboratório, e uma partida real com 30 alunos via Socket.IO)
 docs/oficina-sprites.md       → como gerar a arte do jogo no ChatGPT (+ gabaritos em docs/oficina-gabaritos)
 docs/oficina-expansao.md      → proposta do loop de gameplay e das próximas fases do jogo
 ```
@@ -266,6 +277,67 @@ Tudo é medido no servidor, então não dá para burlar pelo navegador:
 Além disso, o servidor confere se o nível e a peça estão liberados antes de
 entregar uma pergunta.
 
+## Laboratório de Experimentos
+
+| Endereço | Para quem |
+| --- | --- |
+| `/laboratorio` | Aluno: código da sala + nome (aceita `?sala=ABCD`) |
+| `/laboratorio/professor` | Professor: PIN, criar sala, controlar a partida |
+| `/laboratorio/telao/ABCD` | Telão para projetar (sem controles; tecla F = tela cheia) |
+
+**Como funciona cada tarefa:** 1. aposta (trava e não muda), 2. ação no
+computador, 3. registro "O que aconteceu de verdade?" (mínimo 15 letras),
+4. resultado: só agora aparecem a resposta certa, a explicação e os pontos. O
+aluno pode mandar "Por que você acha que aconteceu?" para o professor aprovar.
+A resposta certa nunca vai para o navegador do aluno antes do registro: o
+servidor corrige e só então revela.
+
+**Modos:** *Rodadas* (o professor libera uma tarefa por vez, com cronômetro;
+quando o tempo acaba ou todos os presentes registram, aparece o ranking
+parcial) ou *Livre* (todas liberadas, cada um no seu ritmo).
+
+**Pontos:** aposta certa +10, registro enviado +10, velocidade +5/+3/+1 para
+os 3 primeiros a registrar, explicação aprovada +5. Desempate: mais apostas
+certas, depois menor tempo total (o tempo pausado não conta).
+
+**Painel:** pausar/retomar, +1 minuto, encerrar a tarefa, registros ao vivo
+(com a distribuição das apostas), aprovar explicações, renomear ou expulsar
+aluno, marcar até 3 registros com ⭐ e mostrá-los no telão, exportar CSV.
+
+**Conexão:** o aluno recebe um token guardado no navegador; se a página
+recarregar ou a internet cair, ele volta para a mesma sala com os mesmos pontos
+(o texto que estava digitando também fica salvo). Quem entra atrasado recebe a
+tarefa atual. Nomes repetidos (ignorando acento e maiúsculas) e palavrões são
+bloqueados (`src/modules/laboratorio/nomes.js`).
+
+**Salas:** a partida roda em memória e é salva no PostgreSQL a cada 2 segundos
+(tabela `lab_salas`), então um reinício ou deploy no meio da aula não perde
+nada. Salas paradas há 12 horas são apagadas.
+
+### Como editar as tarefas
+
+- **Pelo painel** (botão "Tarefas"): editar, reordenar, criar e remover. Vale
+  para as próximas salas (as abertas continuam como estavam) e fica salvo no
+  banco. "Restaurar padrão" volta ao arquivo; "Baixar tasks.json" exporta.
+- **No arquivo** `src/modules/laboratorio/tasks.json` (padrão do projeto):
+
+```json
+{
+  "id": "desfazer",
+  "titulo": "Desfazer",
+  "instrucao": "No Bloco de Notas, escreva uma frase, apague tudo e aperte [Ctrl] + [Z].",
+  "teclas": ["Ctrl + Z"],
+  "pergunta": "O que vai acontecer?",
+  "opcoes": ["Apaga o programa", "Salva o arquivo", "Desfaz a última ação e o texto volta", "Nada acontece"],
+  "correta": "c",
+  "explicacao": "Ctrl + Z desfaz a última ação em quase todos os programas.",
+  "notaProfessor": "opcional, só aparece no painel"
+}
+```
+
+Teclas entre colchetes na instrução viram teclas desenhadas; `teclas` são os
+atalhos mostrados em destaque; `correta` é a letra da opção (a, b, c ou d).
+
 ## Área do professor (`/admin.html`)
 
 - **Login:** senha oculta (com botão de mostrar), trocada por um token de
@@ -296,9 +368,14 @@ entregar uma pergunta.
    string interna.
 2. **Aplicação:** + New Resource → Application, apontando para este
    repositório, com Build Pack `Dockerfile` e porta `3000`.
-3. **Variáveis:** `DATABASE_URL` (do passo 1) e `ADMIN_PASSWORD` (senha forte).
-   `SESSION_SECRET` é opcional.
+3. **Variáveis:** `DATABASE_URL` (do passo 1), `ADMIN_PASSWORD` (senha forte)
+   e `PROFESSOR_PIN` (PIN do Laboratório). `SESSION_SECRET` é opcional.
 4. **Deploy.** O servidor cria e atualiza as tabelas sozinho.
+
+O tempo real usa WebSocket na mesma porta 3000; o proxy do Coolify já repassa
+sem configuração extra (se o WebSocket for bloqueado, o Socket.IO cai para
+long polling sozinho). Mantenha **uma réplica** da aplicação: as salas ficam
+na memória do processo.
 
 ## Créditos das imagens
 

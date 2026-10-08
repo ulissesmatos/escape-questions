@@ -8,6 +8,7 @@ const PAGINAS = [
   { pagina: 'monta-pc', href: 'monta-pc.html', icone: '🛒', texto: 'Monte o PC' },
   { pagina: 'oficina', href: 'oficina.html', icone: '🔧', texto: 'Oficina de PCs' },
   { pagina: 'horta', href: 'horta.html', icone: '🤖', texto: 'Horta' },
+  { pagina: 'laboratorio', href: 'laboratorio', icone: '🧪', texto: 'Laboratório' },
 ];
 
 /** Cabeçalho de navegação compartilhado. props: { paginaAtual } */
