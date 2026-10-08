@@ -17,8 +17,7 @@ import { TarefaCard } from './TarefaCard.js';
  */
 export class PartidaView extends Component {
   render() {
-    const { codigo, alunoId } = this.props;
-    this.rascunhos = new SafeStorage('local', `laboratorio:${codigo}:${alunoId}:`);
+    const { codigo } = this.props;
     this.cartoes = new Map();
     this.cena = null;
 
@@ -61,6 +60,7 @@ export class PartidaView extends Component {
   definir(estado) {
     this.estado = estado;
     const { sala, eu } = estado;
+    if (sala.partida !== this.partida) this.comecarPartida(sala.partida);
 
     this.nome.textContent = eu.nome;
     this.pontos.textContent = String(eu.pontos);
@@ -80,6 +80,17 @@ export class PartidaView extends Component {
     } else {
       this.atualizarCena();
     }
+  }
+
+  /** Cada partida tem seus cartões e seus "já fiz" (uma pergunta pode voltar depois que a lista recomeça) */
+  comecarPartida(numero) {
+    const { codigo, alunoId } = this.props;
+    for (const cartao of this.cartoes.values()) cartao.destruir();
+    this.cartoes.clear();
+    this.partida = numero;
+    this.rascunhos = new SafeStorage('local', `laboratorio:${codigo}:${alunoId}:${numero}:`);
+    this.selecionada = null;
+    this.cena = null;
   }
 
   calcularCena() {

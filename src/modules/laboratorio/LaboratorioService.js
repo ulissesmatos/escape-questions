@@ -2,6 +2,7 @@ const { EventEmitter } = require('events');
 const Random = require('../../shared/Random');
 const { Sala, ErroSala, MODOS } = require('./Sala');
 const { nomeOfensivo } = require('./nomes');
+const { sortearTarefas, CATEGORIAS, MISTURADO } = require('./tarefas');
 const { HORAS_GUARDADAS } = require('./repositorios');
 
 // Sem I e O (confundem com 1 e 0 no quadro)
@@ -94,22 +95,59 @@ class LaboratorioService extends EventEmitter {
     throw new ErroSala('Não foi possível gerar um código livre. Feche salas antigas.');
   }
 
-  criarSala({ modo = 'rodadas', duracaoMin = 4, tarefaIds = null } = {}) {
+  /**
+   * Cria uma sala. Com `tarefaIds`, usa exatamente as tarefas marcadas pelo
+   * professor; senão sorteia `quantidade` perguntas do tema (`categoria` ou
+   * "misturado").
+   */
+  criarSala({ modo = 'rodadas', duracaoMin = 4, categoria = MISTURADO, quantidade = 10, tarefaIds = null } = {}) {
     if (!MODOS.includes(modo)) throw new ErroSala('Escolha o modo: rodadas ou livre.');
     const todas = this.catalogo.atuais;
-    const escolhidas = Array.isArray(tarefaIds) && tarefaIds.length ? todas.filter((t) => tarefaIds.includes(t.id)) : todas;
+    let escolhidas;
+    if (Array.isArray(tarefaIds) && tarefaIds.length) {
+      escolhidas = tarefaIds.map((id) => todas.find((t) => t.id === id)).filter(Boolean);
+      categoria = 'escolhidas';
+    } else {
+      if (categoria !== MISTURADO && !CATEGORIAS.some((c) => c.id === categoria)) throw new ErroSala('Tema desconhecido.');
+      escolhidas = this.sortear({ categoria, quantidade }).tarefas;
+    }
     if (!escolhidas.length) throw new ErroSala('Escolha pelo menos uma tarefa.');
     const duracao = Number(duracaoMin);
     const sala = new Sala({
       codigo: this.gerarCodigo(),
       modo,
+      categoria,
       duracaoSeg: (Number.isFinite(duracao) && duracao > 0 ? duracao : 4) * 60,
-      tarefas: JSON.parse(JSON.stringify(escolhidas)), // cópia: editar o catálogo não muda a partida
+      tarefas: escolhidas,
       agora: this.relogio(),
     });
     this.salas.set(sala.codigo, sala);
     this.mudou(sala);
     return sala;
+  }
+
+  sortear(opcoes) {
+    try {
+      const resultado = sortearTarefas(this.catalogo.atuais, { ...opcoes, random: this.random });
+      // Cópia: editar o catálogo no meio da aula não muda a partida
+      return { ...resultado, tarefas: JSON.parse(JSON.stringify(resultado.tarefas)) };
+    } catch (erro) {
+      throw new ErroSala(erro.message);
+    }
+  }
+
+  /**
+   * Nova partida na mesma sala, com perguntas que ela ainda não viu (do mesmo
+   * tema e na mesma quantidade). Quando o tema acaba, a lista recomeça.
+   */
+  novaPartida(codigo) {
+    const sala = this.sala(codigo);
+    // Sala com tarefas escolhidas à mão continua com perguntas misturadas
+    const categoria = sala.categoria === 'escolhidas' ? MISTURADO : sala.categoria;
+    const { tarefas, recomecou } = this.sortear({ categoria, quantidade: sala.tarefas.length, evitar: sala.usadas });
+    sala.novaPartida(tarefas, { recomecou });
+    this.mudou(sala);
+    return { recomecou };
   }
 
   sala(codigo) {

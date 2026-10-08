@@ -1,9 +1,12 @@
 [
   {
     "id": "area-de-trabalho",
+    "categoria": "windows",
     "titulo": "Mostrar a área de trabalho",
     "instrucao": "Aperte [Windows] + [D]. Olhe o que acontece. Depois aperte [Windows] + [D] de novo.",
-    "teclas": ["Windows + D"],
+    "teclas": [
+      "Windows + D"
+    ],
     "tempoMinimo": 10,
     "pergunta": "Quando você apertou Windows + D pela segunda vez, o que aconteceu?",
     "opcoes": [
@@ -17,9 +20,12 @@
   },
   {
     "id": "trocar-janela",
+    "categoria": "windows",
     "titulo": "Trocar de janela",
     "instrucao": "Abra 3 programas. Segure o [Alt] e aperte [Tab] algumas vezes, sem soltar o Alt.",
-    "teclas": ["Alt + Tab"],
+    "teclas": [
+      "Alt + Tab"
+    ],
     "tempoMinimo": 20,
     "pergunta": "Enquanto você segurava o Alt, o que apareceu na tela?",
     "opcoes": [
@@ -32,26 +38,13 @@
     "explicacao": "Alt + Tab mostra as janelas abertas. Cada Tab pula para a próxima e, ao soltar o Alt, você vai para a janela escolhida."
   },
   {
-    "id": "desfazer",
-    "titulo": "Desfazer",
-    "instrucao": "Abra o Bloco de Notas, escreva uma frase, apague tudo e aperte [Ctrl] + [Z].",
-    "teclas": ["Ctrl + Z"],
-    "tempoMinimo": 25,
-    "pergunta": "Depois de apertar Ctrl + Z, o que apareceu no Bloco de Notas?",
-    "opcoes": [
-      "O texto que você apagou voltou",
-      "Apareceu a letra Z",
-      "Uma janela pedindo para salvar",
-      "O Bloco de Notas fechou"
-    ],
-    "correta": "a",
-    "explicacao": "Ctrl + Z desfaz a última ação. Funciona em quase todos os programas: textos, desenhos, planilhas..."
-  },
-  {
     "id": "emojis",
+    "categoria": "windows",
     "titulo": "Emojis",
     "instrucao": "Clique numa caixa de texto (pode ser a pesquisa do Windows ou o Bloco de Notas) e aperte [Windows] + [.] (a tecla do ponto).",
-    "teclas": ["Windows + ."],
+    "teclas": [
+      "Windows + ."
+    ],
     "tempoMinimo": 15,
     "pergunta": "Além dos emojis, o que mais tem no painel que abriu?",
     "opcoes": [
@@ -65,9 +58,13 @@
   },
   {
     "id": "recorte",
+    "categoria": "windows",
     "titulo": "Recorte de tela",
     "instrucao": "Aperte [Windows] + [Shift] + [S]. Recorte um pedaço da tela e cole no Paint com [Ctrl] + [V].",
-    "teclas": ["Windows + Shift + S", "Ctrl + V"],
+    "teclas": [
+      "Windows + Shift + S",
+      "Ctrl + V"
+    ],
     "tempoMinimo": 25,
     "pergunta": "Logo depois de apertar Windows + Shift + S, o que aconteceu?",
     "opcoes": [
@@ -81,9 +78,12 @@
   },
   {
     "id": "gerenciador",
+    "categoria": "windows",
     "titulo": "Gerenciador de Tarefas",
     "instrucao": "Aperte [Ctrl] + [Shift] + [Esc]. Se a janela aparecer pequena, clique em \"Mais detalhes\".",
-    "teclas": ["Ctrl + Shift + Esc"],
+    "teclas": [
+      "Ctrl + Shift + Esc"
+    ],
     "tempoMinimo": 15,
     "pergunta": "Que informações aparecem ao lado de cada programa aberto?",
     "opcoes": [
@@ -96,23 +96,8 @@
     "explicacao": "O Gerenciador de Tarefas mostra o que está pesando no computador e permite fechar um programa travado."
   },
   {
-    "id": "abas-memoria",
-    "titulo": "Abas e memória",
-    "instrucao": "No Gerenciador de Tarefas, anote quanto de memória o navegador usa. Abra 10 abas de sites e olhe de novo.",
-    "teclas": [],
-    "tempoMinimo": 45,
-    "pergunta": "Depois das 10 abas, o que aconteceu com a memória usada pelo navegador?",
-    "opcoes": [
-      "Aumentou",
-      "Diminuiu",
-      "Ficou exatamente igual",
-      "O navegador sumiu da lista"
-    ],
-    "correta": "a",
-    "explicacao": "Cada aba usa memória. Por isso muitas abas abertas deixam o computador lento."
-  },
-  {
     "id": "velocidade-programas",
+    "categoria": "windows",
     "titulo": "Velocidade dos programas",
     "instrucao": "Cronometre quanto tempo leva para abrir o Bloco de Notas, o Word e o navegador.",
     "teclas": [],
@@ -128,7 +113,116 @@
     "notaProfessor": "Em computadores muito rápidos a diferença pode ser pequena. Vale conversar sobre o resultado de cada um."
   },
   {
+    "id": "dividir-tela",
+    "categoria": "windows",
+    "titulo": "Dividir a tela",
+    "instrucao": "Arraste uma janela pela barra de título até encostar o mouse na borda esquerda da tela e solte.",
+    "teclas": [],
+    "tempoMinimo": 15,
+    "pergunta": "Quando você soltou a janela na borda, o que aconteceu?",
+    "opcoes": [
+      "Ela encaixou ocupando metade da tela",
+      "Ela fechou",
+      "Ela foi para a barra de tarefas",
+      "Ela ficou transparente"
+    ],
+    "correta": "a",
+    "explicacao": "É o encaixe de janelas: serve para ver duas coisas lado a lado, como uma pesquisa e um texto."
+  },
+  {
+    "id": "explorador",
+    "categoria": "windows",
+    "titulo": "Abrir as pastas",
+    "instrucao": "Aperte [Windows] + [E].",
+    "teclas": [
+      "Windows + E"
+    ],
+    "tempoMinimo": 10,
+    "pergunta": "Qual programa abriu?",
+    "opcoes": [
+      "O Explorador de Arquivos, com as pastas do computador",
+      "O navegador de internet",
+      "O Word",
+      "A Calculadora"
+    ],
+    "correta": "a",
+    "explicacao": "Windows + E abre o Explorador de Arquivos, onde ficam as pastas e os arquivos do computador."
+  },
+  {
+    "id": "configuracoes",
+    "categoria": "windows",
+    "titulo": "Configurações",
+    "instrucao": "Aperte [Windows] + [I]. Olhe a janela que abriu e depois feche.",
+    "teclas": [
+      "Windows + I"
+    ],
+    "tempoMinimo": 10,
+    "pergunta": "Que janela abriu?",
+    "opcoes": [
+      "As Configurações do Windows (Sistema, Bluetooth, Rede...)",
+      "O Explorador de Arquivos",
+      "O Gerenciador de Tarefas",
+      "A Loja de aplicativos"
+    ],
+    "correta": "a",
+    "explicacao": "Windows + I abre as Configurações, onde dá para mudar o som, a tela, a rede e muito mais."
+  },
+  {
+    "id": "pesquisa-iniciar",
+    "categoria": "windows",
+    "titulo": "Achar um programa pelo nome",
+    "instrucao": "Aperte a tecla [Windows] e, sem clicar em nada, digite: calc",
+    "teclas": [
+      "Windows"
+    ],
+    "tempoMinimo": 10,
+    "pergunta": "O que apareceu enquanto você digitava?",
+    "opcoes": [
+      "Uma pesquisa, com a Calculadora como primeiro resultado",
+      "As letras apareceram na área de trabalho",
+      "Nada, o teclado não funcionou",
+      "Abriu o navegador com um site de cálculo"
+    ],
+    "correta": "a",
+    "explicacao": "Depois de apertar Windows é só digitar: o Windows pesquisa programas, arquivos e configurações. Enter abre o primeiro resultado."
+  },
+  {
+    "id": "barra-titulo",
+    "categoria": "windows",
+    "titulo": "Duplo clique na barra de título",
+    "instrucao": "Abra o Bloco de Notas. Dê dois cliques rápidos na barra de cima da janela (onde aparece o nome). Depois dê dois cliques de novo.",
+    "teclas": [],
+    "tempoMinimo": 15,
+    "pergunta": "O que aconteceu com a janela no primeiro duplo clique?",
+    "opcoes": [
+      "Ela ocupou a tela inteira (maximizou)",
+      "Ela fechou",
+      "Ela foi para a barra de tarefas",
+      "Ela mudou de cor"
+    ],
+    "correta": "a",
+    "explicacao": "O duplo clique na barra de título maximiza a janela. Repetindo, ela volta ao tamanho anterior."
+  },
+  {
+    "id": "calendario",
+    "categoria": "windows",
+    "titulo": "Calendário",
+    "instrucao": "Clique na data e na hora, no canto de baixo à direita da tela.",
+    "teclas": [],
+    "tempoMinimo": 10,
+    "pergunta": "O que abriu?",
+    "opcoes": [
+      "Um calendário do mês",
+      "O relógio despertador",
+      "As configurações de internet",
+      "A lista de programas abertos"
+    ],
+    "correta": "a",
+    "explicacao": "Clicando na data e hora da barra de tarefas aparece um calendário. Clique de novo para fechar."
+  },
+  {
     "id": "png-jpg",
+    "categoria": "arquivos",
     "titulo": "PNG contra JPG",
     "instrucao": "Faça um desenho simples no Paint e salve como PNG e como JPG. Clique com o botão direito em cada arquivo, em Propriedades, e compare o tamanho.",
     "teclas": [],
@@ -144,19 +238,774 @@
     "notaProfessor": "Se o resultado na máquina for diferente, converse com o aluno: depende do desenho."
   },
   {
-    "id": "dividir-tela",
-    "titulo": "Dividir a tela",
-    "instrucao": "Arraste uma janela pela barra de título até encostar o mouse na borda esquerda da tela e solte.",
-    "teclas": [],
-    "tempoMinimo": 15,
-    "pergunta": "Quando você soltou a janela na borda, o que aconteceu?",
+    "id": "nova-pasta",
+    "categoria": "arquivos",
+    "titulo": "Criar pasta com o teclado",
+    "instrucao": "Abra o Explorador de Arquivos ([Windows] + [E]), entre em Documentos e aperte [Ctrl] + [Shift] + [N].",
+    "teclas": [
+      "Windows + E",
+      "Ctrl + Shift + N"
+    ],
+    "tempoMinimo": 20,
+    "pergunta": "O que apareceu?",
     "opcoes": [
-      "Ela encaixou ocupando metade da tela",
-      "Ela fechou",
-      "Ela foi para a barra de tarefas",
-      "Ela ficou transparente"
+      "Uma pasta nova, com o nome \"Nova pasta\" pronto para trocar",
+      "Uma janela pedindo senha",
+      "Um documento do Word em branco",
+      "Nada aconteceu"
     ],
     "correta": "a",
-    "explicacao": "É o encaixe de janelas: serve para ver duas coisas lado a lado, como uma pesquisa e um texto."
+    "explicacao": "Ctrl + Shift + N cria uma pasta nova no Explorador, já com o nome selecionado para você digitar o nome certo."
+  },
+  {
+    "id": "renomear",
+    "categoria": "arquivos",
+    "titulo": "Renomear com F2",
+    "instrucao": "No Explorador de Arquivos, clique uma vez na pasta que você criou e aperte [F2].",
+    "teclas": [
+      "F2"
+    ],
+    "tempoMinimo": 15,
+    "pergunta": "O que aconteceu com o nome da pasta?",
+    "opcoes": [
+      "Ficou selecionado para editar",
+      "A pasta foi apagada",
+      "A pasta abriu",
+      "O nome ficou em negrito"
+    ],
+    "correta": "a",
+    "explicacao": "F2 serve para renomear: funciona com arquivos, pastas e até células do Excel."
+  },
+  {
+    "id": "extensoes",
+    "categoria": "arquivos",
+    "titulo": "Mostrar as extensões",
+    "instrucao": "No Explorador de Arquivos, clique em Exibir. No Windows 11, vá em Mostrar e clique em \"Extensões de nomes de arquivos\". No Windows 10, marque \"Extensões de nomes de arquivos\". Olhe uma pasta com arquivos.",
+    "teclas": [],
+    "tempoMinimo": 30,
+    "pergunta": "O que mudou no nome dos arquivos?",
+    "opcoes": [
+      "Apareceu um ponto e letras no final, como .png ou .docx",
+      "Os nomes ficaram em maiúsculas",
+      "Os arquivos ficaram escondidos",
+      "Apareceu a data no nome"
+    ],
+    "correta": "a",
+    "explicacao": "A extensão (.png, .jpg, .docx, .mp3) diz o tipo do arquivo e qual programa abre ele."
+  },
+  {
+    "id": "lixeira",
+    "categoria": "arquivos",
+    "titulo": "Lixeira",
+    "instrucao": "Clique com o botão direito na pasta que você criou e escolha Excluir. Depois abra a Lixeira, na área de trabalho.",
+    "teclas": [],
+    "tempoMinimo": 25,
+    "pergunta": "Onde a pasta foi parar?",
+    "opcoes": [
+      "Na Lixeira, de onde dá para restaurar",
+      "Sumiu para sempre",
+      "Foi para a pasta Downloads",
+      "Foi para a área de trabalho"
+    ],
+    "correta": "a",
+    "explicacao": "Excluir manda para a Lixeira. Clique com o botão direito nela e escolha Restaurar para trazer de volta."
+  },
+  {
+    "id": "excluir-permanente",
+    "categoria": "arquivos",
+    "titulo": "Excluir de vez",
+    "instrucao": "Crie uma pasta nova de teste, clique nela uma vez e aperte [Shift] + [Delete]. Leia a mensagem (pode cancelar).",
+    "teclas": [
+      "Shift + Delete"
+    ],
+    "tempoMinimo": 25,
+    "pergunta": "O que a mensagem perguntou?",
+    "opcoes": [
+      "Se você quer excluir permanentemente, sem passar pela Lixeira",
+      "Se você quer renomear a pasta",
+      "Se você quer enviar por e-mail",
+      "Se você quer copiar a pasta"
+    ],
+    "correta": "a",
+    "explicacao": "Shift + Delete apaga sem passar pela Lixeira. Por isso o Windows pede confirmação: depois não tem volta."
+  },
+  {
+    "id": "copiar-arrastando",
+    "categoria": "arquivos",
+    "titulo": "Copiar arrastando",
+    "instrucao": "No Explorador, segure o [Ctrl] e comece a arrastar um arquivo até outra pasta. Olhe perto do mouse antes de soltar.",
+    "teclas": [
+      "Ctrl"
+    ],
+    "tempoMinimo": 20,
+    "pergunta": "O que apareceu perto do mouse?",
+    "opcoes": [
+      "Um sinal de + e a palavra \"Copiar para\"",
+      "Um X vermelho",
+      "Uma lixeira",
+      "Um cadeado"
+    ],
+    "correta": "a",
+    "explicacao": "Arrastar com o Ctrl apertado faz uma cópia. Sem o Ctrl, na mesma unidade, o arquivo é movido."
+  },
+  {
+    "id": "zip",
+    "categoria": "arquivos",
+    "titulo": "Compactar",
+    "instrucao": "Clique com o botão direito na pasta que você criou. Escolha \"Compactar para arquivo ZIP\" (no Windows 10: Enviar para, Pasta compactada).",
+    "teclas": [],
+    "tempoMinimo": 25,
+    "pergunta": "Como é o ícone do arquivo novo?",
+    "opcoes": [
+      "Uma pasta com um zíper",
+      "Uma folha de papel em branco",
+      "Uma nota musical",
+      "Uma câmera fotográfica"
+    ],
+    "correta": "a",
+    "explicacao": "O ZIP junta vários arquivos em um só e costuma deixar tudo menor. É ótimo para mandar muitos arquivos de uma vez."
+  },
+  {
+    "id": "desfazer",
+    "categoria": "teclado",
+    "titulo": "Desfazer",
+    "instrucao": "Abra o Bloco de Notas, escreva uma frase, apague tudo e aperte [Ctrl] + [Z].",
+    "teclas": [
+      "Ctrl + Z"
+    ],
+    "tempoMinimo": 25,
+    "pergunta": "Depois de apertar Ctrl + Z, o que apareceu no Bloco de Notas?",
+    "opcoes": [
+      "O texto que você apagou voltou",
+      "Apareceu a letra Z",
+      "Uma janela pedindo para salvar",
+      "O Bloco de Notas fechou"
+    ],
+    "correta": "a",
+    "explicacao": "Ctrl + Z desfaz a última ação. Funciona em quase todos os programas: textos, desenhos, planilhas..."
+  },
+  {
+    "id": "copiar-colar",
+    "categoria": "teclado",
+    "titulo": "Copiar e colar",
+    "instrucao": "No Bloco de Notas, escreva seu nome, selecione e aperte [Ctrl] + [C]. Clique no fim do texto e aperte [Ctrl] + [V] três vezes.",
+    "teclas": [
+      "Ctrl + C",
+      "Ctrl + V"
+    ],
+    "tempoMinimo": 25,
+    "pergunta": "Quantas vezes seu nome apareceu colado?",
+    "opcoes": [
+      "3 vezes: o que foi copiado continua guardado",
+      "1 vez só",
+      "Nenhuma",
+      "Apareceu outra coisa"
+    ],
+    "correta": "a",
+    "explicacao": "Ctrl + C guarda uma cópia na área de transferência, e ela fica lá até você copiar outra coisa. Dá para colar quantas vezes quiser."
+  },
+  {
+    "id": "refazer",
+    "categoria": "teclado",
+    "titulo": "Refazer",
+    "instrucao": "No Bloco de Notas, escreva uma palavra, aperte [Ctrl] + [Z] e depois [Ctrl] + [Y].",
+    "teclas": [
+      "Ctrl + Z",
+      "Ctrl + Y"
+    ],
+    "tempoMinimo": 20,
+    "pergunta": "O que o Ctrl + Y fez?",
+    "opcoes": [
+      "Trouxe de volta o que o Ctrl + Z tinha desfeito",
+      "Apagou tudo",
+      "Salvou o arquivo",
+      "Escreveu a letra Y"
+    ],
+    "correta": "a",
+    "explicacao": "Ctrl + Y refaz o que você desfez com o Ctrl + Z. Funciona no Word, no Paint e em muitos outros programas.",
+    "notaProfessor": "Em algumas versões do Bloco de Notas o refazer é Ctrl + Shift + Z. No Word o Ctrl + Y sempre funciona."
+  },
+  {
+    "id": "selecionar-tudo",
+    "categoria": "teclado",
+    "titulo": "Selecionar tudo",
+    "instrucao": "No Bloco de Notas, escreva duas linhas de texto e aperte [Ctrl] + [A].",
+    "teclas": [
+      "Ctrl + A"
+    ],
+    "tempoMinimo": 20,
+    "pergunta": "O que aconteceu com o texto?",
+    "opcoes": [
+      "Ficou todo selecionado (pintado de azul)",
+      "Foi apagado",
+      "Ficou em letras maiúsculas",
+      "Foi salvo"
+    ],
+    "correta": "a",
+    "explicacao": "Ctrl + A seleciona tudo: texto, arquivos de uma pasta, células... Cuidado: se digitar algo depois, substitui tudo.",
+    "notaProfessor": "No Word em português o atalho de selecionar tudo é Ctrl + T. Por isso esta tarefa usa o Bloco de Notas."
+  },
+  {
+    "id": "selecionar-palavra",
+    "categoria": "teclado",
+    "titulo": "Selecionar palavra por palavra",
+    "instrucao": "No Bloco de Notas, escreva uma frase, coloque o cursor no começo e aperte algumas vezes [Ctrl] + [Shift] + [→].",
+    "teclas": [
+      "Ctrl + Shift + →"
+    ],
+    "tempoMinimo": 20,
+    "pergunta": "O que foi selecionado a cada toque?",
+    "opcoes": [
+      "Uma palavra inteira",
+      "Uma letra só",
+      "A linha inteira",
+      "Nada, o cursor só andou"
+    ],
+    "correta": "a",
+    "explicacao": "Shift + seta seleciona letra por letra. Com o Ctrl junto, a seleção pula de palavra em palavra."
+  },
+  {
+    "id": "historico-copiados",
+    "categoria": "teclado",
+    "titulo": "Histórico do que você copiou",
+    "instrucao": "Copie duas palavras diferentes com [Ctrl] + [C], uma de cada vez. Depois aperte [Windows] + [V].",
+    "teclas": [
+      "Windows + V"
+    ],
+    "tempoMinimo": 20,
+    "pergunta": "O que apareceu?",
+    "opcoes": [
+      "Uma lista com as coisas copiadas (ou um botão para ativar essa lista)",
+      "O menu Iniciar",
+      "Uma janela de vídeo",
+      "Nada, só colou a última palavra"
+    ],
+    "correta": "a",
+    "explicacao": "Windows + V mostra o histórico da área de transferência: dá para colar algo que você copiou antes.",
+    "notaProfessor": "Se o histórico estiver desligado, aparece um botão \"Ativar\". Pode deixar os alunos ativarem."
+  },
+  {
+    "id": "home-end",
+    "categoria": "teclado",
+    "titulo": "Ir ao começo e ao fim da linha",
+    "instrucao": "No Bloco de Notas, escreva uma frase comprida. Aperte [Home] e depois [End].",
+    "teclas": [
+      "Home",
+      "End"
+    ],
+    "tempoMinimo": 15,
+    "pergunta": "Para onde o cursor foi quando você apertou End?",
+    "opcoes": [
+      "Para o fim da linha",
+      "Para a linha de baixo",
+      "Para o começo do texto",
+      "O texto foi apagado"
+    ],
+    "correta": "a",
+    "explicacao": "Home leva o cursor ao começo da linha e End ao fim. Com o Ctrl junto, vão para o começo e o fim do texto inteiro."
+  },
+  {
+    "id": "fechar-sem-salvar",
+    "categoria": "teclado",
+    "titulo": "Fechar a janela",
+    "instrucao": "Escreva qualquer coisa no Bloco de Notas, sem salvar, e aperte [Alt] + [F4]. Leia a mensagem e clique em Cancelar.",
+    "teclas": [
+      "Alt + F4"
+    ],
+    "tempoMinimo": 20,
+    "pergunta": "O que o Bloco de Notas perguntou?",
+    "opcoes": [
+      "Se você queria salvar as alterações",
+      "Se você queria imprimir",
+      "Se você queria desligar o computador",
+      "Nada, fechou direto"
+    ],
+    "correta": "a",
+    "explicacao": "Alt + F4 fecha a janela que está na frente. Se tem algo sem salvar, o programa pergunta antes de fechar."
+  },
+  {
+    "id": "word-texto-pronto",
+    "categoria": "word",
+    "titulo": "Texto de exemplo",
+    "instrucao": "Abra um documento em branco no Word, digite =rand() e aperte [Enter].",
+    "teclas": [
+      "Enter"
+    ],
+    "tempoMinimo": 25,
+    "pergunta": "O que aconteceu?",
+    "opcoes": [
+      "Apareceram vários parágrafos de texto prontos",
+      "Apareceu um número sorteado",
+      "Abriu uma calculadora",
+      "Apareceu uma mensagem de erro"
+    ],
+    "correta": "a",
+    "explicacao": "=rand() é um truque do Word para gerar texto de exemplo. Ótimo para testar formatações sem precisar digitar."
+  },
+  {
+    "id": "word-corretor",
+    "categoria": "word",
+    "titulo": "Corretor ortográfico",
+    "instrucao": "No Word, digite a palavra computadorr (com dois R no final) e aperte espaço.",
+    "teclas": [],
+    "tempoMinimo": 20,
+    "pergunta": "O que apareceu na palavra?",
+    "opcoes": [
+      "Um sublinhado vermelho ondulado",
+      "Ela ficou em negrito",
+      "Ela sumiu",
+      "Ela mudou de tamanho"
+    ],
+    "correta": "a",
+    "explicacao": "O sublinhado vermelho mostra uma palavra que o Word não conhece, talvez escrita errada."
+  },
+  {
+    "id": "word-sugestoes",
+    "categoria": "word",
+    "titulo": "Corrigir com o botão direito",
+    "instrucao": "No Word, clique com o botão direito na palavra sublinhada de vermelho (escreva computadorr se precisar).",
+    "teclas": [],
+    "tempoMinimo": 20,
+    "pergunta": "O que apareceu no menu?",
+    "opcoes": [
+      "Sugestões de como escrever a palavra certo",
+      "A opção de imprimir",
+      "A previsão do tempo",
+      "Uma lista de imagens"
+    ],
+    "correta": "a",
+    "explicacao": "O botão direito na palavra sublinhada mostra sugestões. É só clicar na certa para corrigir."
+  },
+  {
+    "id": "word-tres-cliques",
+    "categoria": "word",
+    "titulo": "Um, dois, três cliques",
+    "instrucao": "Gere um texto com =rand() e [Enter]. Dê dois cliques numa palavra. Depois dê três cliques rápidos na mesma palavra.",
+    "teclas": [],
+    "tempoMinimo": 25,
+    "pergunta": "O que os três cliques selecionaram?",
+    "opcoes": [
+      "O parágrafo inteiro",
+      "Só uma letra",
+      "Só a palavra",
+      "O documento todo"
+    ],
+    "correta": "a",
+    "explicacao": "Dois cliques selecionam a palavra e três cliques selecionam o parágrafo. Bem mais rápido do que arrastar o mouse."
+  },
+  {
+    "id": "word-maiusculas",
+    "categoria": "word",
+    "titulo": "Trocar maiúsculas e minúsculas",
+    "instrucao": "No Word, escreva uma frase, selecione e aperte [Shift] + [F3] algumas vezes.",
+    "teclas": [
+      "Shift + F3"
+    ],
+    "tempoMinimo": 25,
+    "pergunta": "O que aconteceu a cada vez que você apertou?",
+    "opcoes": [
+      "O texto alternou entre MAIÚSCULAS, minúsculas e Primeira Letra Maiúscula",
+      "O texto mudou de cor",
+      "O texto ficou maior",
+      "O texto foi apagado"
+    ],
+    "correta": "a",
+    "explicacao": "Shift + F3 troca entre maiúsculas e minúsculas sem precisar digitar de novo.",
+    "notaProfessor": "Em alguns notebooks é preciso segurar a tecla Fn junto (Fn + Shift + F3)."
+  },
+  {
+    "id": "word-quebra-pagina",
+    "categoria": "word",
+    "titulo": "Pular para a próxima página",
+    "instrucao": "No Word, escreva uma linha e aperte [Ctrl] + [Enter].",
+    "teclas": [
+      "Ctrl + Enter"
+    ],
+    "tempoMinimo": 20,
+    "pergunta": "Para onde o cursor foi?",
+    "opcoes": [
+      "Para o começo de uma página nova",
+      "Para o fim da mesma linha",
+      "Para o título do documento",
+      "O Word fechou"
+    ],
+    "correta": "a",
+    "explicacao": "Ctrl + Enter cria uma quebra de página: o texto seguinte começa numa página nova, sem precisar apertar Enter várias vezes."
+  },
+  {
+    "id": "word-lista",
+    "categoria": "word",
+    "titulo": "Lista numerada automática",
+    "instrucao": "No Word, digite 1. Arroz e aperte [Enter].",
+    "teclas": [
+      "Enter"
+    ],
+    "tempoMinimo": 20,
+    "pergunta": "O que apareceu na linha de baixo?",
+    "opcoes": [
+      "O número 2. sozinho, continuando a lista",
+      "Nada, a linha ficou vazia",
+      "O número 1. de novo",
+      "A palavra Arroz repetida"
+    ],
+    "correta": "a",
+    "explicacao": "O Word percebe que você começou uma lista e continua a numeração. Para sair da lista, aperte Enter de novo na linha vazia."
+  },
+  {
+    "id": "word-contador",
+    "categoria": "word",
+    "titulo": "Contar palavras",
+    "instrucao": "No Word, gere um texto com =rand() e [Enter]. Procure na parte de baixo da janela.",
+    "teclas": [],
+    "tempoMinimo": 25,
+    "pergunta": "O que o Word mostra no canto de baixo, à esquerda?",
+    "opcoes": [
+      "Quantas palavras tem o texto (e a página)",
+      "A hora certa",
+      "O nome do professor",
+      "A bateria do computador"
+    ],
+    "correta": "a",
+    "explicacao": "A barra de status mostra a página e o número de palavras. Selecione um trecho para ver quantas palavras ele tem."
+  },
+  {
+    "id": "word-zoom",
+    "categoria": "word",
+    "titulo": "Zoom ou tamanho da letra?",
+    "instrucao": "No Word, escreva uma frase. Segure o [Ctrl] e gire a roda do mouse. Olhe o número do tamanho da fonte na guia Página Inicial.",
+    "teclas": [
+      "Ctrl + roda do mouse"
+    ],
+    "tempoMinimo": 25,
+    "pergunta": "O número do tamanho da fonte mudou?",
+    "opcoes": [
+      "Não, só mudou o zoom da tela",
+      "Sim, aumentou junto",
+      "Sim, diminuiu",
+      "A fonte mudou de nome"
+    ],
+    "correta": "a",
+    "explicacao": "O zoom só muda o que você vê na tela. A impressão continua igual. O tamanho de verdade é o número da fonte."
+  },
+  {
+    "id": "word-tabela",
+    "categoria": "word",
+    "titulo": "Inserir tabela",
+    "instrucao": "No Word, clique na guia Inserir e em Tabela. Passe o mouse pelos quadradinhos devagar, sem clicar.",
+    "teclas": [],
+    "tempoMinimo": 20,
+    "pergunta": "O que aconteceu no documento enquanto você passava o mouse?",
+    "opcoes": [
+      "A tabela já aparecia no documento como prévia",
+      "Nada, só depois de clicar",
+      "O documento ficou em branco",
+      "Abriu o Excel"
+    ],
+    "correta": "a",
+    "explicacao": "O Word mostra uma prévia ao vivo: você vê o resultado antes de clicar. Funciona também com fontes e cores."
+  },
+  {
+    "id": "abas-memoria",
+    "categoria": "navegador",
+    "titulo": "Abas e memória",
+    "instrucao": "No Gerenciador de Tarefas, anote quanto de memória o navegador usa. Abra 10 abas de sites e olhe de novo.",
+    "teclas": [],
+    "tempoMinimo": 45,
+    "pergunta": "Depois das 10 abas, o que aconteceu com a memória usada pelo navegador?",
+    "opcoes": [
+      "Aumentou",
+      "Diminuiu",
+      "Ficou exatamente igual",
+      "O navegador sumiu da lista"
+    ],
+    "correta": "a",
+    "explicacao": "Cada aba usa memória. Por isso muitas abas abertas deixam o computador lento."
+  },
+  {
+    "id": "reabrir-aba",
+    "categoria": "navegador",
+    "titulo": "Reabrir aba fechada",
+    "instrucao": "Abra um site numa aba nova. Feche a aba com [Ctrl] + [W]. Depois aperte [Ctrl] + [Shift] + [T].",
+    "teclas": [
+      "Ctrl + W",
+      "Ctrl + Shift + T"
+    ],
+    "tempoMinimo": 20,
+    "pergunta": "O que o Ctrl + Shift + T fez?",
+    "opcoes": [
+      "Trouxe de volta a aba que você fechou",
+      "Abriu uma aba em branco",
+      "Fechou o navegador",
+      "Abriu o histórico"
+    ],
+    "correta": "a",
+    "explicacao": "Fechou uma aba sem querer? Ctrl + Shift + T reabre a última aba fechada."
+  },
+  {
+    "id": "zoom-navegador",
+    "categoria": "navegador",
+    "titulo": "Zoom na página",
+    "instrucao": "Num site qualquer, aperte [Ctrl] + [+] duas vezes. Olhe a barra de endereço. Depois aperte [Ctrl] + [0].",
+    "teclas": [
+      "Ctrl + +",
+      "Ctrl + 0"
+    ],
+    "tempoMinimo": 20,
+    "pergunta": "O que apareceu na barra de endereço depois do zoom?",
+    "opcoes": [
+      "Um ícone de lupa",
+      "Um cadeado vermelho",
+      "Uma estrela",
+      "Nada mudou"
+    ],
+    "correta": "a",
+    "explicacao": "A lupa avisa que a página está com zoom. Ctrl + 0 volta ao tamanho normal."
+  },
+  {
+    "id": "aba-anonima",
+    "categoria": "navegador",
+    "titulo": "Janela anônima",
+    "instrucao": "Aperte [Ctrl] + [Shift] + [N] no navegador (Chrome ou Edge). Olhe a janela e depois feche.",
+    "teclas": [
+      "Ctrl + Shift + N"
+    ],
+    "tempoMinimo": 15,
+    "pergunta": "Como ficou a janela nova?",
+    "opcoes": [
+      "Escura, com um aviso de navegação anônima ou InPrivate",
+      "Igual às outras",
+      "Toda branca, sem barra de endereço",
+      "Pedindo uma senha"
+    ],
+    "correta": "a",
+    "explicacao": "Na janela anônima o navegador não guarda histórico. Mas atenção: a escola e o provedor de internet ainda podem ver os sites."
+  },
+  {
+    "id": "historico-navegador",
+    "categoria": "navegador",
+    "titulo": "Histórico",
+    "instrucao": "No navegador, aperte [Ctrl] + [H].",
+    "teclas": [
+      "Ctrl + H"
+    ],
+    "tempoMinimo": 15,
+    "pergunta": "O que abriu?",
+    "opcoes": [
+      "A lista dos sites que você visitou",
+      "Os downloads",
+      "As configurações",
+      "Uma aba anônima"
+    ],
+    "correta": "a",
+    "explicacao": "Ctrl + H mostra o histórico. Dá para achar um site que você visitou e esqueceu o nome."
+  },
+  {
+    "id": "cadeado",
+    "categoria": "navegador",
+    "titulo": "Site seguro",
+    "instrucao": "Entre em um site, como wikipedia.org. Clique no ícone à esquerda do endereço (um cadeado ou um ícone de ajustes).",
+    "teclas": [],
+    "tempoMinimo": 20,
+    "pergunta": "O que apareceu?",
+    "opcoes": [
+      "Informações dizendo que a conexão é segura",
+      "A senha do site",
+      "O nome do dono do computador",
+      "Um vídeo"
+    ],
+    "correta": "a",
+    "explicacao": "Esse ícone mostra que a conexão é protegida (https). Isso não garante que o site seja confiável, só que ninguém espia no caminho."
+  },
+  {
+    "id": "favoritos",
+    "categoria": "navegador",
+    "titulo": "Favoritar",
+    "instrucao": "Num site que você gosta, aperte [Ctrl] + [D].",
+    "teclas": [
+      "Ctrl + D"
+    ],
+    "tempoMinimo": 15,
+    "pergunta": "O que aconteceu?",
+    "opcoes": [
+      "Abriu uma janelinha para salvar a página nos favoritos e a estrela ficou colorida",
+      "A página foi baixada",
+      "A página foi impressa",
+      "O navegador fechou"
+    ],
+    "correta": "a",
+    "explicacao": "Ctrl + D salva a página nos favoritos para você voltar nela depois."
+  },
+  {
+    "id": "arrastar-aba",
+    "categoria": "navegador",
+    "titulo": "Separar uma aba",
+    "instrucao": "Com duas abas abertas, clique numa aba e arraste ela para baixo, para fora da barra de abas. Solte.",
+    "teclas": [],
+    "tempoMinimo": 20,
+    "pergunta": "O que aconteceu com a aba?",
+    "opcoes": [
+      "Virou uma janela separada",
+      "Foi fechada",
+      "Foi para os favoritos",
+      "Voltou para o lugar"
+    ],
+    "correta": "a",
+    "explicacao": "Arrastar uma aba para fora cria uma janela nova. É útil para ver dois sites lado a lado. Arraste de volta para juntar."
+  },
+  {
+    "id": "localizar-pagina",
+    "categoria": "navegador",
+    "titulo": "Procurar na página",
+    "instrucao": "Num artigo da Wikipédia, aperte [Ctrl] + [F] e digite uma palavra que aparece no texto.",
+    "teclas": [
+      "Ctrl + F"
+    ],
+    "tempoMinimo": 20,
+    "pergunta": "O que apareceu ao lado do que você digitou?",
+    "opcoes": [
+      "Quantas vezes a palavra aparece, como 1/5",
+      "A tradução da palavra",
+      "Um teclado na tela",
+      "O significado da palavra"
+    ],
+    "correta": "a",
+    "explicacao": "Ctrl + F procura na página e destaca a palavra. Os números mostram em qual você está e quantas existem."
+  },
+  {
+    "id": "pesquisa-calculadora",
+    "categoria": "pesquisa",
+    "titulo": "Calculadora na pesquisa",
+    "instrucao": "Abra o Google e pesquise: 25 * 4",
+    "teclas": [],
+    "tempoMinimo": 15,
+    "pergunta": "O que apareceu no topo dos resultados?",
+    "opcoes": [
+      "Uma calculadora com o resultado 100",
+      "Uma lista de lojas",
+      "Um vídeo sobre matemática",
+      "Uma mensagem de erro"
+    ],
+    "correta": "a",
+    "explicacao": "O buscador faz contas direto na pesquisa. O asterisco (*) é o sinal de vezes no computador."
+  },
+  {
+    "id": "pesquisa-conversao",
+    "categoria": "pesquisa",
+    "titulo": "Converter valores",
+    "instrucao": "No Google, pesquise: 1 dólar em reais",
+    "teclas": [],
+    "tempoMinimo": 15,
+    "pergunta": "O que apareceu?",
+    "opcoes": [
+      "Um conversor mostrando quanto vale 1 dólar em reais hoje",
+      "Uma loja de câmbio",
+      "A história do dinheiro",
+      "Nada, precisa entrar num site"
+    ],
+    "correta": "a",
+    "explicacao": "O buscador converte moedas, medidas e temperaturas. O valor do dólar muda todo dia."
+  },
+  {
+    "id": "pesquisa-site",
+    "categoria": "pesquisa",
+    "titulo": "Pesquisar num site só",
+    "instrucao": "No Google, pesquise: dinossauros site:wikipedia.org",
+    "teclas": [],
+    "tempoMinimo": 20,
+    "pergunta": "De onde eram os resultados?",
+    "opcoes": [
+      "Todos da Wikipédia",
+      "De sites de jogos",
+      "Só vídeos",
+      "De lojas de brinquedos"
+    ],
+    "correta": "a",
+    "explicacao": "site: limita a pesquisa a um site. Ótimo para achar algo dentro de um site confiável."
+  },
+  {
+    "id": "pesquisa-tirar-palavra",
+    "categoria": "pesquisa",
+    "titulo": "Tirar uma palavra da pesquisa",
+    "instrucao": "No Google, pesquise: jaguar -carro",
+    "teclas": [],
+    "tempoMinimo": 20,
+    "pergunta": "Sobre o que eram a maioria dos resultados?",
+    "opcoes": [
+      "Sobre o animal (onça-pintada)",
+      "Sobre carros",
+      "Sobre futebol",
+      "Sobre receitas"
+    ],
+    "correta": "a",
+    "explicacao": "O sinal de menos (-) tira uma palavra da pesquisa. Jaguar é um animal e também uma marca de carro."
+  },
+  {
+    "id": "pesquisa-traduzir",
+    "categoria": "pesquisa",
+    "titulo": "Traduzir na pesquisa",
+    "instrucao": "No Google, pesquise: traduzir cachorro para inglês",
+    "teclas": [],
+    "tempoMinimo": 15,
+    "pergunta": "Qual palavra apareceu na tradução?",
+    "opcoes": [
+      "dog",
+      "cat",
+      "house",
+      "perro"
+    ],
+    "correta": "a",
+    "explicacao": "O buscador traduz palavras e frases direto na pesquisa. Perro é cachorro em espanhol!"
+  },
+  {
+    "id": "pesquisa-patrocinado",
+    "categoria": "pesquisa",
+    "titulo": "Anúncios na pesquisa",
+    "instrucao": "No Google, pesquise: comprar tênis. Olhe bem os primeiros resultados.",
+    "teclas": [],
+    "tempoMinimo": 20,
+    "pergunta": "O que aparece escrito em alguns dos primeiros resultados?",
+    "opcoes": [
+      "Patrocinado",
+      "Verificado pelo governo",
+      "Mais barato",
+      "Recomendado pelo professor"
+    ],
+    "correta": "a",
+    "explicacao": "\"Patrocinado\" quer dizer anúncio: alguém pagou para aparecer em cima. Nem sempre é o melhor resultado.",
+    "notaProfessor": "Dependendo do momento pode não aparecer anúncio. Se ninguém vir, comente na hora e aceite a dúvida da turma."
+  },
+  {
+    "id": "pesquisa-tempo",
+    "categoria": "pesquisa",
+    "titulo": "Previsão do tempo",
+    "instrucao": "No Google, pesquise: previsão do tempo e o nome da sua cidade.",
+    "teclas": [],
+    "tempoMinimo": 15,
+    "pergunta": "O que apareceu no topo?",
+    "opcoes": [
+      "Um quadro com a temperatura e a previsão dos próximos dias",
+      "O mapa do Brasil inteiro",
+      "Uma notícia de jornal antigo",
+      "Uma loja de guarda-chuvas"
+    ],
+    "correta": "a",
+    "explicacao": "Para algumas perguntas o buscador responde direto num quadro, sem precisar abrir um site."
+  },
+  {
+    "id": "pesquisa-significado",
+    "categoria": "pesquisa",
+    "titulo": "Dicionário na pesquisa",
+    "instrucao": "No Google, pesquise: significado de efêmero",
+    "teclas": [],
+    "tempoMinimo": 15,
+    "pergunta": "O que quer dizer efêmero?",
+    "opcoes": [
+      "Que dura pouco tempo",
+      "Que é muito grande",
+      "Que é muito antigo",
+      "Que é feito de vidro"
+    ],
+    "correta": "a",
+    "explicacao": "Pesquisar \"significado de\" mostra o dicionário direto nos resultados."
   }
 ]

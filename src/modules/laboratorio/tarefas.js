@@ -14,9 +14,27 @@ const { normalizar } = require('../../shared/texto');
  */
 
 const LETRAS = ['a', 'b', 'c', 'd'];
+
+/** Temas das perguntas (o professor escolhe um tema ou "misturado" ao criar a sala) */
+const CATEGORIAS = Object.freeze([
+  { id: 'windows', nome: 'Windows', icone: '🪟' },
+  { id: 'arquivos', nome: 'Arquivos e pastas', icone: '📁' },
+  { id: 'teclado', nome: 'Teclado e texto', icone: '⌨️' },
+  { id: 'word', nome: 'Word', icone: '📝' },
+  { id: 'navegador', nome: 'Navegador', icone: '🌐' },
+  { id: 'pesquisa', nome: 'Pesquisa na internet', icone: '🔎' },
+]);
+const MISTURADO = 'misturado';
+const IDS_CATEGORIAS = CATEGORIAS.map((c) => c.id);
+
+/** Nome e ícone do tema de uma sala (inclui "misturado" e "escolhidas") */
+function descreverTema(id) {
+  if (id === MISTURADO) return { id, nome: 'Misturado', icone: '🎲' };
+  return CATEGORIAS.find((c) => c.id === id) || { id: 'escolhidas', nome: 'Escolhidas pelo professor', icone: '✋' };
+}
 const PERGUNTA_PADRAO = 'O que aconteceu?';
 const TEMPO_MINIMO_PADRAO = 15;
-const LIMITES = { tarefas: 30, titulo: 80, instrucao: 600, pergunta: 200, opcao: 200, explicacao: 600, nota: 400, teclas: 4, combo: 40, tempoMinimo: 300 };
+const LIMITES = { tarefas: 200, titulo: 80, instrucao: 600, pergunta: 200, opcao: 200, explicacao: 600, nota: 400, teclas: 4, combo: 40, tempoMinimo: 300 };
 
 function texto(valor, max) {
   return typeof valor === 'string' ? valor.replace(/\s+/g, ' ').trim().slice(0, max) : '';
@@ -67,12 +85,15 @@ function validarTarefas(lista) {
       .filter(Boolean)
       .slice(0, LIMITES.teclas);
 
+    const categoria = IDS_CATEGORIAS.includes(t.categoria) ? t.categoria : IDS_CATEGORIAS[0];
+
     let id = texto(t.id, 50).toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
     if (!id || usados.has(id)) id = gerarId(titulo, usados);
     usados.add(id);
 
     return {
       id,
+      categoria,
       titulo,
       instrucao,
       teclas,
@@ -103,6 +124,44 @@ function tarefaParaAluno(tarefa, { ordem = null, comOpcoes = true } = {}) {
     pergunta: tarefa.pergunta,
     opcoes: comOpcoes ? indices.map((i) => ({ letra: LETRAS[i], texto: tarefa.opcoes[i] })) : [],
   };
+}
+
+/**
+ * Sorteia as perguntas de uma partida.
+ *
+ * - `categoria`: um tema ou "misturado" (todos os temas, alternados para a
+ *   sala não sair só com perguntas de um tema)
+ * - `evitar`: ids que a sala já viu; elas só voltam quando as novas acabam.
+ *   Nesse caso `recomecou` vem true (a lista "zera" e recomeça).
+ */
+function sortearTarefas(lista, { categoria = MISTURADO, quantidade = 10, evitar = [], random }) {
+  const pool = categoria === MISTURADO ? lista : lista.filter((t) => t.categoria === categoria);
+  if (!pool.length) throw new Error('Não há perguntas nesse tema.');
+  const total = Math.max(1, Math.min(Math.round(quantidade) || 10, pool.length));
+  const vistas = new Set(evitar);
+  const novas = pool.filter((t) => !vistas.has(t.id));
+  const recomecou = novas.length < total;
+
+  // Primeiro as que a sala ainda não viu; se faltar, completa com as vistas
+  // há mais tempo (`evitar` está em ordem: as mais antigas primeiro)
+  if (!recomecou) return { tarefas: alternarTemas(novas, random).slice(0, total), recomecou };
+  const ordem = new Map(evitar.map((id, i) => [id, i]));
+  const maisAntigas = pool.filter((t) => vistas.has(t.id)).sort((a, b) => ordem.get(a.id) - ordem.get(b.id));
+  const escolhidas = [...novas, ...maisAntigas.slice(0, total - novas.length)];
+  return { tarefas: alternarTemas(escolhidas, random), recomecou };
+}
+
+/** Embaralha e intercala os temas: windows, word, navegador, windows, word... */
+function alternarTemas(lista, random) {
+  const grupos = new Map();
+  for (const t of random.shuffle(lista)) {
+    if (!grupos.has(t.categoria)) grupos.set(t.categoria, []);
+    grupos.get(t.categoria).push(t);
+  }
+  const filas = random.shuffle([...grupos.values()]);
+  const saida = [];
+  while (filas.some((f) => f.length)) for (const f of filas) if (f.length) saida.push(f.shift());
+  return saida;
 }
 
 /** Catálogo atual: a versão editada no painel (se houver) ou o tasks.json */
@@ -145,4 +204,4 @@ class CatalogoDeTarefas {
   }
 }
 
-module.exports = { validarTarefas, tarefaParaAluno, CatalogoDeTarefas, LETRAS };
+module.exports = { validarTarefas, tarefaParaAluno, sortearTarefas, descreverTema, CatalogoDeTarefas, LETRAS, CATEGORIAS, MISTURADO };

@@ -119,7 +119,7 @@ test('partida completa com 30 alunos em tempo real', async (t) => {
   }
 
   // Todos respondem ao mesmo tempo; metade acerta
-  const certa = PADRAO[0].correta;
+  const certa = PADRAO.find((t) => t.id === tarefa.id).correta;
   const errada = certa === 'a' ? 'b' : 'a';
   const inicio = Date.now();
   const fimDaRodada = esperarEstado(telao, (e) => e.sala.fase === 'parcial');

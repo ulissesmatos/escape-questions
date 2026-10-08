@@ -29,6 +29,7 @@ export class ProfessorApp {
     this.raiz = raiz;
     this.salas = [];
     this.tarefas = [];
+    this.categorias = [];
     this.sessao = new AdminSession({
       base: '/api/laboratorio',
       prefixo: 'laboratorio-prof:',
@@ -107,6 +108,7 @@ export class ProfessorApp {
       const resposta = await this.conexao.pedir('prof:entrar', { token: this.sessao.token });
       this.salas = resposta.salas;
       this.tarefas = resposta.tarefas;
+      this.categorias = resposta.categorias;
       this.navegar({ reconexao: true });
     } catch (erro) {
       if (erro instanceof ErroPedido) {
@@ -159,8 +161,8 @@ export class ProfessorApp {
           h(
             'div',
             { class: 'sala-item-info' },
-            h('span', { text: `${s.modo === 'rodadas' ? '🔁 Rodadas' : '🧭 Livre'} · ${FASES[s.fase]}` }),
-            h('span', { class: 'texto-suave', text: `${s.conectados} online de ${s.totalAlunos} alunos · ${s.totalTarefas} tarefas` })
+            h('span', { text: `${s.tema.icone} ${s.tema.nome} · ${s.modo === 'rodadas' ? '🔁 Rodadas' : '🧭 Livre'} · ${FASES[s.fase]}` }),
+            h('span', { class: 'texto-suave', text: `${s.conectados} online de ${s.totalAlunos} alunos · ${s.totalTarefas} perguntas${s.partida > 1 ? ` · partida ${s.partida}` : ''}` })
           ),
           h('a', { href: `#${s.codigo}`, class: 'btn btn-primario btn-pequeno', text: 'Abrir' }),
           h('button', { type: 'button', class: 'btn btn-perigo-contorno btn-pequeno', text: 'Fechar', onClick: () => this.fecharSala(s.codigo) })
@@ -185,7 +187,11 @@ export class ProfessorApp {
     }
   }
 
+  /** Nova sala: tema (ou misturado) e quantidade sorteada, ou perguntas escolhidas a dedo */
   formCriar() {
+    const temas = [{ id: 'misturado', nome: 'Misturado', icone: '🎲' }, ...this.categorias];
+    const doTema = (id) => (id === 'misturado' ? this.tarefas : this.tarefas.filter((t) => t.categoria === id));
+
     const modo = (valor, icone, titulo, texto, marcado) =>
       h(
         'label',
@@ -194,38 +200,69 @@ export class ProfessorApp {
         h('span', { class: 'modo-icone', 'aria-hidden': 'true', text: icone }),
         h('span', {}, h('strong', { text: titulo }), h('span', { class: 'texto-suave bloco', text: texto }))
       );
-    const duracao = h('input', { type: 'number', name: 'duracao', min: 1, max: 30, step: 0.5, value: 4, class: 'campo campo-curto' });
-    const campoDuracao = h('div', { class: 'campo-duracao' }, h('label', { for: 'lab-duracao', text: '⏱️ Tempo por tarefa (minutos)' }), Object.assign(duracao, { id: 'lab-duracao' }));
-    const caixas = this.tarefas.map((t, i) =>
-      h('label', { class: 'tarefa-check' }, h('input', { type: 'checkbox', value: t.id, checked: true }), `${i + 1}. ${t.titulo}`)
-    );
-    const marcarTodas = (valor) => caixas.forEach((c) => (c.querySelector('input').checked = valor));
-    const botao = h('button', { type: 'submit', class: 'btn btn-primario btn-grande btn-bloco', text: '✨ Criar sala' });
+    const tema = (t, i) =>
+      h(
+        'label',
+        { class: 'tema-opcao' },
+        h('input', { type: 'radio', name: 'tema', value: t.id, checked: i === 0 }),
+        h('span', { class: 'tema-icone', 'aria-hidden': 'true', text: t.icone }),
+        h('span', { class: 'tema-textos' }, h('strong', { text: t.nome }), h('small', { text: `${doTema(t.id).length} perguntas` }))
+      );
 
+    const duracao = h('input', { type: 'number', id: 'lab-duracao', min: 1, max: 30, step: 0.5, value: 4, class: 'campo campo-curto' });
+    const campoDuracao = h('div', { class: 'campo-duracao' }, h('label', { for: 'lab-duracao', text: '⏱️ Tempo por tarefa (minutos)' }), duracao);
+    const quantidade = h('input', { type: 'number', id: 'lab-quantidade', min: 1, value: 10, class: 'campo campo-curto' });
+    const campoQuantidade = h('div', { class: 'campo-duracao' }, h('label', { for: 'lab-quantidade', text: '🎯 Quantas perguntas sortear' }), quantidade);
+
+    const listaEscolha = h('div', { class: 'tarefas-checks' });
+    const contadorEscolha = h('span', { class: 'texto-suave' });
+    const atualizarContador = () => {
+      const n = listaEscolha.querySelectorAll('input:checked').length;
+      contadorEscolha.textContent = n ? `${n} marcada${n > 1 ? 's' : ''}: a sala usa só essas` : 'Nenhuma marcada: as perguntas serão sorteadas';
+      campoQuantidade.hidden = n > 0;
+    };
+    listaEscolha.addEventListener('change', atualizarContador);
+
+    const botao = h('button', { type: 'submit', class: 'btn btn-primario btn-grande btn-bloco', text: '✨ Criar sala' });
     const form = h(
       'form',
       { class: 'cartao prof-secao form-criar' },
       h('h2', { text: '✨ Nova sala' }),
-      h('fieldset', { class: 'modos' }, h('legend', { class: 'rotulo', text: 'Como vai ser a partida?' }), modo('rodadas', '🔁', 'Rodadas', 'Você libera uma tarefa por vez, com cronômetro.', true), modo('livre', '🧭', 'Livre', 'Todas liberadas, cada aluno no seu ritmo.', false)),
+      h('fieldset', { class: 'temas' }, h('legend', { class: 'rotulo', text: 'Tema das perguntas' }), h('div', { class: 'temas-grade' }, temas.map(tema))),
+      campoQuantidade,
+      h('fieldset', { class: 'modos' }, h('legend', { class: 'rotulo', text: 'Como vai ser a partida?' }), modo('rodadas', '🔁', 'Rodadas', 'Você libera uma pergunta por vez, com cronômetro.', true), modo('livre', '🧭', 'Livre', 'Todas liberadas, cada aluno no seu ritmo.', false)),
       campoDuracao,
-      h(
-        'fieldset',
-        { class: 'tarefas-escolha' },
-        h('legend', { class: 'rotulo' }, `📋 Tarefas (${this.tarefas.length})`, ' ', h('button', { type: 'button', class: 'btn-link', text: 'todas', onClick: () => marcarTodas(true) }), ' · ', h('button', { type: 'button', class: 'btn-link', text: 'nenhuma', onClick: () => marcarTodas(false) })),
-        h('div', { class: 'tarefas-checks' }, caixas)
-      ),
+      h('details', { class: 'escolher-a-dedo' }, h('summary', { text: '✋ Prefiro escolher as perguntas a dedo' }), contadorEscolha, listaEscolha),
+      h('p', { class: 'texto-suave', text: 'Na hora de jogar de novo, a sala sorteia perguntas que ainda não saíram. Quando o tema acaba, a lista recomeça.' }),
       botao
     );
-    form.addEventListener('change', () => {
+
+    // Troca de tema: refaz a lista "a dedo" e o limite da quantidade
+    const aoMudarTema = () => {
+      const lista = doTema(form.elements.tema.value);
+      quantidade.max = String(lista.length);
+      if (Number(quantidade.value) > lista.length) quantidade.value = String(lista.length);
+      listaEscolha.replaceChildren(...lista.map((t) => h('label', { class: 'tarefa-check' }, h('input', { type: 'checkbox', value: t.id }), t.titulo)));
+      atualizarContador();
+    };
+    form.addEventListener('change', (e) => {
+      if (e.target.name === 'tema') aoMudarTema();
       campoDuracao.hidden = form.elements.modo.value !== 'rodadas';
     });
+    aoMudarTema();
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const tarefaIds = caixas.map((c) => c.querySelector('input')).filter((c) => c.checked).map((c) => c.value);
-      if (!tarefaIds.length) return Toast.erro('Escolha pelo menos uma tarefa.');
+      const tarefaIds = [...listaEscolha.querySelectorAll('input:checked')].map((c) => c.value);
       botao.disabled = true;
       try {
-        const { codigo } = await this.conexao.pedir('prof:criar', { modo: form.elements.modo.value, duracaoMin: Number(duracao.value), tarefaIds });
+        const { codigo } = await this.conexao.pedir('prof:criar', {
+          modo: form.elements.modo.value,
+          duracaoMin: Number(duracao.value),
+          categoria: form.elements.tema.value,
+          quantidade: Number(quantidade.value),
+          tarefaIds,
+        });
         this.irPara(codigo);
       } catch (erro) {
         Toast.erro(erro.message);
@@ -264,7 +301,7 @@ export class ProfessorApp {
     this.editor = new EditorTarefas({
       api: this.sessao.api,
       onSalvar: (tarefas) => {
-        this.tarefas = tarefas.map(({ id, titulo }) => ({ id, titulo }));
+        this.tarefas = tarefas.map(({ id, titulo, categoria }) => ({ id, titulo, categoria }));
       },
     });
     this.area.replaceChildren(this.editor.montar());

@@ -1,6 +1,7 @@
 const express = require('express');
 const { rota } = require('../../http/routing');
 const HttpError = require('../../http/HttpError');
+const { CATEGORIAS } = require('./tarefas');
 
 /**
  * Rotas HTTP do Laboratório (o jogo em si corre pelo Socket.IO):
@@ -22,7 +23,7 @@ function laboratorioRoutes({ servico, auth }) {
   });
 
   const enviarTarefas = (res) =>
-    res.json({ tarefas: servico.catalogo.atuais, personalizadas: servico.catalogo.personalizadas });
+    res.json({ tarefas: servico.catalogo.atuais, personalizadas: servico.catalogo.personalizadas, categorias: CATEGORIAS });
 
   router.get('/tarefas', exigir, (req, res) => enviarTarefas(res));
 

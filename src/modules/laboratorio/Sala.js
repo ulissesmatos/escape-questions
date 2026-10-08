@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const Random = require('../../shared/Random');
 const { validarNome, chaveNome } = require('./nomes');
-const { tarefaParaAluno, LETRAS } = require('./tarefas');
+const { tarefaParaAluno, descreverTema, LETRAS } = require('./tarefas');
 
 /**
  * Uma sala do Laboratório de Experimentos: alunos, fase da partida,
@@ -37,13 +37,17 @@ class ErroSala extends Error {}
 const novoId = (bytes) => crypto.randomBytes(bytes).toString('base64url');
 
 class Sala {
-  constructor({ codigo, modo = 'rodadas', duracaoSeg = 240, tarefas, agora = Date.now() }) {
+  constructor({ codigo, modo = 'rodadas', duracaoSeg = 240, tarefas, categoria = 'escolhidas', agora = Date.now() }) {
     if (!MODOS.includes(modo)) throw new ErroSala('Modo de jogo inválido.');
     if (!Array.isArray(tarefas) || !tarefas.length) throw new ErroSala('A sala precisa de pelo menos uma tarefa.');
     this.codigo = codigo;
     this.modo = modo;
     this.duracaoSeg = Math.min(30 * 60, Math.max(30, Math.round(duracaoSeg)));
     this.tarefas = tarefas;
+    this.categoria = categoria; // tema sorteado, "misturado" ou "escolhidas" (o professor marcou à mão)
+    this.partida = 1;
+    // Perguntas que esta sala já viu (em ordem), para a próxima partida não repetir
+    this.usadas = tarefas.map((t) => t.id);
     this.criadaEm = agora;
     this.atualizadaEm = agora;
 
@@ -194,6 +198,26 @@ class Sala {
     this.fimEm = null;
     this.restanteMs = null;
     this.finalizadaEm = agora;
+  }
+
+  /**
+   * Começa outra partida na mesma sala, com novas perguntas: os alunos
+   * continuam conectados e os pontos voltam a zero.
+   * `recomecou`: as perguntas do tema tinham acabado e a lista recomeçou.
+   */
+  novaPartida(tarefas, { recomecou = false } = {}) {
+    if (this.fase !== 'final') throw new ErroSala('Termine a partida atual antes de começar outra.');
+    if (!tarefas.length) throw new ErroSala('Não há perguntas para a nova partida.');
+    const ids = tarefas.map((t) => t.id);
+    this.usadas = recomecou ? ids : [...this.usadas, ...ids];
+    this.tarefas = tarefas;
+    this.partida += 1;
+    this.fase = 'espera';
+    this.indice = -1;
+    this.iniciadaEm = this.liberadaEm = this.fimEm = this.restanteMs = this.finalizadaEm = null;
+    this.pausada = false;
+    this.pausas = [];
+    for (const aluno of this.alunos.values()) aluno.respostas = {};
   }
 
   /** Chamado a cada segundo: acabou o tempo da rodada? */
@@ -399,6 +423,9 @@ class Sala {
     return {
       codigo: this.codigo,
       modo: this.modo,
+      categoria: this.categoria,
+      tema: descreverTema(this.categoria),
+      partida: this.partida,
       fase: this.fase,
       pausada: this.pausada,
       indice: this.indice,
@@ -475,8 +502,8 @@ class Sala {
   }
 
   resumoParaLista(agora = Date.now()) {
-    const { fase, modo, totalAlunos, conectados, indice, totalTarefas } = this.resumoPublico(agora);
-    return { codigo: this.codigo, fase, modo, totalAlunos, conectados, indice, totalTarefas, criadaEm: this.criadaEm };
+    const { fase, modo, tema, partida, totalAlunos, conectados, indice, totalTarefas } = this.resumoPublico(agora);
+    return { codigo: this.codigo, fase, modo, tema, partida, totalAlunos, conectados, indice, totalTarefas, criadaEm: this.criadaEm };
   }
 
   // ---------------------------------------------------------------- salvar e restaurar
@@ -490,7 +517,8 @@ class Sala {
   }
 
   static deJSON(dados) {
-    const sala = new Sala({ codigo: dados.codigo, modo: dados.modo, duracaoSeg: dados.duracaoSeg, tarefas: dados.tarefas, agora: dados.criadaEm });
+    // Salas salvas por versões antigas não têm categoria/partida/usadas: o construtor preenche
+    const sala = new Sala({ codigo: dados.codigo, modo: dados.modo, duracaoSeg: dados.duracaoSeg, tarefas: dados.tarefas, categoria: dados.categoria, agora: dados.criadaEm });
     // Campos de versões antigas (aposta, registro, destaques) são ignorados
     const { alunos = [], destaques, destaquesVisiveis, ...resto } = dados; // eslint-disable-line no-unused-vars
     Object.assign(sala, resto);

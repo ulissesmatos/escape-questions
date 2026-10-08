@@ -104,7 +104,7 @@ export class SalaPainel extends Component {
         'div',
         { class: 'painel-info' },
         h('span', { class: `fase-badge fase-${sala.fase}` }, sala.pausada ? '⏸️ Pausada' : FASES[sala.fase]),
-        h('span', { text: `${sala.modo === 'rodadas' ? '🔁 Rodadas' : '🧭 Livre'} · ${tarefaAtual}` }),
+        h('span', { text: `${sala.tema.icone} ${sala.tema.nome} · ${sala.modo === 'rodadas' ? '🔁 Rodadas' : '🧭 Livre'} · ${tarefaAtual}${sala.partida > 1 ? ` · Partida ${sala.partida}` : ''}` }),
         h('span', { text: `🟢 ${sala.conectados} online · ${sala.totalAlunos} na sala` }),
         h(
           'div',
@@ -142,6 +142,7 @@ export class SalaPainel extends Component {
     if (sala.fase !== 'espera' && sala.fase !== 'final' && !(sala.fase === 'parcial' && ultima)) {
       grupo.push(botao('🏁 Finalizar partida', 'btn-contorno', () => this.confirmarFinalizar()));
     }
+    if (sala.fase === 'final') grupo.push(botao('🔁 Nova partida com perguntas novas', 'btn-primario btn-grande', () => this.novaPartida()));
 
     const extras = [botao('⬇️ Exportar CSV', 'btn-contorno', () => this.exportar())];
     this.controles.replaceChildren(h('div', { class: 'painel-controles-principal' }, grupo), h('div', { class: 'painel-controles-extra' }, extras));
@@ -154,6 +155,23 @@ export class SalaPainel extends Component {
       textoConfirmar: 'Finalizar',
     });
     if (ok) this.acao('finalizar');
+  }
+
+  async novaPartida() {
+    const { sala } = this.estado;
+    const ok = await ConfirmDialog.perguntar({
+      titulo: 'Começar uma nova partida?',
+      mensagem: `Os alunos continuam na sala, os pontos voltam a zero e são sorteadas ${sala.totalTarefas} perguntas que esta sala ainda não viu (${sala.tema.nome}). Exporte o CSV antes se quiser guardar o resultado desta partida.`,
+      textoConfirmar: 'Nova partida',
+    });
+    if (!ok) return;
+    try {
+      const { recomecou } = await this.props.conexao.pedir('prof:novaPartida', { codigo: this.props.codigo });
+      if (recomecou) Toast.mostrar('As perguntas novas desse tema acabaram: a lista recomeçou pelas que saíram há mais tempo.', { duracao: 6000 });
+      else Toast.sucesso('Nova partida pronta! Clique em Iniciar quando a turma estiver pronta.');
+    } catch (erro) {
+      this.emitir('Erro', erro.message);
+    }
   }
 
   // ------------------------------------------------------------ dados derivados

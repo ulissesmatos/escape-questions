@@ -2,7 +2,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const { Sala, ErroSala } = require('../src/modules/laboratorio/Sala');
-const { validarTarefas, CatalogoDeTarefas } = require('../src/modules/laboratorio/tarefas');
+const { validarTarefas, sortearTarefas, CatalogoDeTarefas, CATEGORIAS } = require('../src/modules/laboratorio/tarefas');
+const Random = require('../src/shared/Random');
 const { nomeOfensivo, validarNome } = require('../src/modules/laboratorio/nomes');
 const { LaboratorioService } = require('../src/modules/laboratorio/LaboratorioService');
 const { RepositorioEmMemoria } = require('../src/modules/laboratorio/repositorios');
@@ -24,12 +25,45 @@ function entrar(sala, nome, agora = 0) {
   return aluno;
 }
 
-test('tasks.json tem as 10 tarefas válidas, com resposta certa e tempo mínimo', () => {
-  assert.equal(TAREFAS.length, 10);
+test('tasks.json tem 50+ tarefas válidas, em todos os temas, com resposta certa e tempo mínimo', () => {
+  assert.ok(TAREFAS.length >= 50, `só ${TAREFAS.length} tarefas`);
   for (const t of TAREFAS) {
     assert.ok(t.opcoes[['a', 'b', 'c', 'd'].indexOf(t.correta)]);
     assert.ok(t.tempoMinimo >= 10, `${t.id} sem tempo mínimo`);
+    assert.equal(PADRAO.find((p) => p.id === t.id).categoria, t.categoria, `${t.id} com tema inválido`);
   }
+  for (const c of CATEGORIAS) assert.ok(TAREFAS.filter((t) => t.categoria === c.id).length >= 8, `tema ${c.id} com poucas perguntas`);
+});
+
+test('sorteio: filtra o tema e o misturado alterna os temas', () => {
+  const random = new Random(42);
+  const word = sortearTarefas(TAREFAS, { categoria: 'word', quantidade: 5, random });
+  assert.equal(word.tarefas.length, 5);
+  assert.ok(word.tarefas.every((t) => t.categoria === 'word'));
+
+  const misturado = sortearTarefas(TAREFAS, { categoria: 'misturado', quantidade: 10, random }).tarefas;
+  assert.equal(new Set(misturado.map((t) => t.id)).size, 10);
+  assert.equal(new Set(misturado.slice(0, CATEGORIAS.length).map((t) => t.categoria)).size, CATEGORIAS.length, 'as primeiras perguntas devem ser de temas diferentes');
+
+  assert.equal(sortearTarefas(TAREFAS, { categoria: 'pesquisa', quantidade: 99, random }).tarefas.length, 8, 'não passa do que existe no tema');
+});
+
+test('sorteio: não repete o que a sala já viu e, quando acaba, recomeça pelas mais antigas', () => {
+  const random = new Random(7);
+  const pesquisa = TAREFAS.filter((t) => t.categoria === 'pesquisa').map((t) => t.id); // 8 perguntas
+  const p1 = sortearTarefas(TAREFAS, { categoria: 'pesquisa', quantidade: 3, random });
+  const p2 = sortearTarefas(TAREFAS, { categoria: 'pesquisa', quantidade: 3, evitar: p1.tarefas.map((t) => t.id), random });
+  const vistas = [...p1.tarefas, ...p2.tarefas].map((t) => t.id);
+  assert.equal(new Set(vistas).size, 6, 'segunda partida sem repetir');
+  assert.equal(p2.recomecou, false);
+
+  const p3 = sortearTarefas(TAREFAS, { categoria: 'pesquisa', quantidade: 3, evitar: vistas, random });
+  assert.equal(p3.recomecou, true);
+  const ids3 = p3.tarefas.map((t) => t.id);
+  const sobravam = pesquisa.filter((id) => !vistas.includes(id));
+  assert.ok(sobravam.every((id) => ids3.includes(id)), 'as 2 que faltavam entram');
+  assert.ok(p1.tarefas.some((t) => ids3.includes(t.id)), 'completa com uma da 1ª partida');
+  assert.ok(!p2.tarefas.some((t) => ids3.includes(t.id)), 'não repete a partida que acabou de terminar');
 });
 
 test('o aluno nunca recebe a resposta certa antes de responder', () => {
@@ -222,6 +256,36 @@ test('serviço: código de 4 letras, salva no repositório e recupera depois de 
 
   await outro.fecharSala(sala.codigo);
   assert.equal((await repositorio.carregarSalas()).length, 0);
+});
+
+test('nova partida: mesmos alunos, pontos zerados, perguntas novas do mesmo tema', async () => {
+  const repositorio = new RepositorioEmMemoria();
+  const servico = new LaboratorioService({ catalogo: new CatalogoDeTarefas({ repositorio }), repositorio, random: new Random(3) });
+  await servico.carregar();
+  const sala = servico.criarSala({ modo: 'livre', categoria: 'word', quantidade: 4 });
+  assert.equal(sala.categoria, 'word');
+  assert.ok(sala.tarefas.every((t) => t.categoria === 'word'));
+  const ana = entrar(sala, 'Ana');
+  sala.iniciar(0);
+  sala.abrir(ana.id, sala.tarefas[0].id, 0);
+  sala.responder(ana.id, sala.tarefas[0].id, sala.tarefas[0].correta, 60000);
+  assert.ok(sala.resumo(ana).pontos > 0);
+
+  assert.throws(() => servico.novaPartida(sala.codigo), /Termine a partida/);
+  sala.finalizar(70000);
+  const primeira = sala.tarefas.map((t) => t.id);
+  const { recomecou } = servico.novaPartida(sala.codigo);
+  assert.equal(recomecou, false);
+  assert.equal(sala.partida, 2);
+  assert.equal(sala.fase, 'espera');
+  assert.equal(sala.tarefas.length, 4);
+  assert.ok(sala.tarefas.every((t) => t.categoria === 'word' && !primeira.includes(t.id)), 'perguntas novas, mesmo tema');
+  assert.equal(sala.alunos.size, 1, 'os alunos continuam na sala');
+  assert.equal(sala.resumo(ana).pontos, 0, 'pontos zerados');
+
+  // 10 perguntas de Word: a 3ª partida de 4 precisa recomeçar a lista
+  sala.finalizar(80000);
+  assert.equal(servico.novaPartida(sala.codigo).recomecou, true);
 });
 
 test('editor de tarefas: valida e avisa o professor do que falta', () => {

@@ -1,4 +1,5 @@
 const { ErroSala } = require('./Sala');
+const { CATEGORIAS } = require('./tarefas');
 
 // Junta mudanças seguidas (30 alunos enviando quase juntos) em um envio só
 const ESPERA_TRANSMISSAO_MS = 120;
@@ -142,13 +143,22 @@ function ligarLaboratorio(io, { servico, auth }) {
       if (!sessao) throw new ErroSala('Sessão do professor expirada. Entre de novo com o PIN.');
       socket.data.professor = sessao;
       socket.join('professores');
-      return { salas: servico.listarSalas(), tarefas: servico.catalogo.atuais.map(({ id, titulo }) => ({ id, titulo })) };
+      return {
+        salas: servico.listarSalas(),
+        categorias: CATEGORIAS,
+        tarefas: servico.catalogo.atuais.map(({ id, titulo, categoria }) => ({ id, titulo, categoria })),
+      };
     });
 
-    pedido('prof:criar', ({ modo, duracaoMin, tarefaIds }) => {
+    pedido('prof:criar', ({ modo, duracaoMin, categoria, quantidade, tarefaIds }) => {
       exigirProfessor();
-      const sala = servico.criarSala({ modo, duracaoMin, tarefaIds });
+      const sala = servico.criarSala({ modo, duracaoMin, categoria, quantidade: Number(quantidade), tarefaIds });
       return { codigo: sala.codigo };
+    });
+
+    pedido('prof:novaPartida', ({ codigo }) => {
+      exigirProfessor();
+      return servico.novaPartida(codigo);
     });
 
     pedido('prof:abrir', ({ codigo }) => {

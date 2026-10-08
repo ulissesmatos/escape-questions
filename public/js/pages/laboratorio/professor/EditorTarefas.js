@@ -17,6 +17,9 @@ export class EditorTarefas extends Component {
   render() {
     this.lista = h('div', { class: 'editor-lista' }, estadoCarregando('Carregando tarefas...'));
     this.origem = h('p', { class: 'editor-origem' });
+    this.filtros = h('div', { class: 'editor-filtros', role: 'tablist', 'aria-label': 'Filtrar por tema' });
+    this.filtro = 'todas';
+    this.categorias = [];
     this.carregar();
     return h(
       'section',
@@ -36,6 +39,7 @@ export class EditorTarefas extends Component {
           h('li', { text: 'As mudanças valem para as próximas salas. Salas já abertas continuam com as tarefas de quando foram criadas.' })
         )
       ),
+      this.filtros,
       this.lista,
       h(
         'div',
@@ -57,8 +61,9 @@ export class EditorTarefas extends Component {
     }
   }
 
-  aplicar({ tarefas, personalizadas }) {
+  aplicar({ tarefas, personalizadas, categorias }) {
     this.tarefas = tarefas;
+    this.categorias = categorias;
     this.origem.textContent = personalizadas
       ? '✏️ Usando a versão editada aqui no painel.'
       : '📄 Usando o arquivo tasks.json (padrão). Ao salvar, sua versão passa a valer.';
@@ -67,6 +72,31 @@ export class EditorTarefas extends Component {
 
   desenharLista() {
     this.lista.replaceChildren(...this.tarefas.map((t, i) => this.formTarefa(t, i)));
+    this.aplicarFiltro();
+  }
+
+  /** Mostra só as tarefas do tema escolhido (as outras ficam escondidas, não somem) */
+  aplicarFiltro() {
+    const formularios = [...this.lista.querySelectorAll('.editor-tarefa')];
+    const temaDe = (fs) => fs.querySelector('[data-campo="categoria"]').value;
+    const contar = (id) => (id === 'todas' ? formularios.length : formularios.filter((fs) => temaDe(fs) === id).length);
+    const opcoes = [{ id: 'todas', nome: 'Todas', icone: '📚' }, ...this.categorias];
+    this.filtros.replaceChildren(
+      ...opcoes.map((c) =>
+        h('button', {
+          type: 'button',
+          role: 'tab',
+          class: `chip-filtro${this.filtro === c.id ? ' ativo' : ''}`,
+          'aria-selected': String(this.filtro === c.id),
+          text: `${c.icone} ${c.nome} (${contar(c.id)})`,
+          onClick: () => {
+            this.filtro = c.id;
+            this.aplicarFiltro();
+          },
+        })
+      )
+    );
+    for (const fs of formularios) fs.hidden = this.filtro !== 'todas' && temaDe(fs) !== this.filtro;
   }
 
   formTarefa(t, i) {
@@ -96,6 +126,7 @@ export class EditorTarefas extends Component {
           h('button', { type: 'button', class: 'btn-mini btn-mini-perigo', title: 'Remover', onClick: () => this.remover(i) }, '🗑️')
         )
       ),
+      campo('Tema', h('select', { class: 'campo', 'data-campo': 'categoria', onChange: () => this.aplicarFiltro() }, this.categorias.map((c) => h('option', { value: c.id, selected: c.id === t.categoria, text: `${c.icone} ${c.nome}` })))),
       campo('Título', h('input', { type: 'text', maxlength: 80, value: t.titulo, 'data-campo': 'titulo' })),
       campo('Instrução (o que o aluno faz)', h('textarea', { rows: 2, maxlength: 600, value: t.instrucao, 'data-campo': 'instrucao' })),
       campo('Atalhos em destaque (opcional)', h('input', { type: 'text', value: (t.teclas || []).join('; '), placeholder: 'Windows + D', 'data-campo': 'teclas' })),
@@ -114,6 +145,7 @@ export class EditorTarefas extends Component {
       const marcada = fs.querySelector('[data-campo="correta"]:checked');
       return {
         id: fs.dataset.id || undefined,
+        categoria: valor('categoria'),
         titulo: valor('titulo'),
         instrucao: valor('instrucao'),
         teclas: valor('teclas').split(';').map((x) => x.trim()).filter(Boolean),
@@ -152,7 +184,9 @@ export class EditorTarefas extends Component {
 
   adicionar() {
     this.tarefas = this.lerFormularios();
-    this.tarefas.push({ titulo: '', instrucao: '', teclas: [], tempoMinimo: 15, pergunta: 'O que aconteceu?', opcoes: ['', '', '', ''], correta: 'a', explicacao: '', notaProfessor: '' });
+    // A tarefa nova já entra no tema que está filtrado
+    const categoria = this.filtro !== 'todas' ? this.filtro : this.categorias[0].id;
+    this.tarefas.push({ categoria, titulo: '', instrucao: '', teclas: [], tempoMinimo: 15, pergunta: 'O que aconteceu?', opcoes: ['', '', '', ''], correta: 'a', explicacao: '', notaProfessor: '' });
     this.desenharLista();
     const ultimo = this.lista.lastElementChild;
     ultimo.scrollIntoView({ behavior: 'smooth', block: 'center' });

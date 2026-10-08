@@ -2007,3 +2007,86 @@ body.pagina-professor {
   padding: 12px;
   box-shadow: var(--sombra-media);
 }
+
+/* Temas: escolha na criação da sala e filtro do editor */
+
+.temas-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.tema-opcao {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 2px solid var(--border-strong);
+  border-radius: 14px;
+  padding: 10px 12px;
+  cursor: pointer;
+  margin: 0;
+  font-weight: 500;
+}
+
+.tema-opcao:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+.tema-opcao input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tema-opcao:has(input:focus-visible) {
+  box-shadow: 0 0 0 4px var(--accent-ring);
+}
+
+.tema-icone {
+  font-size: 1.6rem;
+}
+
+.tema-textos strong,
+.tema-textos small {
+  display: block;
+  line-height: 1.25;
+}
+
+.tema-textos small {
+  color: var(--text-muted);
+}
+
+.escolher-a-dedo summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--accent-dark);
+  margin-bottom: 8px;
+}
+
+.escolher-a-dedo .tarefas-checks {
+  margin-top: 8px;
+}
+
+.editor-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip-filtro {
+  border: 1.5px solid var(--border-strong);
+  background: white;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chip-filtro.ativo {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  color: var(--accent-dark);
+}

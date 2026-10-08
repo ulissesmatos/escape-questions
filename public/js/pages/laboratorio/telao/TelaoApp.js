@@ -130,7 +130,7 @@ export class TelaoApp {
       h(
         'div',
         { class: 'telao-bloco telao-espera cartao' },
-        h('span', { class: 'telao-etiqueta', text: 'Prepare-se!' }),
+        h('span', { class: 'telao-etiqueta', text: `${sala.tema.icone} ${sala.tema.nome}${sala.partida > 1 ? ` · Partida ${sala.partida}` : ''}` }),
         h('h1', { class: 'telao-titulo-gigante', text: 'Entre na sala' }),
         h('p', { class: 'telao-passo' }, '1. Abra ', h('strong', { text: this.enderecoAlunos })),
         h('p', { class: 'telao-passo' }, '2. Digite o código ', h('strong', { class: 'telao-codigo-inline', text: sala.codigo })),

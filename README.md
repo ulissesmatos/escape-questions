@@ -299,6 +299,15 @@ As perguntas são de observação (algo que só quem fez vê na tela), para não
 para acertar sem fazer. O servidor confere o tempo mínimo de novo ao receber a
 resposta, e a resposta certa nunca vai para o navegador antes disso.
 
+**Temas e sorteio:** são 55 perguntas em 6 temas (🪟 Windows, 📁 Arquivos e
+pastas, ⌨️ Teclado e texto, 📝 Word, 🌐 Navegador, 🔎 Pesquisa na internet). Ao
+criar a sala, o professor escolhe um tema ou 🎲 Misturado e quantas perguntas
+sortear (padrão 10); no misturado os temas vêm alternados. Também dá para
+escolher as perguntas a dedo. No fim da partida, "Nova partida com perguntas
+novas" mantém os alunos na sala, zera os pontos e sorteia perguntas que a sala
+ainda não viu. Quando o tema acaba, a lista recomeça pelas que saíram há mais
+tempo.
+
 **Modos:** *Rodadas* (o professor libera uma tarefa por vez, com cronômetro;
 quando o tempo acaba ou todos os presentes respondem, aparece o ranking
 parcial) ou *Livre* (todas liberadas, cada um no seu ritmo; o tempo mínimo
@@ -332,6 +341,7 @@ nada. Salas paradas há 12 horas são apagadas.
 ```json
 {
   "id": "desfazer",
+  "categoria": "teclado",
   "titulo": "Desfazer",
   "instrucao": "No Bloco de Notas, escreva uma frase, apague tudo e aperte [Ctrl] + [Z].",
   "teclas": ["Ctrl + Z"],
@@ -345,7 +355,8 @@ nada. Salas paradas há 12 horas são apagadas.
 ```
 
 Teclas entre colchetes na instrução viram teclas desenhadas; `teclas` são os
-atalhos mostrados em destaque; `tempoMinimo` são os segundos antes de poder
+atalhos mostrados em destaque; `categoria` é o tema (windows, arquivos,
+teclado, word, navegador ou pesquisa); `tempoMinimo` são os segundos antes de poder
 responder (padrão 15); `correta` é a letra da opção no arquivo (a, b, c ou d).
 A ordem no arquivo não importa: cada aluno vê as opções embaralhadas.
 
