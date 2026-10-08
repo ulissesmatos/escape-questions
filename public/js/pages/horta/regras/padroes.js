@@ -5,7 +5,8 @@
 // - esqueleto: o "esqueleto" de uma solução, só com os blocos que guardam
 //   outros (Repita, Se...), para a dica sem entregar a resposta.
 
-import { BLOCOS, CONDICOES, nomeCurto } from './blocos.js';
+import { BLOCOS, CONDICOES, copiarPlano, nomeCurto } from './blocos.js';
+import { executar } from './Interpretador.js';
 
 /** Texto que identifica um bloco e tudo o que está dentro dele (ignora o id) */
 function assinatura(bloco) {
@@ -91,4 +92,25 @@ export function esqueleto(plano) {
     saida.push(copia);
   }
   return saida;
+}
+
+/**
+ * Caminho que um plano faz numa horta (sem mexer nela): segmentos de casa em
+ * casa, com a volta do Repita de fora em `cor` (para pintar uma cor por volta).
+ */
+export function caminhoDoPlano(plano, horta) {
+  const copia = horta.clonar();
+  const comIds = copiarPlano(plano); // as voltas vêm com o id do bloco
+  const deFora = new Set(comIds.map((b) => b.id));
+  const segmentos = [];
+  let cor = null;
+  const execucao = executar(comIds, copia);
+  for (let passo = execucao.next(); !passo.done; passo = execucao.next()) {
+    const ev = passo.value;
+    if (ev.tipo === 'volta' && deFora.has(ev.bloco)) cor = ev.volta - 1;
+    if (ev.tipo === 'acao' && ev.acao === 'andar' && ev.resultado.ok) {
+      segmentos.push({ de: ev.resultado.de, para: { x: copia.robo.x, y: copia.robo.y }, cor });
+    }
+  }
+  return segmentos;
 }

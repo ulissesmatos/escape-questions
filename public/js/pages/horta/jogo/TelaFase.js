@@ -6,7 +6,7 @@ import { armazenamentoLocal } from '../../../core/SafeStorage.js';
 import { executar } from '../regras/Interpretador.js';
 import { BLOCOS, CONDICOES, contarBlocos, copiarPlano, planoParaSalvar } from '../regras/blocos.js';
 import { FASES, calcularEstrelas, montarHortas, planoInicialDaFase, solucaoDaFase } from '../regras/fases.js';
-import { acharRepeticao, esqueleto, nomeDoBloco, sugestaoDeRepita } from '../regras/padroes.js';
+import { acharRepeticao, caminhoDoPlano, esqueleto, nomeDoBloco, sugestaoDeRepita } from '../regras/padroes.js';
 import { CORES_PARTICULAS, Desenho } from './Desenho.js';
 import { EditorDeBlocos } from './EditorDeBlocos.js';
 import { sons } from './sons.js';
@@ -461,21 +461,9 @@ export class TelaFase {
 
   /** Caminho da solução de referência na horta atual, para a dica (sem mexer na horta de verdade) */
   caminhoDaSolucao(horta) {
-    const copia = horta.clonar();
-    const plano = copiarPlano(solucaoDaFase(this.fase)); // copiarPlano dá ids aos blocos
-    const deFora = new Set(plano.map((b) => b.id));
-    const segmentos = [];
-    let cor = null;
-    const execucao = executar(plano, copia);
-    for (let passo = execucao.next(); !passo.done; passo = execucao.next()) {
-      const ev = passo.value;
-      if (ev.tipo === 'volta' && deFora.has(ev.bloco)) cor = ev.volta - 1;
-      if (ev.tipo === 'acao' && ev.acao === 'andar' && ev.resultado.ok) {
-        segmentos.push({ de: ev.resultado.de, para: { x: copia.robo.x, y: copia.robo.y }, cor });
-      }
-    }
-    return segmentos;
+    return caminhoDoPlano(solucaoDaFase(this.fase), horta);
   }
+
 
   atualizarControles() {
     const rodando = this.modo === 'rodando';

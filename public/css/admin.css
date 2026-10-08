@@ -1504,3 +1504,160 @@ body[data-page="admin"] {
   font-size: 1rem;
   cursor: help;
 }
+
+/* ---------- Robô na Horta: respostas das fases ---------- */
+
+.resposta-intro {
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+
+.resposta-intro p {
+  margin: 0 0 6px;
+}
+
+.resposta-filtros {
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.resposta-mundo {
+  margin-bottom: 28px;
+}
+
+.resposta-mundo-titulo {
+  font-size: 1.15rem;
+  margin: 0 0 2px;
+}
+
+.resposta-mundo > .texto-suave {
+  margin: 0 0 12px;
+}
+
+.resposta-grade {
+  display: grid;
+  gap: 14px;
+}
+
+@media (min-width: 1200px) {
+  .resposta-grade {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.resposta-cartao {
+  padding: 16px 18px;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.resposta-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.resposta-cabecalho h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  flex: 1;
+}
+
+.resposta-numero {
+  background: #e8f8ee;
+  color: #15803d;
+  font-weight: 800;
+  border-radius: 8px;
+  padding: 3px 9px;
+}
+
+.resposta-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.resposta-chip {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+.resposta-corpo {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.resposta-mapa-area {
+  flex-shrink: 0;
+  max-width: 260px;
+}
+
+.resposta-mapa {
+  display: block;
+  border-radius: 8px;
+  image-rendering: pixelated;
+}
+
+.resposta-legenda {
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+}
+
+/* Blocos nas cores do jogo */
+.resposta-plano {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  flex: 1;
+  min-width: 220px;
+}
+
+.resposta-plano .resposta-plano {
+  margin-top: 4px;
+  padding-left: 14px;
+  border-left: 6px solid #e8730c;
+  border-radius: 0 0 0 6px;
+}
+
+.resposta-bloco {
+  display: inline-block;
+  color: white;
+  font-weight: 700;
+  font-size: 0.86rem;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: #2f6fe4;
+}
+
+.resposta-bloco.cat-acao {
+  background: #1e9e4a;
+}
+
+.resposta-bloco.cat-repeticao {
+  background: #e8730c;
+}
+
+.resposta-bloco.cat-decisao {
+  background: #8150e0;
+}
+
+.resposta-senao {
+  margin-top: 4px;
+}
+
+.resposta-explicar {
+  margin: 0;
+  background: #fff8e1;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.92rem;
+}

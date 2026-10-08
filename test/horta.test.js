@@ -182,3 +182,14 @@ test('esqueleto mostra só a forma da solução (Repita e Se), sem as ações', 
   ]);
   assert.deepEqual(esqueleto(plano(['andar', 'colher'])), []);
 });
+
+test('área do professor tem o "como explicar" de todas as fases', async () => {
+  const fs = require('fs');
+  const { FASES } = await modulo('fases.js');
+  const texto = fs.readFileSync(path.join(__dirname, '..', 'public/js/admin/sections/HortaSection.js'), 'utf8');
+  const bloco = texto.slice(texto.indexOf('const COMO_EXPLICAR'), texto.indexOf('};', texto.indexOf('const COMO_EXPLICAR')));
+  for (const fase of FASES) {
+    const chave = /^[a-z]\w*$/.test(fase.id) ? `${fase.id}:` : `'${fase.id}':`;
+    assert.ok(bloco.includes(chave), `falta o "como explicar" da fase ${fase.id}`);
+  }
+});
