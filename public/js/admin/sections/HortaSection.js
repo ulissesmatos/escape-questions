@@ -1,4 +1,5 @@
 import { h } from '../../core/dom.js';
+import { Toast } from '../../components/ui.js';
 import { AdminSection, AdminTab } from './base.js';
 import { BLOCOS, CONDICOES, contarBlocos } from '../../pages/horta/regras/blocos.js';
 import { FASES, MUNDOS, montarHortas, solucaoDaFase } from '../../pages/horta/regras/fases.js';
@@ -72,11 +73,56 @@ function miniMapa(fase, plano) {
 }
 
 class RespostasTab extends AdminTab {
+  /** As respostas vêm das fases do jogo; do servidor só vem a configuração */
   async carregar() {
-    return null; // tudo vem das fases do jogo
+    return this.props.api.get('/horta/config');
   }
 
-  desenhar() {
+  /** Interruptor da memória do Bip: vale na hora para todos os alunos que abrirem uma fase */
+  configuracoes(config) {
+    const chave = h('input', { type: 'checkbox', class: 'interruptor-campo', checked: config.memoria, 'aria-describedby': 'memoria-explicacao' });
+    const explicacao = h('p', { class: 'texto-suave', id: 'memoria-explicacao' });
+    const estado = h('strong', { class: 'interruptor-estado' });
+    const mostrar = (ligada) => {
+      estado.textContent = ligada ? 'Ligada' : 'Desligada';
+      estado.classList.toggle('ligada', ligada);
+      explicacao.textContent = ligada
+        ? 'Nos mundos 2 e 3 o robô só roda o plano se ele couber na memória: os alunos precisam usar o Repita para concluir a fase.'
+        : 'Os alunos concluem as fases mesmo sem usar o Repita. O robô continua sugerindo o Repita, e quem usar menos blocos ganha a estrela da meta.';
+    };
+    mostrar(config.memoria);
+    chave.addEventListener('change', async () => {
+      chave.disabled = true;
+      try {
+        const salvo = await this.props.api.put('/horta/config', { memoria: chave.checked });
+        this.dados = salvo;
+        mostrar(salvo.memoria);
+        Toast.sucesso(salvo.memoria ? 'Memória do Bip ligada.' : 'Memória do Bip desligada.');
+        this.redesenhar();
+      } catch (erro) {
+        chave.checked = !chave.checked;
+        Toast.erro(erro.message);
+      } finally {
+        chave.disabled = false;
+      }
+    });
+    return h(
+      'div',
+      { class: 'cartao resposta-config' },
+      h(
+        'label',
+        { class: 'interruptor' },
+        chave,
+        h('span', { class: 'interruptor-trilho', 'aria-hidden': 'true' }),
+        h('span', { class: 'interruptor-rotulo' }, '🧠 Memória do Bip (limite de blocos) ', estado)
+      ),
+      explicacao,
+      h('p', { class: 'texto-suave', text: 'A mudança vale quando o aluno abrir (ou recarregar) uma fase.' })
+    );
+  }
+
+  desenhar(config) {
+    this.config = config;
     this.mundo = this.mundo || 0;
     const filtros = h(
       'div',
@@ -103,6 +149,7 @@ class RespostasTab extends AdminTab {
       )
     );
     return [
+      this.configuracoes(config),
       h(
         'div',
         { class: 'cartao resposta-intro' },
@@ -120,7 +167,7 @@ class RespostasTab extends AdminTab {
     const sorteada = Boolean(fase.gerar);
     const chips = [
       h('span', { class: 'resposta-chip', text: `${blocos} ${blocos === 1 ? 'bloco' : 'blocos'} (meta: até ${fase.meta})` }),
-      fase.memoria && h('span', { class: 'resposta-chip', text: `🧠 memória: ${fase.memoria}` }),
+      fase.memoria && h('span', { class: 'resposta-chip', text: `🧠 memória: ${fase.memoria}${this.config.memoria ? '' : ' (desligada)'}` }),
       sorteada && h('span', { class: 'resposta-chip', text: `🎲 ${fase.variantes} hortas sorteadas` }),
       fase.condicoes && h('span', { class: 'resposta-chip', text: fase.condicoes.map((c) => CONDICOES[c].icone).join(' ') }),
     ];

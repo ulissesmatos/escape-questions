@@ -23,12 +23,15 @@ const DESLOCAMENTO = { cima: [0, -1], direita: [1, 0], baixo: [0, 1], esquerda: 
 const TENTATIVAS_PARA_DICA = 2;
 
 export class TelaFase {
-  constructor({ alvo, topo, indice, progresso, aoVoltar, aoAbrirFase, aoGanharEstrelas }) {
+  constructor({ alvo, topo, indice, progresso, memoriaLigada = false, aoVoltar, aoAbrirFase, aoGanharEstrelas }) {
     this.alvo = alvo;
     this.topo = topo;
     this.aoGanharEstrelas = aoGanharEstrelas;
     this.indice = indice;
     this.fase = FASES[indice];
+    // A memória do Bip (limite de blocos) só vale se o professor ligar no painel
+    this.memoria = memoriaLigada ? this.fase.memoria || null : null;
+    this.falaInicial = (!this.memoria && this.fase.falaSemMemoria) || this.fase.fala;
     this.progresso = progresso;
     this.aoVoltar = aoVoltar;
     this.aoAbrirFase = aoAbrirFase;
@@ -160,7 +163,7 @@ export class TelaFase {
     }
     window.addEventListener('resize', this.aoRedimensionar);
 
-    this.falar(fase.fala);
+    this.falar(this.falaInicial);
     this.mostrarHorta(0);
     this.atualizarContador();
     this.atualizarControles();
@@ -329,7 +332,8 @@ export class TelaFase {
 
   atualizarContador() {
     const n = contarBlocos(this.plano);
-    const { meta, memoria } = this.fase;
+    const { meta } = this.fase;
+    const { memoria } = this;
     substituirFilhos(
       this.contador,
       memoria
@@ -349,7 +353,7 @@ export class TelaFase {
 
   /** O plano não cabe na memória? Então o robô nem começa, e sugere o Repita */
   memoriaEstourada() {
-    const { memoria } = this.fase;
+    const { memoria } = this;
     const n = contarBlocos(this.plano);
     if (!memoria || n <= memoria) return false;
     sons.tocar('errar');
@@ -514,7 +518,7 @@ export class TelaFase {
     this.fecharResultado();
     this.mostrarHorta(this.indiceHorta);
     this.atualizarControles();
-    if (!manterFala) this.falar(this.fase.fala);
+    if (!manterFala) this.falar(this.falaInicial);
   }
 
   alternarRodar() {

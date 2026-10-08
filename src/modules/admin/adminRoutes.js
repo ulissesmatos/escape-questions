@@ -4,6 +4,8 @@ const AdminDashboardService = require('./AdminDashboardService');
 const { adminEscapeRoutes } = require('../escape/escapeRoutes');
 const { adminPcbuildRoutes } = require('../pcbuild/pcbuildRoutes');
 const adminHardwareRoutes = require('../hardware/admin/adminHardwareRoutes');
+const { HortaConfig } = require('../horta/HortaConfig');
+const { adminHortaRoutes } = require('../horta/hortaRoutes');
 
 function adminRoutes({ db, auth, tipos }) {
   const r = express.Router();
@@ -27,6 +29,7 @@ function adminRoutes({ db, auth, tipos }) {
   r.use('/escape', adminEscapeRoutes(db));
   r.use('/hardware', adminHardwareRoutes({ db, tipos }));
   r.use('/pcbuild', adminPcbuildRoutes(db));
+  r.use('/horta', adminHortaRoutes(new HortaConfig(db)));
 
   return r;
 }

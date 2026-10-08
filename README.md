@@ -134,8 +134,8 @@ fica em 60 fps.
   - `fases.js`: mundos, fases, geradores das hortas sorteadas e cálculo das
     estrelas (completar, usar no máximo a meta de blocos e pegar as moedas).
     Cada fase tem uma solução de referência (`solucao`), e pode ter
-    `memoria` (limite de blocos, para obrigar o Repita) e `planoInicial`
-    (plano já começado). O número na tela ("3-2") vem da posição; o `id`
+    `memoria` (limite de blocos, para obrigar o Repita; só vale quando o
+    professor liga a memória no painel) e `planoInicial` (plano já começado). O número na tela ("3-2") vem da posição; o `id`
     guarda o progresso e não muda.
   - `padroes.js`: o detector de repetição (percebe o mesmo pedaço várias vezes
     seguidas e sugere um Repita, ou um Repita dentro de outro) e o esqueleto
@@ -150,6 +150,11 @@ fica em 60 fps.
   tudo num Repita" embrulha o plano inteiro; e, depois de 2 tentativas
   erradas, o botão 💡 Dica mostra o caminho pintado na horta e depois a forma
   do plano (só os Repita).
+- **Memória do Bip:** começa desligada (o aluno conclui a fase de qualquer
+  jeito e o robô sugere o Repita para a estrela da meta). Em
+  `/admin.html` → Robô na Horta, o professor liga ou desliga para todos; a
+  escolha fica no banco (`configuracoes`) e o jogo lê em `GET /api/horta/config`.
+  A área do professor também mostra a resposta de cada fase com 3 estrelas.
 - **Progresso:** fica no navegador (estrelas e o último plano de cada fase).
   `horta.html?tudo` libera todas as fases para o professor conhecer o jogo.
 - **Nova fase:** adicione em `FASES` (`fases.js`) com um mapa fixo ou um

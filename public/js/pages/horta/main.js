@@ -1,4 +1,5 @@
 import { h, substituirFilhos } from '../../core/dom.js';
+import { api } from '../../core/ApiClient.js';
 import { FASES } from './regras/fases.js';
 import { Progresso } from './jogo/Progresso.js';
 import { TelaFase } from './jogo/TelaFase.js';
@@ -11,9 +12,24 @@ import { sons } from './jogo/sons.js';
  * Troca entre o mapa de fases e uma fase pelo endereço (#fase-2-3), assim o
  * botão Voltar do navegador também funciona.
  * ?tudo libera todas as fases (para o professor conhecer o jogo).
+ * As configurações do professor (memória do robô) vêm do servidor; sem
+ * conexão, o jogo abre com o padrão (memória desligada).
  */
+const ESPERA_CONFIG_MS = 2500;
+
+async function lerConfig() {
+  const padrao = { memoria: false };
+  try {
+    const tempo = new Promise((resolver) => setTimeout(() => resolver(padrao), ESPERA_CONFIG_MS));
+    return { ...padrao, ...(await Promise.race([api.get('/horta/config'), tempo])) };
+  } catch {
+    return padrao;
+  }
+}
+
 class JogoHorta {
-  constructor(raiz) {
+  constructor(raiz, config) {
+    this.config = config;
     const parametros = new URLSearchParams(location.search);
     this.progresso = new Progresso({ liberarTudo: parametros.has('tudo') });
     this.tela = null;
@@ -90,7 +106,7 @@ class JogoHorta {
       aoGanharEstrelas: () => this.atualizarTotal(),
     };
     if (indice >= 0 && this.progresso.liberada(indice)) {
-      this.tela = new TelaFase({ ...comum, indice, aoVoltar: () => (location.hash = 'fases') });
+      this.tela = new TelaFase({ ...comum, indice, memoriaLigada: this.config.memoria, aoVoltar: () => (location.hash = 'fases') });
     } else {
       this.tela = new TelaMapa(comum);
     }
@@ -101,6 +117,8 @@ class JogoHorta {
   }
 }
 
-const jogo = new JogoHorta(document.getElementById('horta'));
-// ?teste expõe o jogo para testes automatizados de navegador
-if (new URLSearchParams(location.search).has('teste')) window.jogoHorta = jogo;
+lerConfig().then((config) => {
+  const jogo = new JogoHorta(document.getElementById('horta'), config);
+  // ?teste expõe o jogo para testes automatizados de navegador
+  if (new URLSearchParams(location.search).has('teste')) window.jogoHorta = jogo;
+});

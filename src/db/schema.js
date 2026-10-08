@@ -219,6 +219,12 @@ const COMANDOS = [
     dados JSONB NOT NULL,
     atualizado_em TIMESTAMPTZ NOT NULL DEFAULT now()
   )`,
+  // Configurações gerais das atividades (ex.: memória do Robô na Horta)
+  `CREATE TABLE IF NOT EXISTS configuracoes (
+    chave TEXT PRIMARY KEY,
+    valor JSONB NOT NULL,
+    atualizado_em TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`,
   // Tarefas editadas no painel (sem linha = vale o tasks.json)
   `CREATE TABLE IF NOT EXISTS lab_config (
     chave TEXT PRIMARY KEY,

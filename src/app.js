@@ -32,6 +32,9 @@ const { RepositorioLaboratorio } = require('./modules/laboratorio/repositorios')
 const { laboratorioRoutes } = require('./modules/laboratorio/laboratorioRoutes');
 const { ligarLaboratorio } = require('./modules/laboratorio/laboratorioSocket');
 
+const { HortaConfig } = require('./modules/horta/HortaConfig');
+const { hortaRoutes } = require('./modules/horta/hortaRoutes');
+
 const adminRoutes = require('./modules/admin/adminRoutes');
 const { oficinaRoutes } = require('./modules/oficina/oficinaRoutes');
 
@@ -57,6 +60,7 @@ function criarApp({ db, auth, laboratorio, tipos = registroPadrao, oficina = {} 
   app.use('/api/escape', escapeRoutes(new EscapeRoomService(db)));
   app.use('/api/hardware', hardwareRoutes(jogoHardware));
   app.use('/api/pcbuild', pcbuildRoutes(new PcBuildService(db)));
+  app.use('/api/horta', hortaRoutes(new HortaConfig(db)));
   app.use('/api/admin', adminRoutes({ db, auth, tipos }));
 
   app.use('/api/oficina', oficinaRoutes({ podeEditarZonas: !config.isProduction, ...oficina }));

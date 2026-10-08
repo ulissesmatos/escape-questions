@@ -8,7 +8,9 @@
 //   id            chave do progresso salvo (não muda, mesmo se a fase mudar de lugar)
 //   rotulo        número que aparece na tela ("3-2"), calculado pela posição
 //   meta          até quantos blocos vale a estrela
-//   memoria       limite de blocos: o robô não roda um plano maior (obriga o Repita)
+//   memoria       limite de blocos: o robô não roda um plano maior (obriga o Repita).
+//                 Só vale quando o professor liga a memória no painel.
+//   falaSemMemoria fala usada com a memória desligada (quando a fala cita a memória)
 //   planoInicial  plano que já vem montado, para o aluno completar
 //   solucao       uma solução de referência: alimenta as dicas e os testes
 
@@ -200,6 +202,7 @@ export const FASES = [
     mundo: 2,
     titulo: 'Até o tomate',
     fala: 'O tomate está longe e na minha memória só cabem 4 blocos! O Repita faz o que está dentro dele várias vezes. Coloque um Repita, mude para 6 vezes e ponha um Ande dentro dele.',
+    falaSemMemoria: 'O tomate está longe! Em vez de 6 blocos Ande, use o Repita: ele faz o que está dentro dele várias vezes. Coloque um Repita, mude para 6 vezes e ponha um Ande dentro dele.',
     blocos: SO_REPITA,
     novos: ['repita'],
     meta: 3,
@@ -259,6 +262,7 @@ export const FASES = [
     mundo: 3,
     titulo: 'O canteiro de novo',
     fala: 'Lembra deste canteiro? Agora só cabem 5 blocos na minha memória! Dentro de cada lado o Ande também se repete. Use um Repita para os lados e outro, dentro dele, para o Ande.',
+    falaSemMemoria: 'Lembra deste canteiro? Dentro de cada lado o Ande também se repete. Use um Repita para os lados e outro, dentro dele, para o Ande. Para a estrela da meta: no máximo 5 blocos!',
     blocos: SO_REPITA,
     meta: 5,
     memoria: 5,
