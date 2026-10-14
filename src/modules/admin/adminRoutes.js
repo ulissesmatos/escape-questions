@@ -6,8 +6,9 @@ const { adminPcbuildRoutes } = require('../pcbuild/pcbuildRoutes');
 const adminHardwareRoutes = require('../hardware/admin/adminHardwareRoutes');
 const { HortaConfig } = require('../horta/HortaConfig');
 const { adminHortaRoutes } = require('../horta/hortaRoutes');
+const { adminWordRoutes } = require('../word/wordRoutes');
 
-function adminRoutes({ db, auth, tipos }) {
+function adminRoutes({ db, auth, tipos, word }) {
   const r = express.Router();
   const painel = new AdminDashboardService(db);
 
@@ -30,6 +31,7 @@ function adminRoutes({ db, auth, tipos }) {
   r.use('/hardware', adminHardwareRoutes({ db, tipos }));
   r.use('/pcbuild', adminPcbuildRoutes(db));
   r.use('/horta', adminHortaRoutes(new HortaConfig(db)));
+  if (word) r.use('/word', adminWordRoutes(word));
 
   return r;
 }

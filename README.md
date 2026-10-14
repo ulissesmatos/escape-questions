@@ -30,6 +30,10 @@ professor gerencia tudo pela área `/admin.html`.
   São 23 fases em 5 mundos; o mundo 3 ensina, aos poucos, o Repita dentro do
   Repita. A partir do mundo 4 a horta é sorteada e o mesmo plano precisa
   funcionar em 3 hortas, então decorar o caminho não resolve.
+- **Operação Word** (`/word.html`): um computador simulado (Windows 11 + Word
+  2019 em português) com 20 missões de agente secreto, do básico ao
+  intermediário. O aluno cria um @ e entra só com ele (sem senha); a Central
+  guia, percebe quando ele se perde e mostra onde clicar. Detalhes abaixo.
 - **Laboratório de Experimentos** (`/laboratorio`): competição em tempo real
   (Socket.IO). Os alunos entram numa sala com um código de 4 letras, fazem a
   ação no computador (atalhos de teclado) e depois respondem o que aconteceu,
@@ -103,10 +107,165 @@ public/
   js/pages/laboratorio/       → aluno/, professor/, telao/ + Conexao e comum (teclas, cronômetro, ranking)
 tools/empacotar-oficina.js    → gera a versão da Oficina para baixar (arquivo único)
 test/                         → node:test (tipos de pergunta, motor adaptativo, detector de chute, regras da Oficina,
-                                do Robô na Horta e do Laboratório, e uma partida real com 30 alunos via Socket.IO)
+                                do Robô na Horta, do Laboratório e da Operação Word, e uma partida real com 30 alunos via Socket.IO)
 docs/oficina-sprites.md       → como gerar a arte do jogo no ChatGPT (+ gabaritos em docs/oficina-gabaritos)
 docs/oficina-expansao.md      → proposta do loop de gameplay e das próximas fases do jogo
 ```
+
+## Operação Word (simulador de Windows e Word)
+
+O aluno aprende o Word num computador de mentira que se comporta como o de
+verdade: Área de Trabalho, menu Iniciar, barra de tarefas, Explorador de
+Arquivos, Lixeira, Bloco de Notas e o Word (faixa de opções, menu Arquivo,
+botão direito, mini barra, caixas de diálogo, atalhos). Ao lado fica a
+**Central**, com a história, os objetivos e a ajuda.
+
+### Entrar com o @
+
+- **Criar meu @:** nome, turma e o @ (3 a 20 letras, números, ponto ou _). O
+  site confere na hora se está livre e sugere ideias a partir do nome
+  (`@ana.souza`, `@ana7b`...). Palavrões e nomes reservados são barrados no
+  servidor (mesmo filtro do Laboratório).
+- **Já tenho meu @:** só digitar o @. Não há senha (decisão de projeto: o @
+  basta para continuar de onde parou). O navegador lembra o último @.
+- O progresso fica no servidor (`word_contas`, `word_progresso`) e vale em
+  qualquer computador. Se a internet cair no meio da aula, a conclusão fica
+  guardada no navegador e é reenviada depois.
+
+### Missões (5 capítulos, 20 missões)
+
+| Capítulo | Missões |
+| --- | --- |
+| 1. Recruta | Primeiro acesso (guiada) · Mensagem interceptada · Coordenadas secretas · Apagando rastros |
+| 2. Disfarce (fonte) | Palavras-chave · Cartaz · Alerta vermelho (cor, realce, pincel) · Mensagem gritada (Aa, limpar formatação) |
+| 3. Organização (parágrafo) | Comunicado (alinhamento) · Kit do agente (listas) · Relatório no padrão (recuo 1,25 cm, 1,5 linha) · Dossiê (estilos, Painel de Navegação) |
+| 4. Provas (inserir) | Foto de prova · Lista de suspeitos (tabela) · Dossiê em páginas (quebra, cabeçalho, nº de página) · Sumário automático |
+| 5. Missão final | Código trocado (substituir tudo, localizar) · Mensagem com erros (ortografia, contar palavras) · Mapa da operação (paisagem, margens, colunas) · Relatório final (PDF) |
+
+Cada missão começa com um briefing ("Nesta missão você vai aprender", com
+onde fica e o atalho) e termina com as estrelas e o resumo do que o aluno
+aprendeu. Do capítulo 2 em diante o documento já abre sozinho, para o foco ser
+o assunto novo. O **Manual do Agente** reúne tudo o que o aluno já aprendeu, e
+o **Treino livre** é o computador sem objetivos.
+
+**Estrelas:** 3 sem pedir ajuda (ou com uma dica), 2 com pouca ajuda, 1 com
+muita. A primeira missão (guiada) sempre vale 3. A missão seguinte libera
+quando a anterior é concluída; em `/admin.html` → Operação Word o professor
+pode liberar todas.
+
+### Ajuda na medida certa
+
+- **Dica:** a pista em texto do objetivo atual.
+- **Mostre-me:** escurece a tela de leve e acende o lugar exato, com um balão
+  ("Clique na guia Inserir", "Selecione ALFA-7..."). Cada passo do caminho
+  sabe quando já foi feito (cursor dentro da palavra, Pincel ligado, campo
+  preenchido, arquivo recortado...), e o guia anda em ordem até o primeiro
+  passo que falta. Ex.: Pincel de Formatação = 1º clique em PERIGO, 2º clique
+  no Pincel, 3º "pinte" CUIDADO. Se o aluno bagunçou a tela, ele resolve antes
+  o que estiver no caminho: abre o Word, traz a janela para frente, fecha o
+  menu Arquivo ou a janela que está na frente, troca de guia, rola a faixa até
+  o botão escondido, leva até a pasta onde o arquivo está.
+  Na missão 1 ele fica ligado do começo ao fim.
+- **Detector de "perdido"** (`regras/Detector.js`): conta as ações que não
+  levam a lugar nenhum (abrir e fechar menus, trocar de guia, cancelar
+  janelas, clicar em botões que não ajudam) e o tempo sem avançar. Com 5 ações
+  ou ~1 minuto, oferece a pista; com 9, mostra a pista sozinho; com 14 (ou
+  ~4 minutos), liga o Mostre-me. Também percebe padrões: trocar de guia várias
+  vezes seguidas ("O que você precisa está na guia Página Inicial") e repetir
+  o mesmo comando. Avançar (cumprir um objetivo ou dar um passo do caminho)
+  zera a contagem. O professor vê quantas vezes cada aluno se perdeu.
+- **Erros conhecidos**, explicados na hora: formatação aplicada na palavra
+  errada ou sem nada selecionado, arquivo salvo com outro nome ou na pasta
+  errada, "Quase! Confira letra por letra", Enter várias vezes em vez de
+  quebra de página, copiar em vez de mover, digitar sem nenhum programa
+  aberto, e as armadilhas dos atalhos em português (Ctrl+B salva, Ctrl+A abre,
+  Ctrl+S sublinha).
+
+### Atalhos e tela cheia
+
+Os atalhos são os do Word em português: **Ctrl+N** negrito, **Ctrl+S**
+sublinhado, **Ctrl+B** salvar, **Ctrl+T** selecionar tudo, Ctrl+E/G/Q/J
+alinhamento, Ctrl+L localizar, Ctrl+U substituir, Ctrl+Enter quebra de página,
+Shift+F3 maiúsculas, F7 ortografia, F12 salvar como (no Bloco de Notas e no
+Explorador valem os do Windows: Ctrl+A, Ctrl+C, F2, Delete). Ao começar uma
+missão o site entra em tela cheia e trava o teclado (Keyboard Lock do
+Chrome/Edge), para Ctrl+N e Ctrl+T não abrirem janela ou aba do navegador.
+Também funciona o que o Laboratório ensina: `=rand()`, `1. ` virando lista
+numerada, Ctrl + roda do mouse para o zoom e a grade da tabela.
+
+### Código
+
+```
+public/js/pages/word/
+  main.js                 → entrada → base → missão (tela cheia)
+  app/                    → Sessao (o @ e o progresso), TelaEntrada, TelaBase (missões,
+                            briefing, Manual), TelaMissao (confere objetivos, roteiro, ajuda)
+  regras/                 → sem tela, testadas com node:test
+    missoes.js            → capítulos, missões, arquivos iniciais, estrelas
+    objetivos.js          → fábricas de objetivo: verificar, dica, caminho do Mostre-me, diagnóstico
+    conceitos.js          → o que se aprende (briefing e Manual do Agente)
+    Detector.js           → detector de "perdido"
+    SistemaDeArquivos.js  → pastas, Lixeira, renomear/mover/restaurar com as regras do Windows
+    ortografia.js, arroba.js
+  ajuda/                  → Central (painel), Guia (Mostre-me), Holofote
+  sistema/                → o computador: Simulador, Janela, AreaDeTrabalho, BarraDeTarefas,
+                            MenuIniciar, MenuDeContexto, Dialogo, DialogoDeArquivo, apps/
+    word/                 → Word, Faixa (faixa de opções), Backstage (Arquivo), Documento
+                            (motor de edição), Formatacao, Paginas, Historico, Inspetor, dialogos
+src/modules/word/         → ContasWord (contas, progresso, área do professor), rotas, regras do @
+```
+
+O motor do Word guarda o texto em trechos "planos" (um `span` com o estilo
+inteiro de cada pedaço): formatar corta a seleção, aplica a mudança e
+reconstrói o parágrafo. Assim ligar e desligar negrito, cor etc. funciona em
+qualquer mistura, e os objetivos leem o estilo como o aluno vê
+(`Inspetor.js`). A página tem tamanho real (A4, margens do Word em português:
+2,5 cm e 3 cm), com quebra automática e manual de página, cabeçalho, rodapé e
+número de página.
+
+**Nova missão:** adicione em `MISSOES` (`missoes.js`) com os arquivos do
+computador, o documento que abre (opcional) e os objetivos (use as fábricas de
+`objetivos.js`; cada uma já traz dica, caminho do Mostre-me e diagnósticos).
+O teste confere que toda missão tem objetivos com dica e caminho e que os
+conceitos existem. `?tudo` libera todas as missões para testar.
+
+**Robô do Mostre-me** (`tools/robo-word/`): confere de verdade, no Chrome, que
+todo caminho do Mostre-me leva até o fim. Em cada missão ele primeiro age como
+um aluno que clica em tudo (troca de guia, deixa o menu Arquivo aberto, abre o
+Iniciar, minimiza o Word, abre o Explorador ou o Edge por cima, seleciona
+palavras ao acaso) e depois faz só o que o Mostre-me acende. Se o guia travar
+num passo ou apontar para o nada, a missão falha e a foto da tela fica em
+`<pasta temporária>/robo-word/fotos`. Rode depois de mudar uma missão:
+
+```
+npm start                          # em outro terminal
+npm run robo:word                  # todas as missões (semente 7)
+npm run robo:word -- cartaz 13     # uma missão, outra bagunça
+```
+
+Ele cria a conta `@robo.caos` no banco (pode apagar na área do professor).
+`CHROME` aponta outro navegador (ex.: o Edge) e `ROBO_URL` outro endereço.
+
+### Área do professor (Operação Word)
+
+- **Alunos:** cada @ com nome e turma, missões concluídas, estrelas, ajudas,
+  vezes que se perdeu e a missão em que está. No detalhe, cada missão com
+  tentativas, melhor tempo, ajuda usada e **o documento que o aluno entregou**
+  (do jeito que ele formatou). Dá para editar o @, o nome e a turma, zerar o
+  progresso, excluir e exportar CSV. O interruptor "Liberar todas as missões"
+  vale na hora para todos.
+- **Missões:** o currículo por capítulo e, por missão, quantos começaram e
+  concluíram, estrelas e ajuda em média, quantos se perderam e o tempo médio.
+
+### Ícones
+
+Os ícones são os reais, baixados por `node tools/baixar-icones-word.js` (o
+resultado fica no git): os da faixa de opções e do Windows são os **Fluent UI
+System Icons** e os **Fluent Emoji** da Microsoft (licença MIT); os logotipos
+do Word, Windows, Bloco de Notas e Edge vêm do Wikimedia Commons (marcados
+como domínio público; continuam sendo marcas da Microsoft e aparecem só para
+o aluno reconhecer os programas). As fotos da pasta Imagens são desenhos do
+próprio projeto (`public/images/word/arquivos`).
 
 ## Robô na Horta (jogo de blocos)
 

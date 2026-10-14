@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" width="640" height="400">
+  <defs>
+    <linearGradient id="noite" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d1b3d"/>
+      <stop offset="1" stop-color="#3b2f63"/>
+    </linearGradient>
+    <linearGradient id="predio" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5a6478"/>
+      <stop offset="1" stop-color="#2c3241"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="400" fill="url(#noite)"/>
+  <circle cx="520" cy="80" r="38" fill="#f6f1d3"/>
+  <circle cx="534" cy="70" r="38" fill="#0d1b3d" opacity="0.35"/>
+  <path d="M0 300 L120 230 L220 290 L330 210 L460 285 L560 240 L640 280 L640 400 L0 400 Z" fill="#1f2a44"/>
+  <rect x="190" y="170" width="260" height="170" fill="url(#predio)" stroke="#1a1f2b" stroke-width="3"/>
+  <path d="M180 172 L320 112 L460 172 Z" fill="#41495b" stroke="#1a1f2b" stroke-width="3"/>
+  <rect x="290" y="250" width="60" height="90" fill="#1a1f2b"/>
+  <circle cx="338" cy="296" r="4" fill="#f2c94c"/>
+  <g fill="#f2c94c">
+    <rect x="215" y="195" width="42" height="30"/><rect x="383" y="195" width="42" height="30" opacity="0.35"/>
+    <rect x="215" y="250" width="42" height="30" opacity="0.35"/><rect x="383" y="250" width="42" height="30"/>
+  </g>
+  <path d="M320 112 V60" stroke="#8c95a3" stroke-width="5"/>
+  <path d="M320 60 l34 -14 l-6 26 z" fill="#b3261e"/>
+  <text x="320" y="160" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-size="16" fill="#f2c94c" letter-spacing="2">BASE DO DR. KAOS</text>
+  <path d="M0 340 H640" stroke="#11182b" stroke-width="40"/>
+  <text x="20" y="386" font-family="Consolas, monospace" font-size="14" fill="#c8d2e6">FOTO 0042 · DIA DA CAPTURA</text>
+</svg>

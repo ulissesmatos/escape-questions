@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 440" width="640" height="440">
+  <defs>
+    <pattern id="grade" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#c9b48a" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="640" height="440" fill="#efe2c2"/>
+  <rect width="640" height="440" fill="url(#grade)" opacity="0.6"/>
+  <path d="M0 300 C 90 280, 140 330, 230 310 S 380 250, 470 280 S 600 330, 640 300 L640 440 L0 440 Z" fill="#9ccbe6" opacity="0.8"/>
+  <path d="M60 60 h150 v90 h-150 z" fill="#d7c39a" stroke="#7a6237" stroke-width="3"/>
+  <text x="135" y="112" text-anchor="middle" font-family="Georgia, serif" font-size="18" fill="#5b4626">Biblioteca</text>
+  <path d="M400 70 h170 v110 h-170 z" fill="#d7c39a" stroke="#7a6237" stroke-width="3"/>
+  <text x="485" y="130" text-anchor="middle" font-family="Georgia, serif" font-size="18" fill="#5b4626">Mercado</text>
+  <path d="M110 150 C 140 230, 260 200, 300 240 S 420 200, 485 180" fill="none" stroke="#b3261e" stroke-width="5" stroke-dasharray="14 10"/>
+  <g transform="translate(300 240)" stroke="#b3261e" stroke-width="8" stroke-linecap="round">
+    <path d="M-16 -16 L16 16 M16 -16 L-16 16"/>
+  </g>
+  <text x="318" y="278" font-family="Georgia, serif" font-size="17" font-style="italic" fill="#b3261e">base secreta</text>
+  <g transform="translate(570 380)">
+    <circle r="34" fill="#f7efd8" stroke="#7a6237" stroke-width="2"/>
+    <path d="M0 -28 L8 0 L0 28 L-8 0 Z" fill="#7a6237"/>
+    <text y="-36" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="#5b4626">N</text>
+  </g>
+  <text x="24" y="420" font-family="Georgia, serif" font-size="15" fill="#5b4626">Mapa da base — uso exclusivo da Central</text>
+</svg>
