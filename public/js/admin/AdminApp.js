@@ -7,8 +7,9 @@ import { EscapeSection } from './sections/EscapeSection.js';
 import { HardwareSection } from './sections/hardware/HardwareSection.js';
 import { PcSection } from './sections/PcSection.js';
 import { HortaSection } from './sections/HortaSection.js';
+import { WordSection } from './sections/WordSection.js';
 
-const SECOES = [DashboardSection, EscapeSection, HardwareSection, PcSection, HortaSection];
+const SECOES = [DashboardSection, EscapeSection, HardwareSection, PcSection, HortaSection, WordSection];
 
 /** Painel do professor: login → menu lateral + seção atual (rota por hash). */
 export class AdminApp {

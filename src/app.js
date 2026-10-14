@@ -35,6 +35,9 @@ const { ligarLaboratorio } = require('./modules/laboratorio/laboratorioSocket');
 const { HortaConfig } = require('./modules/horta/HortaConfig');
 const { hortaRoutes } = require('./modules/horta/hortaRoutes');
 
+const { ContasWord } = require('./modules/word/ContasWord');
+const { wordRoutes, WordConfig } = require('./modules/word/wordRoutes');
+
 const adminRoutes = require('./modules/admin/adminRoutes');
 const { oficinaRoutes } = require('./modules/oficina/oficinaRoutes');
 
@@ -61,7 +64,11 @@ function criarApp({ db, auth, laboratorio, tipos = registroPadrao, oficina = {} 
   app.use('/api/hardware', hardwareRoutes(jogoHardware));
   app.use('/api/pcbuild', pcbuildRoutes(new PcBuildService(db)));
   app.use('/api/horta', hortaRoutes(new HortaConfig(db)));
-  app.use('/api/admin', adminRoutes({ db, auth, tipos }));
+  // Operação Word: o token do aluno é assinado com um segredo próprio (derivado do da sessão)
+  const segredoWord = crypto.createHash('sha256').update(`word:${config.sessionSecret || config.adminPassword}`).digest('hex');
+  const word = { contas: new ContasWord({ db, segredo: segredoWord }), config: new WordConfig(db) };
+  app.use('/api/word', wordRoutes(word));
+  app.use('/api/admin', adminRoutes({ db, auth, tipos, word }));
 
   app.use('/api/oficina', oficinaRoutes({ podeEditarZonas: !config.isProduction, ...oficina }));
   if (laboratorio) app.use('/api/laboratorio', laboratorioRoutes(laboratorio));

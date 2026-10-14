@@ -225,6 +225,33 @@ const COMANDOS = [
     valor JSONB NOT NULL,
     atualizado_em TIMESTAMPTZ NOT NULL DEFAULT now()
   )`,
+  // ---------------- Operação Word ----------------
+  // O aluno cria um @ (com nome e turma) e depois entra só com ele
+  `CREATE TABLE IF NOT EXISTS word_contas (
+    id SERIAL PRIMARY KEY,
+    arroba TEXT NOT NULL UNIQUE,
+    nome TEXT NOT NULL,
+    turma TEXT NOT NULL,
+    criado_em TIMESTAMPTZ NOT NULL DEFAULT now(),
+    ultimo_acesso TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS word_contas_turma_idx ON word_contas (turma)`,
+  // Uma linha por aluno e missão: tentativas, melhor resultado, quanta ajuda
+  // precisou da última vez e o documento que entregou
+  `CREATE TABLE IF NOT EXISTS word_progresso (
+    conta_id INTEGER NOT NULL REFERENCES word_contas(id) ON DELETE CASCADE,
+    missao TEXT NOT NULL,
+    tentativas INTEGER NOT NULL DEFAULT 0,
+    estrelas INTEGER NOT NULL DEFAULT 0,
+    melhor_tempo_ms INTEGER,
+    dicas INTEGER NOT NULL DEFAULT 0,
+    mostre_me INTEGER NOT NULL DEFAULT 0,
+    perdido INTEGER NOT NULL DEFAULT 0,
+    documento TEXT,
+    iniciada_em TIMESTAMPTZ,
+    concluida_em TIMESTAMPTZ,
+    PRIMARY KEY (conta_id, missao)
+  )`,
   // Tarefas editadas no painel (sem linha = vale o tasks.json)
   `CREATE TABLE IF NOT EXISTS lab_config (
     chave TEXT PRIMARY KEY,

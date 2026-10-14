@@ -10,6 +10,7 @@ class AdminDashboardService {
          SELECT turma FROM submissions
          UNION SELECT turma FROM hw_answers
          UNION SELECT turma FROM pc_submissoes
+         UNION SELECT turma FROM word_contas
        ) t ORDER BY turma`
     );
     return linhas.map((l) => l.turma);
