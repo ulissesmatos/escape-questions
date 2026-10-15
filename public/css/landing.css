@@ -1,0 +1,174 @@
+/* =========================================================
+   Páginas públicas (SEO): atividades, "Como usar" e a seção
+   "Para professores" da página inicial. Reaproveita os
+   componentes de base.css e components.css.
+   ========================================================= */
+
+.resumo-destaque {
+  margin: 0 0 18px;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  max-width: 680px;
+}
+
+/* ---------- Migalhas ---------- */
+
+.trilha {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  margin: 0 0 18px;
+}
+
+.trilha a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.trilha a:hover {
+  color: var(--accent-dark);
+  text-decoration: underline;
+}
+
+/* ---------- Texto corrido ---------- */
+
+.pagina-conteudo main > h2 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin: 40px 0 14px;
+}
+
+.pagina-conteudo main > p,
+.secao-professor p {
+  max-width: 680px;
+  color: var(--text);
+}
+
+.secao-professor {
+  margin-top: 56px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.secao-professor h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 28px 0 10px;
+}
+
+.nota {
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  margin-top: 28px;
+}
+
+.lista-simples,
+.lista-passos,
+.lista-links {
+  margin: 0;
+  padding-left: 22px;
+  max-width: 680px;
+}
+
+.lista-simples li,
+.lista-passos li,
+.lista-links li {
+  margin-bottom: 8px;
+}
+
+.lista-passos li::marker {
+  font-weight: 800;
+  color: var(--accent-dark);
+}
+
+.lista-links a {
+  font-weight: 700;
+  color: var(--accent-dark);
+}
+
+/* ---------- Ficha da atividade ---------- */
+
+.ficha {
+  width: 100%;
+  max-width: 760px;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--raio);
+  overflow: hidden;
+  box-shadow: var(--sombra);
+}
+
+.ficha th,
+.ficha td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.95rem;
+}
+
+.ficha tr:last-child th,
+.ficha tr:last-child td {
+  border-bottom: 0;
+}
+
+.ficha th {
+  width: 34%;
+  color: var(--text-muted);
+  font-weight: 700;
+  background: var(--surface-2);
+}
+
+@media (max-width: 560px) {
+  .ficha th,
+  .ficha td {
+    display: block;
+    width: 100%;
+  }
+
+  .ficha th {
+    padding-bottom: 4px;
+    border-bottom: 0;
+  }
+
+  .ficha td {
+    padding-top: 4px;
+  }
+}
+
+/* ---------- Perguntas frequentes ---------- */
+
+.faq {
+  max-width: 680px;
+}
+
+.faq h3,
+.faq h4 {
+  font-size: 1rem;
+  font-weight: 800;
+  margin: 20px 0 4px;
+}
+
+.faq p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+/* ---------- Cartões das outras atividades ---------- */
+
+.card-atividade h3 {
+  margin: 0 0 6px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.pagina-conteudo footer {
+  margin-top: 56px;
+}
+
+.pagina-topo .btn {
+  margin-top: 6px;
+}

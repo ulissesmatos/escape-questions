@@ -11,6 +11,9 @@ const config = Object.freeze({
   // PIN do painel do Laboratório de Experimentos (se vazio, usa a senha do admin)
   professorPin: process.env.PROFESSOR_PIN || process.env.ADMIN_PASSWORD || 'admin',
   isProduction: process.env.NODE_ENV === 'production',
+  // Endereço público do site, sem barra no final. Vai para canonical, sitemap,
+  // Open Graph, llms.txt e JSON-LD; ao trocar de domínio, basta mudar aqui.
+  siteUrl: (process.env.SITE_URL || 'https://escape.nuveasy.com').replace(/\/+$/, ''),
 });
 
 if (!process.env.ADMIN_PASSWORD) {

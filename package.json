@@ -8,7 +8,8 @@
     "test": "node --test \"test/**/*.test.js\"",
     "empacotar": "node tools/empacotar-oficina.js",
     "empacotar:exe": "node tools/empacotar-exe.js",
-    "robo:word": "node tools/robo-word/robo.mjs"
+    "robo:word": "node tools/robo-word/robo.mjs",
+    "og": "node tools/gerar-og.js"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

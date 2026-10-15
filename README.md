@@ -49,6 +49,7 @@ npm install
 npm start                   # http://localhost:3000
 npm test                    # testes automatizados
 npm run empacotar           # gera a versão da Oficina para baixar
+npm run og                  # gera as imagens de compartilhamento (precisa do Chrome ou Edge)
 ```
 
 As tabelas são criadas e populadas automaticamente na primeira execução
@@ -64,6 +65,7 @@ continua valendo.
 | `SESSION_SECRET` | Opcional. Assina a sessão do professor (se vazio, é derivado da senha) |
 | `ADMIN_SESSION_HOURS` | Opcional. Duração da sessão (padrão 12h) |
 | `PROFESSOR_PIN` | PIN do painel do Laboratório (se vazio, usa o `ADMIN_PASSWORD`) |
+| `SITE_URL` | Endereço público do site, sem barra no final (padrão `https://escape.nuveasy.com`). Vai para canonical, sitemap, Open Graph, llms.txt e JSON-LD |
 
 ## Arquitetura
 
@@ -92,6 +94,7 @@ src/
                                 HardwareRepository, HardwareSeeder, seed/, admin/
     pcbuild/                  → serviço, rotas, seed e recursos do admin
     admin/                    → rotas do painel e resumo geral
+  seo/                        → páginas públicas para buscadores e IAs (ver "SEO e GEO")
 public/
   css/                        → base, components, questions + um arquivo por página
   js/core/                    → Component, dom (h), ApiClient, ScreenFlow,
@@ -563,6 +566,41 @@ A ordem no arquivo não importa: cada aluno vê as opções embaralhadas.
   feedback, "marcar como revisada" e CSV; cadastro das missões (orçamento
   aceita "2500", "2.500" ou "2.500,00").
 
+## SEO e GEO (buscadores e assistentes de IA)
+
+Os jogos são casquinhas em JavaScript ("Carregando..."): quem lê o site, seja o
+Google ou um assistente de IA, não vê o que eles ensinam. Por isso há uma camada
+de **páginas públicas em HTML**, geradas pelo servidor a partir de uma única
+fonte de conteúdo, `src/seo/conteudo.js`.
+
+| Endereço | O que é |
+| --- | --- |
+| `/` | O hub de sempre, com título, metadados, JSON-LD e a seção "Para professores" |
+| `/atividades/<slug>` | Uma página por atividade: resumo, ficha, o que ensina, passos, FAQ |
+| `/como-usar` | Guia para o professor (destino do `Link: rel="service-doc"`) |
+| `/robots.txt`, `/sitemap.xml`, `/llms.txt` | Gerados da mesma lista de páginas |
+| `<página>.md` ou `Accept: text/markdown` | A mesma página em Markdown, para agentes |
+| `/horta.html`, `/horta`, ... | A casca do jogo, com `noindex` e Open Graph (o cartão do link no WhatsApp) |
+
+- **Endereço do site:** a variável `SITE_URL`. Ao trocar de domínio, mude só ela;
+  canonical, sitemap, llms.txt, Open Graph e JSON-LD acompanham.
+- **Link headers:** a página inicial responde com `describedby` (llms.txt),
+  `service-doc` (/como-usar) e `alternate` (Markdown). Não há `api-catalog`: as
+  rotas `/api` são internas dos jogos, não uma API pública.
+- **robots.txt:** libera tudo menos `/api/`, com `Content-Signal: search=yes,
+  ai-input=yes` e os robôs de busca/leitura de IA liberados de forma explícita.
+  `ai-train` fica sem sinal (neutro). As páginas com `noindex` não entram no
+  robots de propósito: o robô precisa ler o `noindex`.
+- **Nova atividade:** acrescente um item em `ATIVIDADES` (`conteudo.js`) e rode
+  `npm run og`. Ela entra sozinha no sitemap, no llms.txt e na página inicial. Só
+  aparece se o arquivo do jogo existir em `public/`.
+- **Ao mudar o texto de uma atividade**, atualize também `atualizadoEm`.
+- **Imagens de compartilhamento:** `npm run og` gera `public/images/og/*.png`
+  (1200x630, fundo chapado para ficar leve; o WhatsApp só mostra prévia de
+  imagem pequena).
+- Os testes (`test/seo.test.js`) conferem tamanho de título e descrição,
+  JSON-LD, links internos, Markdown, robots/sitemap e os cabeçalhos.
+
 ## Deploy no Coolify
 
 1. **Banco:** + New Resource → Database → PostgreSQL. Copie a connection
@@ -571,6 +609,7 @@ A ordem no arquivo não importa: cada aluno vê as opções embaralhadas.
    repositório, com Build Pack `Dockerfile` e porta `3000`.
 3. **Variáveis:** `DATABASE_URL` (do passo 1), `ADMIN_PASSWORD` (senha forte)
    e `PROFESSOR_PIN` (PIN do Laboratório). `SESSION_SECRET` é opcional.
+   `SITE_URL` só precisa ser definida se o endereço público mudar.
 4. **Deploy.** O servidor cria e atualiza as tabelas sozinho.
 
 O tempo real usa WebSocket na mesma porta 3000; o proxy do Coolify já repassa

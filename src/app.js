@@ -41,11 +41,14 @@ const { wordRoutes, WordConfig } = require('./modules/word/wordRoutes');
 const adminRoutes = require('./modules/admin/adminRoutes');
 const { oficinaRoutes } = require('./modules/oficina/oficinaRoutes');
 
+const { Catalogo } = require('./seo/Catalogo');
+const { seoRoutes } = require('./seo/seoRoutes');
+
 /**
  * Monta a aplicação: dependências são criadas aqui uma única vez e injetadas
  * nos serviços/rotas (fica fácil trocar peças em testes).
  */
-function criarApp({ db, auth, laboratorio, tipos = registroPadrao, oficina = {} }) {
+function criarApp({ db, auth, laboratorio, tipos = registroPadrao, oficina = {}, siteUrl = config.siteUrl }) {
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', 1); // atrás do proxy do Coolify, para req.ip ser o IP real
@@ -83,6 +86,10 @@ function criarApp({ db, auth, laboratorio, tipos = registroPadrao, oficina = {} 
   const pastaPublica = path.join(__dirname, '..', 'public');
   app.get('/laboratorio/professor', (req, res) => res.sendFile(path.join(pastaPublica, 'laboratorio-professor.html')));
   app.get(['/laboratorio/telao', '/laboratorio/telao/:codigo'], (req, res) => res.sendFile(path.join(pastaPublica, 'laboratorio-telao.html')));
+
+  // SEO e GEO: robots.txt, sitemap, llms.txt, páginas das atividades e as
+  // cascas dos jogos com Open Graph (antes do estático, que serviria o arquivo cru)
+  app.use(seoRoutes({ catalogo: new Catalogo({ url: siteUrl, pastaPublica }), pastaPublica }));
 
   app.use(express.static(pastaPublica, { extensions: ['html'] }));
   app.use(errorHandler);
