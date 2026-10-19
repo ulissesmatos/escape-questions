@@ -11,9 +11,10 @@ const MAXIMO_NO_HISTORICO = 8;
  * - a história da missão (recolhível);
  * - só o último recado da Central à mostra; os anteriores ficam em
  *   "Ver mensagens anteriores", para o painel não crescer nem rolar sozinho;
- * - os botões Dica e Mostre-me.
+ * - os botões Dica e Mostre-me (o Mostre-me some quando semMostreMe está
+ *   ligado na configuração do professor).
  *
- * props: { titulo, subtitulo, historia, aoDica, aoMostreMe,
+ * props: { titulo, subtitulo, historia, semMostreMe, aoDica, aoMostreMe,
  *          aoResponder(objetivo, valor), aoSair, aoReiniciar, aoTelaCheia,
  *          aoConceito(id), aoRecolher }
  */
@@ -62,7 +63,7 @@ export class Central {
       h(
         'footer',
         { class: 'central-rodape' },
-        h('div', { class: 'central-botoes' }, this.botaoDica, this.botaoMostre),
+        h('div', { class: 'central-botoes' }, this.botaoDica, !props.semMostreMe && this.botaoMostre),
         h(
           'div',
           { class: 'central-links' },

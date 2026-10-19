@@ -6,7 +6,7 @@ const express = require('express');
 
 const { validarArroba } = require('../src/modules/word/arroba');
 const { ContasWord, limparDocumento } = require('../src/modules/word/ContasWord');
-const { wordRoutes } = require('../src/modules/word/wordRoutes');
+const { wordRoutes, WordConfig } = require('../src/modules/word/wordRoutes');
 
 const importar = (arquivo) => import(pathToFileURL(path.join(__dirname, '..', 'public/js/pages/word', arquivo)).href);
 
@@ -100,6 +100,31 @@ test('rotas da Operação Word: criar, entrar e progresso com o token', async (t
     ['inicio', 1, 'primeiro-acesso'],
     ['fim', 1, 'primeiro-acesso', 3],
   ]);
+});
+
+test('configuração da Operação Word: liberarTudo e semMostreMe começam desligados e o professor liga cada um', async () => {
+  const linhas = new Map();
+  const db = {
+    async one(_sql, [chave]) {
+      return linhas.has(chave) ? { valor: JSON.parse(linhas.get(chave)) } : null;
+    },
+    async query(_sql, [chave, valor]) {
+      linhas.set(chave, valor);
+      return { rowCount: 1 };
+    },
+  };
+  const config = new WordConfig(db);
+
+  assert.deepEqual(await config.ler(), { liberarTudo: false, semMostreMe: false });
+
+  assert.deepEqual(await config.salvar({ semMostreMe: true }), { liberarTudo: false, semMostreMe: true });
+  assert.deepEqual(await config.ler(), { liberarTudo: false, semMostreMe: true }, 'o jogo vê a mudança');
+
+  // ligar uma chave não apaga a outra
+  assert.deepEqual(await config.salvar({ liberarTudo: true }), { liberarTudo: true, semMostreMe: true });
+
+  // valor que não é booleano não muda nada
+  assert.deepEqual(await config.salvar({ semMostreMe: 'sim', liberarTudo: 0 }), { liberarTudo: true, semMostreMe: true });
 });
 
 // ---------------- sistema de arquivos ----------------

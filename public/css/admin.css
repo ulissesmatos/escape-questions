@@ -1667,11 +1667,21 @@ body[data-page="admin"] {
   padding: 16px 18px;
   margin-bottom: 14px;
   display: grid;
-  gap: 6px;
+  gap: 16px;
 }
 
 .resposta-config p {
   margin: 0;
+}
+
+.interruptor-linha {
+  display: grid;
+  gap: 6px;
+}
+
+.interruptor-linha + .interruptor-linha {
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
 }
 
 .interruptor {

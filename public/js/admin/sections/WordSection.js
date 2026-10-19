@@ -57,23 +57,49 @@ class AlunosTab extends AdminTab {
   }
 
   configuracao(config) {
-    const chave = h('input', { type: 'checkbox', class: 'interruptor-campo', checked: config.liberarTudo });
+    return h(
+      'div',
+      { class: 'cartao resposta-config' },
+      this.interruptor({
+        campo: 'liberarTudo',
+        inicial: config.liberarTudo,
+        rotulo: '🔓 Liberar todas as missões ',
+        explicar: (ligado) =>
+          ligado
+            ? 'Todas as missões estão abertas: os alunos podem ir direto a qualquer assunto (bom para revisar).'
+            : 'As missões abrem em ordem: cada uma libera a seguinte quando é concluída.',
+        aviso: (ligado) => (ligado ? 'Todas as missões liberadas.' : 'Missões em ordem.'),
+      }),
+      this.interruptor({
+        campo: 'semMostreMe',
+        inicial: config.semMostreMe,
+        rotulo: '🙈 Esconder o botão “Mostre-me” ',
+        explicar: (ligado) =>
+          ligado
+            ? 'O “Mostre-me” fica escondido: o aluno precisa ler o objetivo e procurar na tela sozinho. A Dica continua, e a missão guiada não muda.'
+            : 'O aluno pode clicar em “Mostre-me” para o jogo apontar onde clicar em cada passo.',
+        aviso: (ligado) => (ligado ? 'Botão “Mostre-me” escondido.' : 'Botão “Mostre-me” disponível.'),
+      })
+    );
+  }
+
+  /** Um interruptor de configuração: salva no servidor e explica o que mudou */
+  interruptor({ campo, inicial, rotulo, explicar, aviso }) {
+    const chave = h('input', { type: 'checkbox', class: 'interruptor-campo', checked: inicial });
     const estado = h('strong', { class: 'interruptor-estado' });
     const explicacao = h('p', { class: 'texto-suave' });
     const mostrar = (ligado) => {
       estado.textContent = ligado ? 'Ligado' : 'Desligado';
       estado.classList.toggle('ligada', ligado);
-      explicacao.textContent = ligado
-        ? 'Todas as missões estão abertas: os alunos podem ir direto a qualquer assunto (bom para revisar).'
-        : 'As missões abrem em ordem: cada uma libera a seguinte quando é concluída.';
+      explicacao.textContent = explicar(ligado);
     };
-    mostrar(config.liberarTudo);
+    mostrar(inicial);
     chave.addEventListener('change', async () => {
       chave.disabled = true;
       try {
-        const salvo = await this.props.api.put('/word/config', { liberarTudo: chave.checked });
-        mostrar(salvo.liberarTudo);
-        Toast.sucesso(salvo.liberarTudo ? 'Todas as missões liberadas.' : 'Missões em ordem.');
+        const salvo = await this.props.api.put('/word/config', { [campo]: chave.checked });
+        mostrar(salvo[campo]);
+        Toast.sucesso(aviso(salvo[campo]));
       } catch (erro) {
         chave.checked = !chave.checked;
         Toast.erro(erro.message);
@@ -83,8 +109,8 @@ class AlunosTab extends AdminTab {
     });
     return h(
       'div',
-      { class: 'cartao resposta-config' },
-      h('label', { class: 'interruptor' }, chave, h('span', { class: 'interruptor-trilho', 'aria-hidden': 'true' }), h('span', { class: 'interruptor-rotulo' }, '🔓 Liberar todas as missões ', estado)),
+      { class: 'interruptor-linha' },
+      h('label', { class: 'interruptor' }, chave, h('span', { class: 'interruptor-trilho', 'aria-hidden': 'true' }), h('span', { class: 'interruptor-rotulo' }, rotulo, estado)),
       explicacao
     );
   }

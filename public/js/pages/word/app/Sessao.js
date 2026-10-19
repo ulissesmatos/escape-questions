@@ -15,7 +15,7 @@ export class Sessao {
     this.token = this.local.ler('token');
     this.conta = null;
     this.progresso = new Map();
-    this.config = { liberarTudo: false };
+    this.config = { liberarTudo: false, semMostreMe: false };
     this.api = new ApiClient({ base: '/api/word', obterToken: () => this.token });
   }
 

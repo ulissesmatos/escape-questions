@@ -7,9 +7,13 @@ const { rota, validar } = require('../../http/routing');
  *
  * liberarTudo: todas as missões abertas desde o começo (sem precisar
  * concluir a anterior). Útil para revisar um assunto com a turma.
+ *
+ * semMostreMe: esconde o botão "Mostre-me" nas missões (menos na missão
+ * guiada). Sem ele, o aluno precisa ler o objetivo e procurar sozinho; a
+ * Dica continua. Bom para turmas que só clicam no Mostre-me sem ler.
  */
 const CHAVE = 'word';
-const PADRAO = Object.freeze({ liberarTudo: false });
+const PADRAO = Object.freeze({ liberarTudo: false, semMostreMe: false });
 
 class WordConfig {
   constructor(db) {
@@ -23,7 +27,11 @@ class WordConfig {
 
   async salvar(dados = {}) {
     const atual = await this.ler();
-    const novo = { ...atual, ...(typeof dados.liberarTudo === 'boolean' && { liberarTudo: dados.liberarTudo }) };
+    const novo = {
+      ...atual,
+      ...(typeof dados.liberarTudo === 'boolean' && { liberarTudo: dados.liberarTudo }),
+      ...(typeof dados.semMostreMe === 'boolean' && { semMostreMe: dados.semMostreMe }),
+    };
     await this.db.query(
       `INSERT INTO configuracoes (chave, valor, atualizado_em) VALUES ($1, $2, now())
        ON CONFLICT (chave) DO UPDATE SET valor = EXCLUDED.valor, atualizado_em = now()`,

@@ -165,7 +165,9 @@ pode liberar todas.
   o que estiver no caminho: abre o Word, traz a janela para frente, fecha o
   menu Arquivo ou a janela que está na frente, troca de guia, rola a faixa até
   o botão escondido, leva até a pasta onde o arquivo está.
-  Na missão 1 ele fica ligado do começo ao fim.
+  Na missão 1 ele fica ligado do começo ao fim. O professor pode esconder o
+  botão nas demais missões (admin → Operação Word → "Esconder o botão
+  Mostre-me"): a Dica continua e a missão guiada não muda.
 - **Detector de "perdido"** (`regras/Detector.js`): conta as ações que não
   levam a lugar nenhum (abrir e fechar menus, trocar de guia, cancelar
   janelas, clicar em botões que não ajudam) e o tempo sem avançar. Com 5 ações
@@ -252,8 +254,10 @@ Ele cria a conta `@robo.caos` no banco (pode apagar na área do professor).
   vezes que se perdeu e a missão em que está. No detalhe, cada missão com
   tentativas, melhor tempo, ajuda usada e **o documento que o aluno entregou**
   (do jeito que ele formatou). Dá para editar o @, o nome e a turma, zerar o
-  progresso, excluir e exportar CSV. O interruptor "Liberar todas as missões"
-  vale na hora para todos.
+  progresso, excluir e exportar CSV. Dois interruptores valem na hora para
+  todos: "Liberar todas as missões" e "Esconder o botão Mostre-me" (para
+  turmas que só clicam no Mostre-me sem ler; a Dica continua e a missão
+  guiada não muda).
 - **Missões:** o currículo por capítulo e, por missão, quantos começaram e
   concluíram, estrelas e ajuda em média, quantos se perderam e o tempo médio.
 

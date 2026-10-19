@@ -35,6 +35,10 @@ export class TelaMissao {
     const { sessao, missao } = this.props;
     this.contexto = { arroba: sessao.conta.arroba, nome: sessao.conta.nome };
     this.treino = !missao;
+    // O professor pode esconder o "Mostre-me" (menos na missão guiada, que
+    // depende dele para ensinar). Sem o botão, só sobra a Dica e o aluno
+    // precisa procurar sozinho.
+    this.semMostreMe = Boolean(sessao.config?.semMostreMe) && !missao?.tutorial;
     this.objetivos = missao ? missao.objetivos(this.contexto) : [];
     this.marcos = new Set();
     this.copias = [];
@@ -59,6 +63,7 @@ export class TelaMissao {
       titulo: missao ? missao.titulo : 'Treino livre',
       subtitulo: missao ? `Missão ${indice} · Capítulo ${cap.numero}` : 'Sem objetivos: explore à vontade',
       historia: missao ? personalizar(missao.historia, this.contexto) : 'Este computador é todo seu para treinar. Abra o Word pelo menu Iniciar e teste os botões, os menus e os atalhos. Nada aqui vale estrelas.',
+      semMostreMe: this.semMostreMe,
       aoDica: () => this.pedirDica(),
       aoMostreMe: () => this.alternarMostreMe(),
       aoResponder: (obj, valor) => this.responder(obj, valor),
@@ -86,7 +91,12 @@ export class TelaMissao {
       this.central.falar('Treino livre: aqui não tem objetivos. Que tal experimentar o =rand() no Word? Digite =rand() e aperte Enter.');
     } else {
       sessao.iniciarMissao(missao.id);
-      this.central.falar(missao.tutorial ? 'Siga a luz: eu vou mostrando onde clicar em cada passo.' : 'Comece pelo objetivo 1. Se travar, peça uma Dica ou clique em Mostre-me.', { tipo: 'info' });
+      const comecar = missao.tutorial
+        ? 'Siga a luz: eu vou mostrando onde clicar em cada passo.'
+        : this.semMostreMe
+          ? 'Comece pelo objetivo 1. Leia com calma e procure na tela; se travar, peça uma Dica.'
+          : 'Comece pelo objetivo 1. Se travar, peça uma Dica ou clique em Mostre-me.';
+      this.central.falar(comecar, { tipo: 'info' });
     }
     this.avaliar({ inicial: true });
     // o que o simulador faz sozinho ao abrir a missão não conta como ação do aluno
@@ -343,13 +353,25 @@ export class TelaMissao {
       this.central.chamarAtencao('dica', true);
     } else if (nivel === 2) {
       this.contarAjuda('dica');
-      this.central.falar(objetivo.dica || 'Leia o objetivo com calma.', { tipo: 'dica', acoes: [{ rotulo: 'Mostre-me onde', primaria: true, acao: () => this.ligarMostreMe() }] });
+      this.central.falar(objetivo.dica || 'Leia o objetivo com calma.', { tipo: 'dica', acoes: this.acoesDaDica(objetivo, { primaria: true }) });
       this.central.chamarAtencao('dica', false);
-      this.central.chamarAtencao('mostre', true);
-    } else if (nivel === 3 && !this.guia.ativo) {
-      this.central.falar('Parece que esse está difícil. Vou te mostrar o caminho: siga a luz!', { tipo: 'info' });
-      this.ligarMostreMe();
+      if (!this.semMostreMe) this.central.chamarAtencao('mostre', true);
+    } else if (nivel === 3) {
+      if (this.semMostreMe) {
+        this.contarAjuda('dica');
+        this.central.falar(objetivo.dica || 'Continue tentando: leia o objetivo e procure o botão na faixa de cima.', { tipo: 'dica' });
+        this.central.chamarAtencao('dica', true);
+      } else if (!this.guia.ativo) {
+        this.central.falar('Parece que esse está difícil. Vou te mostrar o caminho: siga a luz!', { tipo: 'info' });
+        this.ligarMostreMe();
+      }
     }
+  }
+
+  /** Ações da bolha de dica: o "Mostre-me onde" só aparece quando ele está ligado */
+  acoesDaDica(objetivo, { primaria = false } = {}) {
+    if (this.semMostreMe || !objetivo.caminho?.length) return [];
+    return [{ rotulo: 'Mostre-me onde', primaria, acao: () => this.ligarMostreMe() }];
   }
 
   contarAjuda(tipo) {
@@ -369,17 +391,18 @@ export class TelaMissao {
     this.contarAjuda('dica');
     this.detector.ajudaPedida(2, Date.now());
     this.central.chamarAtencao('dica', false);
-    this.central.falar(objetivo.dica || 'Leia o objetivo com calma.', { tipo: 'dica', acoes: objetivo.caminho?.length ? [{ rotulo: 'Mostre-me onde', acao: () => this.ligarMostreMe() }] : [] });
+    this.central.falar(objetivo.dica || 'Leia o objetivo com calma.', { tipo: 'dica', acoes: this.acoesDaDica(objetivo) });
   }
 
   alternarMostreMe() {
+    if (this.semMostreMe) return;
     if (this.guia.ativo) this.desligarMostreMe();
     else this.ligarMostreMe();
   }
 
   ligarMostreMe({ contar = true } = {}) {
     const objetivo = this.objetivoAtual;
-    if (!objetivo || this.concluida) return;
+    if (!objetivo || this.concluida || this.semMostreMe) return;
     if (!objetivo.caminho?.length) {
       this.pedirDica();
       return;
