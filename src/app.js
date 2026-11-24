@@ -68,7 +68,10 @@ function criarApp({ db, auth, laboratorio, tipos = registroPadrao, oficina = {} 
   const segredoWord = crypto.createHash('sha256').update(`word:${config.sessionSecret || config.adminPassword}`).digest('hex');
   const word = { contas: new ContasWord({ db, segredo: segredoWord }), config: new WordConfig(db) };
   app.use('/api/word', wordRoutes(word));
-  app.use('/api/admin', adminRoutes({ db, auth, tipos, word }));
+  // Operação Anzol (segurança na internet): o mesmo @ (e o mesmo token) da Operação Word, com progresso próprio
+  const seguranca = { contas: new ContasWord({ db, segredo: segredoWord, tabela: 'seguranca_progresso' }), config: new WordConfig(db, 'seguranca') };
+  app.use('/api/seguranca', wordRoutes(seguranca));
+  app.use('/api/admin', adminRoutes({ db, auth, tipos, word, seguranca }));
 
   app.use('/api/oficina', oficinaRoutes({ podeEditarZonas: !config.isProduction, ...oficina }));
   if (laboratorio) app.use('/api/laboratorio', laboratorioRoutes(laboratorio));

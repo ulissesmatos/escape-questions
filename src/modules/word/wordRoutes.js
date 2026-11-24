@@ -12,16 +12,17 @@ const { rota, validar } = require('../../http/routing');
  * guiada). Sem ele, o aluno precisa ler o objetivo e procurar sozinho; a
  * Dica continua. Bom para turmas que só clicam no Mostre-me sem ler.
  */
-const CHAVE = 'word';
 const PADRAO = Object.freeze({ liberarTudo: false, semMostreMe: false });
 
 class WordConfig {
-  constructor(db) {
+  /** chave: a linha em `configuracoes` ('word' ou 'seguranca', da Operação Anzol) */
+  constructor(db, chave = 'word') {
     this.db = db;
+    this.chave = chave;
   }
 
   async ler() {
-    const linha = await this.db.one('SELECT valor FROM configuracoes WHERE chave = $1', [CHAVE]);
+    const linha = await this.db.one('SELECT valor FROM configuracoes WHERE chave = $1', [this.chave]);
     return { ...PADRAO, ...(linha && linha.valor) };
   }
 
@@ -35,13 +36,13 @@ class WordConfig {
     await this.db.query(
       `INSERT INTO configuracoes (chave, valor, atualizado_em) VALUES ($1, $2, now())
        ON CONFLICT (chave) DO UPDATE SET valor = EXCLUDED.valor, atualizado_em = now()`,
-      [CHAVE, JSON.stringify(novo)]
+      [this.chave, JSON.stringify(novo)]
     );
     return novo;
   }
 }
 
-/** /api/word: o aluno cria o @, entra com ele e registra o progresso */
+/** /api/word (e /api/seguranca): o aluno cria o @, entra com ele e registra o progresso */
 function wordRoutes({ contas, config }) {
   const r = express.Router();
 

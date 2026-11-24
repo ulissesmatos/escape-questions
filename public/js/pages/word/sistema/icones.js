@@ -51,6 +51,10 @@ export function iconeDoArquivo(item, tamanho = 20) {
   } else if (item.tipo === 'pdf') {
     base.append(icone('img:document-48-color', { tamanho }));
     base.append(selo('PDF', 'selo-pdf'));
+  } else if (item.tipo === 'exe') {
+    // programa: com o ícone que ele mesmo escolheu (golpes usam o ícone de PDF para enganar)
+    base.append(icone(item.conteudo?.icone || 'img:computador', { tamanho }));
+    if (item.conteudo?.selo) base.append(selo(item.conteudo.selo, 'selo-pdf'));
   } else if (item.tipo === 'txt') {
     base.append(icone('img:document-text-48-color', { tamanho }));
   } else if (item.tipo === 'docx') {

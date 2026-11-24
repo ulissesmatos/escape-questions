@@ -22,6 +22,32 @@ export const APPS = {
 };
 
 /**
+ * Perfil do computador: quais programas existem, o que fica fixado no menu
+ * Iniciar e na barra de tarefas e qual programa abre cada tipo de arquivo.
+ * A Operação Word usa este; outras atividades (ex.: a Operação Anzol) passam
+ * o seu com programas a mais.
+ *
+ * apps[id]: { Classe, nome, icone, prefixos (dos data-alvo, para o Mostre-me) }
+ * abrirPorTipo[tipo]: id do programa, ou função (sim, item) para tratar sozinho
+ */
+export const PERFIL_WORD = {
+  apps: APPS,
+  iniciar: [
+    { id: 'word', nome: 'Word', icone: 'img:logo-word' },
+    { id: 'bloco', nome: 'Bloco de Notas', icone: 'img:logo-bloco-de-notas' },
+    { id: 'explorador', nome: 'Explorador de Arquivos', icone: 'img:pasta' },
+    { id: 'edge', nome: 'Microsoft Edge', icone: 'img:logo-edge' },
+    { id: 'fotos', nome: 'Fotos', icone: 'img:image-48-color' },
+    { id: 'configuracoes', nome: 'Configurações', icone: 'img:settings-24-color' },
+    { id: 'calculadora', nome: 'Calculadora', icone: 'img:computador' },
+    { id: 'paint', nome: 'Paint', icone: 'img:paint-brush-32-color' },
+  ],
+  barra: ['explorador', 'edge', 'word', 'bloco'],
+  abrirPorTipo: { docx: 'word', txt: 'bloco', imagem: 'fotos', pdf: 'edge' },
+  semApp: 'Este aplicativo não faz parte do simulador. Use o Word, o Bloco de Notas ou o Explorador de Arquivos.',
+};
+
+/**
  * O computador simulado: Área de Trabalho, barra de tarefas, menu Iniciar,
  * janelas dos programas e o sistema de arquivos.
  *
@@ -30,11 +56,15 @@ export const APPS = {
  * Mostre-me. estado() resume o computador para os objetivos e consulta
  * responde perguntas do Mostre-me ("qual pasta está aberta no diálogo?").
  *
- * opcoes: { conta: { arroba, nome }, arquivos }
+ * opcoes: { conta: { arroba, nome }, arquivos, perfil (PERFIL_WORD), mundo }
+ * mundo: estado extra da atividade (e-mails, sites...), lido pelos programas
+ * do perfil e pelos objetivos (estado().mundo).
  */
 export class Simulador {
-  constructor(raiz, { conta, arquivos = [] }) {
+  constructor(raiz, { conta, arquivos = [], perfil = PERFIL_WORD, mundo = null }) {
     this.conta = conta;
+    this.perfil = perfil;
+    this.mundo = mundo;
     this.fs = new SistemaDeArquivos(arquivos);
     this.janelas = [];
     this.janelaAtiva = null;
@@ -82,9 +112,9 @@ export class Simulador {
 
   /** Abre (ou traz para frente) um programa. opcoes: { via, arquivo } */
   abrirApp(id, opcoes = {}) {
-    const def = APPS[id];
+    const def = this.perfil.apps[id];
     if (!def) {
-      Dialogo.mensagem(this, { titulo: 'Windows', texto: 'Este aplicativo não faz parte do simulador. Use o Word, o Bloco de Notas ou o Explorador de Arquivos.', nome: 'semApp' });
+      Dialogo.mensagem(this, { titulo: 'Windows', texto: this.perfil.semApp, nome: 'semApp' });
       this.emitir({ tipo: 'app', acao: 'indisponivel', app: id });
       return null;
     }
@@ -107,7 +137,8 @@ export class Simulador {
 
   /** Dois cliques num arquivo: abre no programa certo */
   async abrirArquivo(item, { via = 'explorador', app = null } = {}) {
-    const destino = app || { docx: 'word', txt: 'bloco', imagem: 'fotos', pdf: 'edge' }[item.tipo];
+    const destino = app || this.perfil.abrirPorTipo[item.tipo];
+    if (typeof destino === 'function') return destino(this, item, { via });
     if (item.tipo === 'pasta') {
       const explorador = this.abrirApp('explorador', { via });
       explorador?.ir(SistemaDeArquivos.caminhoDaPasta(item));
@@ -159,7 +190,7 @@ export class Simulador {
     if (!app || app.janela.fechada) return this.abrirApp(id, { via: 'barra' });
     if (app.janela.ativa && !app.janela.minimizada) return app.janela.minimizar();
     app.janela.focar();
-    this.emitir({ tipo: 'app', acao: 'focar', app: id, nome: APPS[id].nome, via: 'barra' });
+    this.emitir({ tipo: 'app', acao: 'focar', app: id, nome: this.perfil.apps[id].nome, via: 'barra' });
     return app;
   }
 
@@ -204,7 +235,10 @@ export class Simulador {
 
   estado() {
     const apps = Object.entries(this.apps).filter(([, a]) => !a.janela.fechada);
+    const extras = Object.fromEntries(apps.filter(([id, a]) => !['word', 'bloco'].includes(id) && a.estado).map(([id, a]) => [id, a.estado()]));
     return {
+      ...extras,
+      mundo: this.mundo,
       arroba: this.conta.arroba,
       fs: this.fs,
       apps: {
@@ -227,6 +261,8 @@ export class Simulador {
         return el ? el.value : null;
       },
       word: () => (this.apps.word && !this.apps.word.janela.fechada ? this.apps.word : null),
+      mundo: () => this.mundo,
+      app: (id) => (this.apps[id] && !this.apps[id].janela.fechada ? this.apps[id] : null),
       menuIniciarAberto: () => this.menuIniciar.aberto,
       janelaVisivel: (id) => Boolean(this.apps[id] && !this.apps[id].janela.fechada && !this.apps[id].janela.minimizada),
       appAberto: (id) => Boolean(this.apps[id] && !this.apps[id].janela.fechada),

@@ -4,7 +4,7 @@ import { MenuDeContexto } from './MenuDeContexto.js';
 import { LIXEIRA } from '../regras/SistemaDeArquivos.js';
 import { comparavel } from '../regras/objetivos.js';
 
-const FIXADOS = [
+const FIXADOS_WORD = [
   { id: 'word', nome: 'Word', icone: 'img:logo-word' },
   { id: 'bloco', nome: 'Bloco de Notas', icone: 'img:logo-bloco-de-notas' },
   { id: 'explorador', nome: 'Explorador de Arquivos', icone: 'img:pasta' },
@@ -23,6 +23,7 @@ const FIXADOS = [
 export class MenuIniciar {
   constructor(sim) {
     this.sim = sim;
+    this.fixados = sim.perfil?.iniciar || FIXADOS_WORD;
     this.aberto = false;
     this.campo = h('input', { type: 'text', class: 'iniciar-busca-campo', placeholder: 'Pesquise aplicativos, configurações e documentos', spellcheck: false, 'data-alvo': 'iniciar.busca' });
     this.campo.addEventListener('input', () => this.desenharConteudo());
@@ -107,7 +108,7 @@ export class MenuIniciar {
       h(
         'div',
         { class: 'iniciar-fixados' },
-        FIXADOS.map((app) =>
+        this.fixados.map((app) =>
           h(
             'button',
             { type: 'button', class: 'iniciar-app', 'data-alvo': `iniciar.app.${app.id}`, onClick: () => this.sim.abrirApp(app.id, { via: 'iniciar' }) },
@@ -135,7 +136,7 @@ export class MenuIniciar {
   }
 
   desenharBusca(termo) {
-    const apps = FIXADOS.filter((a) => comparavel(a.nome).includes(termo) || (a.id === 'word' && 'documento texto'.includes(termo)));
+    const apps = this.fixados.filter((a) => comparavel(a.nome).includes(termo) || (a.id === 'word' && 'documento texto'.includes(termo)));
     const arquivos = this.sim.fs.itens.filter((i) => i.pasta !== LIXEIRA && i.tipo !== 'pasta' && comparavel(i.nome).includes(termo)).slice(0, 5);
     const resultado = (rotulo, sub, ico, acao) =>
       h('button', { type: 'button', class: 'iniciar-resultado', onClick: acao }, ico, h('span', {}, h('strong', { text: rotulo }), h('small', { text: sub })));

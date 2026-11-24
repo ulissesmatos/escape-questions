@@ -34,6 +34,13 @@ professor gerencia tudo pela área `/admin.html`.
   2019 em português) com 20 missões de agente secreto, do básico ao
   intermediário. O aluno cria um @ e entra só com ele (sem senha); a Central
   guia, percebe quando ele se perde e mostra onde clicar. Detalhes abaixo.
+- **Operação Anzol** (`/seguranca.html`): segurança na internet no mesmo
+  computador simulado da Operação Word, com Email, Edge (uma internet de
+  mentira, com sites verdadeiros e falsos), Celular e Segurança do Windows.
+  São 13 missões guiadas: conferir quem mandou o e-mail, senha forte, duas
+  etapas, phishing, link disfarçado, site falso, anexo perigoso, golpes no
+  celular, privacidade na rede social e conta invadida. O @ é o mesmo da
+  Operação Word. Detalhes abaixo.
 - **Laboratório de Experimentos** (`/laboratorio`): competição em tempo real
   (Socket.IO). Os alunos entram numa sala com um código de 4 letras, fazem a
   ação no computador (atalhos de teclado) e depois respondem o que aconteceu,
@@ -107,7 +114,7 @@ public/
   js/pages/laboratorio/       → aluno/, professor/, telao/ + Conexao e comum (teclas, cronômetro, ranking)
 tools/empacotar-oficina.js    → gera a versão da Oficina para baixar (arquivo único)
 test/                         → node:test (tipos de pergunta, motor adaptativo, detector de chute, regras da Oficina,
-                                do Robô na Horta, do Laboratório e da Operação Word, e uma partida real com 30 alunos via Socket.IO)
+                                do Robô na Horta, do Laboratório, da Operação Word e da Operação Anzol, e uma partida real com 30 alunos via Socket.IO)
 docs/oficina-sprites.md       → como gerar a arte do jogo no ChatGPT (+ gabaritos em docs/oficina-gabaritos)
 docs/oficina-expansao.md      → proposta do loop de gameplay e das próximas fases do jogo
 ```
@@ -270,6 +277,67 @@ do Word, Windows, Bloco de Notas e Edge vêm do Wikimedia Commons (marcados
 como domínio público; continuam sendo marcas da Microsoft e aparecem só para
 o aluno reconhecer os programas). As fotos da pasta Imagens são desenhos do
 próprio projeto (`public/images/word/arquivos`).
+
+## Operação Anzol (segurança na internet)
+
+Reaproveita tudo da Operação Word (o Windows simulado, a Central, o
+Mostre-me, o detector de "perdido", as estrelas e o login pelo @), trocando
+os programas: no lugar do Word ficam **Email**, **Edge** com uma internet de
+mentira, **Celular** (espelhado no computador, com Mensagens e Contatos) e
+**Segurança do Windows** (Verificação rápida e o aviso do SmartScreen). O
+aluno faz tudo na mão: clica no nome de quem enviou para ver o endereço,
+para o mouse no link para ver o destino, denuncia com Relatar › Relatar
+phishing, digita o endereço oficial, troca a senha (com medidor de força),
+ativa as duas etapas com o código que chega no Celular, liga para o número
+antigo da tia, bloqueia, denuncia anúncio, deixa o perfil privado...
+
+Todos os nomes são inventados: Postal (e-mail), Banco Pátria, Mega Loja,
+EnviaJá (entregas), Pixel Arena (jogo) e Conecta (rede social). Cada um tem o
+site verdadeiro e, quando a missão pede, a cópia falsa (com "Não seguro" e um
+endereço que só parece o oficial, como `bancopatria.atualiza-cadastro.com`).
+Nenhuma senha digitada no jogo sai do navegador; a tela de senha lembra o
+aluno de inventar uma só para o jogo.
+
+| Capítulo | Missões |
+| --- | --- |
+| 1. Conta blindada | Primeiro acesso (guiada) · Senha forte · Duas etapas |
+| 2. Caça ao phishing | Remetente falso · Link disfarçado · Site falso · Anexo perigoso |
+| 3. Golpes no celular | SMS falso · Parente falso ("troquei de número") · Gemas grátis (anúncio enganoso) |
+| 4. Privacidade | Perfil seguro (bio, conta privada, localização) · Pedidos de amizade |
+| 5. Missão final | Conta invadida (desconectar o invasor, senha, duas etapas, denunciar a isca) |
+
+**Deslizes de segurança:** cair numa isca (clicar no link do golpe, digitar
+dados num site falso, abrir o programa disfarçado, mandar o código, aceitar
+um desconhecido) não reprova: a Central explica na hora o que aconteceria de
+verdade e como desfazer, e cada deslize pesa como duas dicas nas estrelas. O
+professor vê, em cada missão, em quais iscas o aluno caiu.
+
+**Professor** (`/admin.html` → Operação Anzol): igual à Operação Word (alunos,
+missões, liberar todas, esconder o Mostre-me), com a coluna "Caiu em iscas"
+no lugar do documento entregue. O progresso fica em `seguranca_progresso` e
+a configuração na linha `seguranca` de `configuracoes`.
+
+```
+public/js/pages/seguranca/
+  main.js, curriculo.js    → entrada (usa word/app/Aplicativo.js) e o currículo (textos, missões, alertas da Central)
+  perfil.js                → os programas deste computador (e os prefixos de data-alvo do Mostre-me)
+  apps/                    → Email, Navegador (Edge), Celular, SegurancaWindows (+ SmartScreen), notificacao
+  sites/                   → a internet de mentira: Postal (Minha Conta), banco, lojas, entregas, Pixel Arena, Conecta
+  regras/                  → sem tela, testadas com node:test: missoes, objetivos, conceitos (Guia de Defesa),
+                             Mundo (e-mails, celular, conta, rede social de cada missão), senha, enderecos, privacidade
+```
+
+O que a Operação Word ganhou para isso (sem mudar o comportamento dela): as
+telas recebem um **currículo** (`word/app/curriculoWord.js`), o Simulador
+recebe um **perfil** (programas, menu Iniciar, barra de tarefas, quem abre
+cada tipo de arquivo) e um **mundo**, e o Mostre-me abre ou traz para a frente
+qualquer programa do perfil e pergunta a ele o que falta
+(`app.prerequisito(passo, guia)`).
+
+**Robô do Mostre-me:** `npm run robo:anzol` (mesmo uso do `robo:word`) bagunça
+a tela em cada missão e depois segue só o Mostre-me até o fim; falha se o
+guia travar ou se o caminho fizer o aluno cair numa isca. Ele cria a conta
+`@robo.caos`.
 
 ## Robô na Horta (jogo de blocos)
 

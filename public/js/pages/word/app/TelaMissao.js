@@ -5,27 +5,31 @@ import { Central } from '../ajuda/Central.js';
 import { Guia } from '../ajuda/Guia.js';
 import { Holofote } from '../ajuda/Holofote.js';
 import { DetectorDePerdido } from '../regras/Detector.js';
-import { CAPITULOS, MISSOES, calcularEstrelas, missoesLiberadas, personalizar } from '../regras/missoes.js';
-import { conceito } from '../regras/conceitos.js';
+import { CURRICULO_WORD } from './curriculoWord.js';
 
 const COMANDOS_DE_FORMATO = new Set(['negrito', 'italico', 'sublinhado', 'tachado', 'fonte', 'tamanho', 'cor', 'realce', 'aumentarFonte', 'diminuirFonte', 'maiusculas', 'limparFormatacao']);
 const NOMES_DE_COMANDO = { negrito: 'Negrito', italico: 'Itálico', sublinhado: 'Sublinhado', colar: 'Colar', salvar: 'Salvar', centralizar: 'Centralizar', marcadores: 'Marcadores', numeracao: 'Numeração', desfazer: 'Desfazer' };
 
 /** Troca {arroba} dentro do conteúdo dos arquivos da missão */
-function personalizarArquivos(arquivos, contexto) {
+function personalizarArquivos(arquivos, contexto, personalizar) {
   return arquivos.map((a) => ({ ...a, conteudo: a.conteudo && JSON.parse(personalizar(JSON.stringify(a.conteudo), contexto)) }));
 }
+
+// Eventos que contam como "uma ação" do aluno para o detector de perdido
+const EVENTOS_DE_ACAO = ['comando', 'guia', 'menu', 'navegar', 'arquivo', 'clique-vazio', 'zoom', 'digame', 'tecla-perdida', 'mostrar-area', 'selecionar-tudo', 'copiar', 'colar', 'desfazer', 'clique-imagem', 'app'];
 
 /**
  * Uma missão em andamento: o computador simulado à esquerda e a Central à
  * direita. Confere os objetivos a cada ação do aluno, dispara a história
  * (ex.: o vírus), percebe quando ele está perdido e dá ajuda na medida certa.
  *
- * props: { sessao, missao (null = treino livre), aoSair(), aoJogar(missao), alternarTelaCheia() }
+ * props: { sessao, missao (null = treino livre), curriculo (CURRICULO_WORD),
+ *          aoSair(), aoJogar(missao), alternarTelaCheia() }
  */
 export class TelaMissao {
   constructor(props) {
     this.props = props;
+    this.cur = props.curriculo || CURRICULO_WORD;
     this.el = h('section', { class: 'tela-missao' });
     // monta o computador depois que a tela entra na página (as janelas precisam medir o espaço)
     Promise.resolve().then(() => this.iniciar());
@@ -48,6 +52,7 @@ export class TelaMissao {
     this.roteiroDisparado = new Set();
     this.dicas = 0;
     this.mostreMe = 0;
+    this.deslizes = []; // ações arriscadas (clicar no golpe, digitar senha em site falso...)
     this.ajudaNoObjetivo = { dica: false, mostre: false };
     this.ultimasFalas = new Map();
     this.concluida = false;
@@ -55,14 +60,17 @@ export class TelaMissao {
     this.ultimoProgressoGuia = -1;
     this.ultimaDigitacaoContada = 0;
 
-    const arquivos = personalizarArquivos(missao ? missao.arquivos : MISSOES[0].arquivos, this.contexto);
+    const { MISSOES, CAPITULOS, personalizar } = this.cur;
+    const arquivos = personalizarArquivos(missao ? missao.arquivos : this.cur.treino.arquivos, this.contexto, personalizar);
     this.pc = h('div', { class: 'missao-pc' });
     const indice = missao ? MISSOES.indexOf(missao) + 1 : 0;
     const cap = missao ? CAPITULOS.find((c) => c.numero === missao.capitulo) : null;
     this.central = new Central({
       titulo: missao ? missao.titulo : 'Treino livre',
       subtitulo: missao ? `Missão ${indice} · Capítulo ${cap.numero}` : 'Sem objetivos: explore à vontade',
-      historia: missao ? personalizar(missao.historia, this.contexto) : 'Este computador é todo seu para treinar. Abra o Word pelo menu Iniciar e teste os botões, os menus e os atalhos. Nada aqui vale estrelas.',
+      historia: missao ? personalizar(missao.historia, this.contexto) : this.cur.treino.historia,
+      conceito: this.cur.conceito,
+      avatar: this.cur.avatar,
       semMostreMe: this.semMostreMe,
       aoDica: () => this.pedirDica(),
       aoMostreMe: () => this.alternarMostreMe(),
@@ -74,7 +82,8 @@ export class TelaMissao {
       aoRecolher: () => setTimeout(() => window.dispatchEvent(new Event('resize')), 260),
     });
     this.el.replaceChildren(this.pc, this.central.el, this.central.aba);
-    this.sim = new Simulador(this.pc, { conta: { arroba: sessao.conta.arroba, nome: sessao.conta.nome }, arquivos });
+    const mundo = this.cur.criarMundo ? this.cur.criarMundo(missao, this.contexto) : null;
+    this.sim = new Simulador(this.pc, { conta: { arroba: sessao.conta.arroba, nome: sessao.conta.nome }, arquivos, perfil: this.cur.perfil, mundo });
     this.holofote = new Holofote();
     this.guia = new Guia({ sim: this.sim, holofote: this.holofote });
     this.guia.marcos = this.marcos;
@@ -85,10 +94,11 @@ export class TelaMissao {
       const item = this.sim.fs.obter(missao.abrir.pasta, missao.abrir.nome, 'docx');
       if (item) this.sim.abrirArquivo(item, { via: 'missao' });
     }
+    missao?.aoComecar?.(this.sim, this.contexto);
     if (this.treino) {
       this.central.botaoDica.disabled = true;
       this.central.botaoMostre.disabled = true;
-      this.central.falar('Treino livre: aqui não tem objetivos. Que tal experimentar o =rand() no Word? Digite =rand() e aperte Enter.');
+      this.central.falar(this.cur.treino.fala);
     } else {
       sessao.iniciarMissao(missao.id);
       const comecar = missao.tutorial
@@ -140,12 +150,17 @@ export class TelaMissao {
       if (ev.marca) m.add(`desfazer:${ev.marca}`);
     }
     if (ev.tipo === 'copiar') this.copias.push({ app: ev.app, texto: ev.texto || '' });
+    if (ev.tipo === 'navegar' && ev.pasta) m.add(`navegar:${ev.pasta}`);
+    // programas de outras atividades marcam o que aconteceu direto no evento
+    if (ev.marco) m.add(ev.marco);
+    for (const marco of ev.marcos || []) m.add(marco);
   }
 
   aoEvento(ev) {
     if (this.concluida) return;
     if (ev.tipo === 'desligar') return this.confirmarSaida();
     this.registrarMarcos(ev);
+    if (ev.deslize && !this.treino) this.deslizes.push(`${ev.tipo}:${ev.acao}`);
     const antes = this.feitos.filter(Boolean).length;
     this.avaliar();
     if (this.treino || this.concluida) return;
@@ -197,8 +212,7 @@ export class TelaMissao {
 
   /** Quais eventos contam como "uma ação" para o detector de perdido */
   contaComoAcao(ev, agora) {
-    if (['comando', 'guia', 'menu', 'navegar', 'arquivo', 'clique-vazio', 'zoom', 'digame', 'tecla-perdida', 'mostrar-area', 'selecionar-tudo', 'copiar', 'colar', 'desfazer', 'clique-imagem'].includes(ev.tipo)) return true;
-    if (ev.tipo === 'app') return true;
+    if (EVENTOS_DE_ACAO.includes(ev.tipo) || (this.cur.eventosDeAcao || []).includes(ev.tipo)) return true;
     if (ev.tipo === 'dialogo') return ev.acao !== 'fechar';
     if (ev.tipo === 'digitar') {
       if (agora - this.ultimaDigitacaoContada < 4000) return false;
@@ -210,6 +224,8 @@ export class TelaMissao {
 
   /** Erros comuns que não dependem do objetivo */
   diagnosticoGeral(ev, estado) {
+    const daAtividade = this.cur.diagnosticoGeral?.(ev, estado, this);
+    if (daAtividade) return daAtividade;
     if (ev.tipo === 'atalho') {
       if (ev.teclas === 'Ctrl+B' && ev.selecao?.trim()) return 'Atenção: no Word em português, Ctrl+B é SALVAR. Para negrito, use Ctrl+N (N de Negrito).';
       if (ev.teclas === 'Ctrl+A') return 'No Word em português, Ctrl+A abre outro arquivo. Para selecionar tudo, use Ctrl+T (T de Tudo). Aperte Esc para voltar ao documento.';
@@ -297,6 +313,11 @@ export class TelaMissao {
 
   /** Acontecimentos da história da missão */
   executarRoteiro(passo) {
+    if (typeof passo.executar === 'function') {
+      passo.executar(this);
+      this.avaliar();
+      return;
+    }
     if (passo.acao === 'virus') {
       const word = this.sim.apps.word;
       const achado = word?.temDocumento && word.inspetor.achar(passo.trecho);
@@ -305,7 +326,7 @@ export class TelaMissao {
       setTimeout(() => this.sim.el.classList.remove('virus'), 1400);
       word.documento.mudar('Vírus do Dr. Kaos', () => achado.bloco.remove(), { marca: 'virus' });
       this.marcos.add('virus');
-      this.central.falar(personalizar(passo.fala, this.contexto), { tipo: 'alerta' });
+      this.central.falar(this.cur.personalizar(passo.fala, this.contexto), { tipo: 'alerta' });
       this.avaliar();
     }
   }
@@ -314,9 +335,10 @@ export class TelaMissao {
     const estado = this.estado();
     if (objetivo.conferir(valor, estado)) {
       this.respostas[objetivo.pergunta.id] = valor;
+      if (objetivo.aoAcertar) this.central.falar(objetivo.aoAcertar, { tipo: 'sucesso' });
       this.avaliar();
     } else {
-      this.central.falar(`"${valor}" não está certo. Confira de novo!`, { tipo: 'alerta' });
+      this.central.falar(objetivo.aoErrar?.(valor, estado) || `"${valor}" não está certo. Confira de novo!`, { tipo: 'alerta' });
       const intervencao = this.detector.acao({ util: false, tipo: 'resposta' }, Date.now());
       if (intervencao) this.intervir(intervencao);
     }
@@ -420,8 +442,8 @@ export class TelaMissao {
   }
 
   mostrarConceito(id) {
-    const c = conceito(id);
-    this.central.falar(`${c.titulo}: ${c.texto} Onde: ${c.onde}.${c.atalho ? ` Atalho: ${c.atalho}.` : ''}`, { tipo: 'dica' });
+    const c = this.cur.conceito(id);
+    this.central.falar(`${c.titulo}: ${c.texto}${c.onde ? ` Onde: ${c.onde}.` : ''}${c.atalho ? ` Atalho: ${c.atalho}.` : ''}`, { tipo: 'dica' });
   }
 
   // ================= fim da missão =================
@@ -431,25 +453,33 @@ export class TelaMissao {
     this.desligarMostreMe();
     const { missao, sessao } = this.props;
     const tempoMs = Date.now() - this.inicio;
-    const estrelas = calcularEstrelas({ dicas: this.dicas, mostreMe: this.mostreMe, tutorial: missao.tutorial });
-    const documento = this.sim.apps.word?.documentoParaEntrega?.() || null;
+    const estrelas = this.cur.calcularEstrelas({ dicas: this.dicas, mostreMe: this.mostreMe, deslizes: this.deslizes.length, tutorial: missao.tutorial });
+    // a "entrega": o documento do Word ou, em outras atividades, o que o currículo quiser guardar (ex.: os deslizes)
+    const documento = this.cur.entrega ? this.cur.entrega(this) : this.sim.apps.word?.documentoParaEntrega?.() || null;
     const envio = sessao.concluirMissao(missao.id, { estrelas, tempoMs, dicas: this.dicas, mostreMe: this.mostreMe, perdido: this.detector.vezesPerdido, documento });
     this.mostrarResultado({ estrelas, tempoMs, envio });
   }
 
   mostrarResultado({ estrelas, tempoMs, envio }) {
     const { missao, sessao } = this.props;
+    const { MISSOES, personalizar, conceito } = this.cur;
     const indice = MISSOES.indexOf(missao);
     const proxima = MISSOES[indice + 1] || null;
-    const liberadas = missoesLiberadas([...sessao.concluidas(), missao.id], sessao.config);
+    const liberadas = this.cur.missoesLiberadas([...sessao.concluidas(), missao.id], sessao.config);
     const min = Math.floor(tempoMs / 60000);
     const seg = Math.round((tempoMs % 60000) / 1000);
-    const ajuda =
+    const semAjuda = this.dicas + this.mostreMe === 0;
+    const n = this.deslizes.length;
+    let ajuda =
       missao.tutorial
         ? 'Missão guiada concluída!'
-        : this.dicas + this.mostreMe === 0
-          ? 'Sem pedir nenhuma ajuda. Excelente!'
-          : `Com ${[this.dicas && `${this.dicas} ${this.dicas === 1 ? 'dica' : 'dicas'}`, this.mostreMe && `${this.mostreMe} Mostre-me`].filter(Boolean).join(' e ')}.`;
+        : semAjuda
+          ? n ? 'Sem pedir ajuda' : 'Sem pedir nenhuma ajuda. Excelente!'
+          : `Com ${[this.dicas && `${this.dicas} ${this.dicas === 1 ? 'dica' : 'dicas'}`, this.mostreMe && `${this.mostreMe} Mostre-me`].filter(Boolean).join(' e ')}`;
+    // deslizes de segurança (Operação Anzol): cair numa isca também tira estrela
+    if (n) ajuda += `${semAjuda && !missao.tutorial ? ', mas' : missao.tutorial ? ' Mas' : ' e'} com ${n} ${n === 1 ? 'deslize' : 'deslizes'} de segurança (cair numa isca tira estrela).`;
+    else if (!missao.tutorial && !semAjuda) ajuda += '.';
+    const deslizes = !n && this.cur.id !== 'word' && !missao.tutorial ? ' Nenhum deslize de segurança!' : '';
     const status = h('p', { class: 'resultado-status', text: 'Salvando seu progresso...' });
     envio.then(({ salvo }) => (status.textContent = salvo ? `Progresso salvo no seu @${sessao.conta.arroba}.` : 'Sem conexão agora: seu progresso ficou guardado neste computador e será enviado depois.'));
     const fundo = h(
@@ -461,8 +491,8 @@ export class TelaMissao {
         h('p', { class: 'base-olho', text: `MISSÃO ${indice + 1} CUMPRIDA` }),
         h('h2', { class: 'resultado-titulo', text: missao.titulo }),
         h('div', { class: 'resultado-estrelas' }, [0, 1, 2].map((i) => h('span', { class: i < estrelas ? 'cheia' : 'vazia', style: { animationDelay: `${0.25 + i * 0.25}s` }, text: '★' }))),
-        h('p', { class: 'resultado-info', text: `${ajuda} Tempo: ${min ? `${min} min ` : ''}${seg} s.` }),
-        !missao.tutorial && estrelas < 3 && h('p', { class: 'resultado-dica', text: 'Para 3 estrelas: faça a missão de novo usando no máximo uma dica.' }),
+        h('p', { class: 'resultado-info', text: `${ajuda}${deslizes} Tempo: ${min ? `${min} min ` : ''}${seg} s.` }),
+        !missao.tutorial && estrelas < 3 && h('p', { class: 'resultado-dica', text: this.deslizes.length ? 'Para 3 estrelas: faça a missão de novo sem cair nas iscas e usando no máximo uma dica.' : 'Para 3 estrelas: faça a missão de novo usando no máximo uma dica.' }),
         h('p', { class: 'resultado-conclusao', text: personalizar(missao.conclusao, this.contexto) }),
         h('h3', { class: 'briefing-secao', text: 'Você aprendeu' }),
         h('div', { class: 'resultado-conceitos' }, missao.conceitos.map((id) => {

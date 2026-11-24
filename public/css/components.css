@@ -196,6 +196,11 @@ button.card-atividade:hover .card-acao::after {
   --card-cor-light: #e8eef8;
 }
 
+.card-cor-anzol {
+  --card-cor: #0b7a75;
+  --card-cor-light: #e3f6f4;
+}
+
 .titulo-grupo {
   font-size: 0.8rem;
   font-weight: 800;

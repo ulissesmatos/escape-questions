@@ -4,6 +4,8 @@ const { nomeOfensivo } = require('../laboratorio/nomes');
 const { validarArroba, normalizarArroba } = require('./arroba');
 
 const MISSAO_VALIDA = /^[a-z0-9-]{1,40}$/;
+// Tabelas de progresso de cada atividade de missões (o @ é o mesmo em todas)
+const TABELAS_DE_PROGRESSO = new Set(['word_progresso', 'seguranca_progresso']);
 const MAX_DOCUMENTO = 150 * 1024; // HTML da entrega (só texto; imagens são caminhos)
 
 /** Tira scripts e atributos de evento: o professor vê a entrega num iframe sem scripts, isto é só uma segunda barreira */
@@ -38,11 +40,16 @@ const numeroLimitado = (valor, maximo) => Math.min(maximo, Math.max(0, Math.roun
  * Contas da Operação Word: o aluno cria um @ (com nome e turma) e depois
  * entra só com ele, sem senha. O token que o navegador guarda é o id da conta
  * assinado (HMAC), só para as rotas de progresso saberem quem é.
+ *
+ * As contas são as mesmas para todas as atividades de missões (Operação Word,
+ * Operação Anzol): cada uma guarda o progresso na sua tabela (opção tabela).
  */
 class ContasWord {
-  constructor({ db, segredo }) {
+  constructor({ db, segredo, tabela = 'word_progresso' }) {
+    if (!TABELAS_DE_PROGRESSO.has(tabela)) throw new Error(`Tabela de progresso desconhecida: ${tabela}`);
     this.db = db;
     this.segredo = segredo;
+    this.tabela = tabela;
   }
 
   token(id) {
@@ -125,7 +132,7 @@ class ContasWord {
   async progresso(id) {
     const linhas = await this.db.many(
       `SELECT missao, tentativas, estrelas, melhor_tempo_ms, concluida_em
-       FROM word_progresso WHERE conta_id = $1`,
+       FROM ${this.tabela} WHERE conta_id = $1`,
       [id]
     );
     return linhas.map((l) => ({
@@ -144,8 +151,8 @@ class ContasWord {
 
   async iniciar(contaId, missao) {
     await this.db.query(
-      `INSERT INTO word_progresso (conta_id, missao, tentativas, iniciada_em) VALUES ($1, $2, 1, now())
-       ON CONFLICT (conta_id, missao) DO UPDATE SET tentativas = word_progresso.tentativas + 1, iniciada_em = now()`,
+      `INSERT INTO ${this.tabela} (conta_id, missao, tentativas, iniciada_em) VALUES ($1, $2, 1, now())
+       ON CONFLICT (conta_id, missao) DO UPDATE SET tentativas = ${this.tabela}.tentativas + 1, iniciada_em = now()`,
       [contaId, ContasWord.missao(missao)]
     );
     await this.db.query('UPDATE word_contas SET ultimo_acesso = now() WHERE id = $1', [contaId]);
@@ -168,16 +175,16 @@ class ContasWord {
       limparDocumento(corpo.documento),
     ];
     const linha = await this.db.one(
-      `INSERT INTO word_progresso
+      `INSERT INTO ${this.tabela}
          (conta_id, missao, tentativas, estrelas, melhor_tempo_ms, dicas, mostre_me, perdido, documento, iniciada_em, concluida_em)
        VALUES ($1, $2, 1, $3, $4, $5, $6, $7, $8, now(), now())
        ON CONFLICT (conta_id, missao) DO UPDATE SET
-         estrelas = GREATEST(word_progresso.estrelas, EXCLUDED.estrelas),
-         melhor_tempo_ms = LEAST(COALESCE(word_progresso.melhor_tempo_ms, EXCLUDED.melhor_tempo_ms), EXCLUDED.melhor_tempo_ms),
+         estrelas = GREATEST(${this.tabela}.estrelas, EXCLUDED.estrelas),
+         melhor_tempo_ms = LEAST(COALESCE(${this.tabela}.melhor_tempo_ms, EXCLUDED.melhor_tempo_ms), EXCLUDED.melhor_tempo_ms),
          dicas = EXCLUDED.dicas,
          mostre_me = EXCLUDED.mostre_me,
          perdido = EXCLUDED.perdido,
-         documento = COALESCE(EXCLUDED.documento, word_progresso.documento),
+         documento = COALESCE(EXCLUDED.documento, ${this.tabela}.documento),
          concluida_em = now()
        RETURNING missao, tentativas, estrelas, melhor_tempo_ms, concluida_em`,
       dados
@@ -195,11 +202,11 @@ class ContasWord {
               COALESCE(SUM(p.estrelas) FILTER (WHERE p.concluida_em IS NOT NULL), 0)::int AS estrelas,
               COALESCE(SUM(p.perdido), 0)::int AS perdido,
               COALESCE(SUM(p.dicas + p.mostre_me), 0)::int AS ajudas,
-              (SELECT missao FROM word_progresso q
+              (SELECT missao FROM ${this.tabela} q
                 WHERE q.conta_id = c.id AND q.concluida_em IS NULL
                 ORDER BY q.iniciada_em DESC NULLS LAST LIMIT 1) AS em_andamento
        FROM word_contas c
-       LEFT JOIN word_progresso p ON p.conta_id = c.id
+       LEFT JOIN ${this.tabela} p ON p.conta_id = c.id
        WHERE ($1::text IS NULL OR c.turma = $1)
        GROUP BY c.id
        ORDER BY c.turma, c.nome`,
@@ -231,7 +238,7 @@ class ContasWord {
               COUNT(*) FILTER (WHERE p.perdido > 0)::int AS se_perderam,
               COALESCE(ROUND(AVG(p.tentativas), 1), 0)::float AS tentativas,
               ROUND(AVG(p.melhor_tempo_ms) FILTER (WHERE p.concluida_em IS NOT NULL))::int AS tempo_medio_ms
-       FROM word_progresso p
+       FROM ${this.tabela} p
        JOIN word_contas c ON c.id = p.conta_id
        WHERE ($1::text IS NULL OR c.turma = $1)
        GROUP BY p.missao`,
@@ -254,7 +261,7 @@ class ContasWord {
     if (!conta) throw HttpError.notFound('Aluno não encontrado.');
     const missoes = await this.db.many(
       `SELECT missao, tentativas, estrelas, melhor_tempo_ms, dicas, mostre_me, perdido, documento, iniciada_em, concluida_em
-       FROM word_progresso WHERE conta_id = $1`,
+       FROM ${this.tabela} WHERE conta_id = $1`,
       [id]
     );
     return {
@@ -297,7 +304,7 @@ class ContasWord {
   }
 
   async zerar(id) {
-    await this.db.query('DELETE FROM word_progresso WHERE conta_id = $1', [id]);
+    await this.db.query(`DELETE FROM ${this.tabela} WHERE conta_id = $1`, [id]);
     return { ok: true };
   }
 

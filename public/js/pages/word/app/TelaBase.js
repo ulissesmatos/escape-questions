@@ -1,7 +1,6 @@
 import { h } from '../../../core/dom.js';
 import { icone } from '../sistema/icones.js';
-import { CAPITULOS, MISSOES, missoesLiberadas, personalizar } from '../regras/missoes.js';
-import { CONCEITOS, conceito } from '../regras/conceitos.js';
+import { CURRICULO_WORD } from './curriculoWord.js';
 
 const estrelas = (n, total = 3) => h('span', { class: 'estrelas', 'aria-label': `${n} de ${total} estrelas` }, Array.from({ length: total }, (_, i) => h('span', { class: i < n ? 'cheia' : 'vazia', text: '★' })));
 
@@ -10,17 +9,19 @@ const estrelas = (n, total = 3) => h('span', { class: 'estrelas', 'aria-label': 
  * (liberadas, concluídas com estrelas ou bloqueadas), o briefing antes de
  * cada missão e o Manual do Agente (tudo o que já aprendeu, para revisar).
  *
- * props: { sessao, aoJogar(missao), aoTreino(), aoSair() }
+ * props: { sessao, curriculo (CURRICULO_WORD), aoJogar(missao), aoTreino(), aoSair() }
  */
 export class TelaBase {
   constructor(props) {
     this.props = props;
+    this.cur = props.curriculo || CURRICULO_WORD;
     this.el = h('section', { class: 'tela-base' });
     this.desenhar();
   }
 
   desenhar() {
     const { sessao } = this.props;
+    const { MISSOES, CAPITULOS, missoesLiberadas } = this.cur;
     const conta = sessao.conta;
     const concluidas = new Set(sessao.concluidas());
     const liberadas = missoesLiberadas([...concluidas], sessao.config);
@@ -32,10 +33,10 @@ export class TelaBase {
         'header',
         { class: 'base-topo' },
         h('a', { href: 'index.html', class: 'base-sair-site', title: 'Voltar para as atividades' }, '⟵'),
-        h('div', { class: 'base-marca' }, icone('img:logo-word', { tamanho: 28 }), h('span', {}, h('strong', { text: 'Operação Word' }), h('small', { text: 'Central de treinamento' }))),
+        h('div', { class: 'base-marca' }, icone(this.cur.logo, { tamanho: 28 }), h('span', {}, h('strong', { text: this.cur.nome }), h('small', { text: this.cur.subtitulo }))),
         h('div', { class: 'base-espaco' }),
         h('div', { class: 'base-estrelas', title: 'Estrelas conquistadas' }, h('span', { text: '★' }), ` ${total} / ${MISSOES.length * 3}`),
-        h('button', { type: 'button', class: 'base-botao', onClick: () => this.abrirManual() }, icone('book_open', { tamanho: 16 }), h('span', { text: 'Manual do Agente' })),
+        h('button', { type: 'button', class: 'base-botao', onClick: () => this.abrirManual() }, icone('book_open', { tamanho: 16 }), h('span', { text: this.cur.manual })),
         h('button', { type: 'button', class: 'base-botao', onClick: () => this.props.aoTreino() }, icone('desktop', { tamanho: 16 }), h('span', { text: 'Treino livre' })),
         h(
           'div',
@@ -56,6 +57,7 @@ export class TelaBase {
   }
 
   destaque(proxima, concluidas) {
+    const { MISSOES, CAPITULOS } = this.cur;
     if (!proxima) {
       return h(
         'div',
@@ -69,7 +71,7 @@ export class TelaBase {
     return h(
       'div',
       { class: 'base-destaque' },
-      icone('img:agente', { tamanho: 72 }),
+      icone(this.cur.avatar, { tamanho: 72 }),
       h(
         'div',
         { class: 'base-destaque-texto' },
@@ -82,6 +84,7 @@ export class TelaBase {
   }
 
   capitulo(cap, concluidas, liberadas) {
+    const { MISSOES, conceito } = this.cur;
     const missoes = MISSOES.filter((m) => m.capitulo === cap.numero);
     const feitas = missoes.filter((m) => concluidas.has(m.id)).length;
     return h(
@@ -99,6 +102,7 @@ export class TelaBase {
   }
 
   cartao(missao, feita, liberada) {
+    const { MISSOES, conceito } = this.cur;
     const indice = MISSOES.indexOf(missao) + 1;
     const el = h(
       'button',
@@ -125,6 +129,7 @@ export class TelaBase {
   /** Briefing: história, o que vai aprender e os objetivos */
   abrirBriefing(missao) {
     const { sessao } = this.props;
+    const { MISSOES, CAPITULOS, conceito, personalizar } = this.cur;
     const cap = CAPITULOS.find((c) => c.numero === missao.capitulo);
     const objetivos = missao.objetivos({ arroba: sessao.conta.arroba });
     const fundo = h('div', { class: 'base-modal-fundo' });
@@ -186,6 +191,7 @@ export class TelaBase {
 
   /** Manual do Agente: conceitos de cada capítulo; os ainda não vistos ficam apagados */
   abrirManual() {
+    const { MISSOES, CAPITULOS, CONCEITOS, conceito } = this.cur;
     const vistos = new Set(MISSOES.filter((m) => this.props.sessao.concluidas().includes(m.id)).flatMap((m) => m.conceitos));
     const fundo = h('div', { class: 'base-modal-fundo' });
     const fechar = () => fundo.remove();
@@ -194,9 +200,9 @@ export class TelaBase {
     fundo.append(
       h(
         'div',
-        { class: 'base-modal manual', role: 'dialog', 'aria-label': 'Manual do Agente' },
+        { class: 'base-modal manual', role: 'dialog', 'aria-label': this.cur.manual },
         h('button', { type: 'button', class: 'base-modal-fechar', 'aria-label': 'Fechar', onClick: fechar }, icone('dismiss', { tamanho: 18 })),
-        h('p', { class: 'base-olho', text: 'MANUAL DO AGENTE' }),
+        h('p', { class: 'base-olho', text: this.cur.manual.toUpperCase() }),
         h('h2', { class: 'briefing-titulo', text: 'Tudo o que você já aprendeu' }),
         h('p', { class: 'briefing-historia', text: `${vistos.size} de ${ordem.length + extras.length} assuntos liberados. Os apagados aparecem quando você concluir a missão que ensina cada um.` }),
         ...CAPITULOS.map((cap) => {

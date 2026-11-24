@@ -8,15 +8,20 @@ import { SafeStorage } from '../../../core/SafeStorage.js';
  *
  * Sem internet no meio da missão, a conclusão fica guardada no navegador e é
  * reenviada na próxima vez que der certo.
+ *
+ * O @ é o mesmo em todas as atividades de missões (Operação Word, Operação
+ * Anzol...): o token fica numa chave só, e o progresso de cada atividade
+ * vai para a API dela (api) com chaves próprias no navegador (armazenamento).
  */
 export class Sessao {
-  constructor() {
+  constructor({ api = '/api/word', armazenamento = '' } = {}) {
+    this.ns = armazenamento ? `${armazenamento}:` : '';
     this.local = new SafeStorage('local', 'operacaoWord:');
     this.token = this.local.ler('token');
     this.conta = null;
     this.progresso = new Map();
     this.config = { liberarTudo: false, semMostreMe: false };
-    this.api = new ApiClient({ base: '/api/word', obterToken: () => this.token });
+    this.api = new ApiClient({ base: api, obterToken: () => this.token });
   }
 
   get ultimoArroba() {
@@ -32,7 +37,7 @@ export class Sessao {
     this.local.salvar('ultimoArroba', conta.arroba);
     this.local.salvar('conta', conta);
     this.progresso = new Map(progresso.map((p) => [p.missao, p]));
-    this.local.salvar(`progresso:${conta.arroba}`, progresso);
+    this.local.salvar(`${this.ns}progresso:${conta.arroba}`, progresso);
   }
 
   async carregarConfig() {
@@ -60,7 +65,7 @@ export class Sessao {
       const conta = this.local.ler('conta');
       if (!conta) return false;
       this.conta = conta;
-      this.progresso = new Map((this.local.ler(`progresso:${conta.arroba}`) || []).map((p) => [p.missao, p]));
+      this.progresso = new Map((this.local.ler(`${this.ns}progresso:${conta.arroba}`) || []).map((p) => [p.missao, p]));
       this.offline = true;
       return true;
     }
@@ -111,21 +116,21 @@ export class Sessao {
     const anterior = this.progresso.get(missao);
     const local = { missao, concluida: true, estrelas: Math.max(anterior?.estrelas || 0, dados.estrelas), melhorTempoMs: Math.min(anterior?.melhorTempoMs ?? Infinity, dados.tempoMs) };
     this.progresso.set(missao, local);
-    this.local.salvar(`progresso:${this.conta.arroba}`, [...this.progresso.values()]);
+    this.local.salvar(`${this.ns}progresso:${this.conta.arroba}`, [...this.progresso.values()]);
     try {
       const salvo = await this.api.post(`/missoes/${missao}/conclusao`, dados);
       this.progresso.set(missao, salvo);
       return { salvo: true };
     } catch {
-      const pendentes = this.local.ler('pendentes') || [];
+      const pendentes = this.local.ler(`${this.ns}pendentes`) || [];
       pendentes.push({ arroba: this.conta.arroba, missao, dados });
-      this.local.salvar('pendentes', pendentes.slice(-30));
+      this.local.salvar(`${this.ns}pendentes`, pendentes.slice(-30));
       return { salvo: false };
     }
   }
 
   async enviarPendentes() {
-    const pendentes = (this.local.ler('pendentes') || []).filter((p) => p.arroba === this.conta?.arroba);
+    const pendentes = (this.local.ler(`${this.ns}pendentes`) || []).filter((p) => p.arroba === this.conta?.arroba);
     if (!pendentes.length) return;
     const restantes = [];
     for (const p of pendentes) {
@@ -136,7 +141,7 @@ export class Sessao {
         restantes.push(p);
       }
     }
-    const outros = (this.local.ler('pendentes') || []).filter((p) => p.arroba !== this.conta?.arroba);
-    this.local.salvar('pendentes', [...outros, ...restantes]);
+    const outros = (this.local.ler(`${this.ns}pendentes`) || []).filter((p) => p.arroba !== this.conta?.arroba);
+    this.local.salvar(`${this.ns}pendentes`, [...outros, ...restantes]);
   }
 }
