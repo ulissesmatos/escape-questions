@@ -2,7 +2,7 @@ import { h } from '../../../core/dom.js';
 import { icone, ICONE_DO_APP } from './icones.js';
 import { dica } from './Dica.js';
 
-const FIXADOS = ['explorador', 'edge', 'word', 'bloco'];
+const FIXADOS_WORD = ['explorador', 'edge', 'word', 'bloco'];
 const NOMES = { explorador: 'Explorador de Arquivos', edge: 'Microsoft Edge', word: 'Word', bloco: 'Bloco de Notas', fotos: 'Fotos' };
 
 /**
@@ -58,7 +58,8 @@ export class BarraDeTarefas {
     const abertos = Object.entries(this.sim.apps)
       .filter(([, app]) => !app.janela.fechada)
       .map(([id]) => id);
-    const lista = [...FIXADOS, ...abertos.filter((id) => !FIXADOS.includes(id))];
+    const fixados = this.sim.perfil?.barra || FIXADOS_WORD;
+    const lista = [...fixados, ...abertos.filter((id) => !fixados.includes(id))];
     this.programas.replaceChildren(
       ...lista.map((id) => {
         const app = this.sim.apps[id];
@@ -70,10 +71,10 @@ export class BarraDeTarefas {
             type: 'button',
             class: `barra-botao barra-app${aberto ? ' aberto' : ''}${ativo ? ' ativo' : ''}`,
             'data-alvo': `barra.${id}`,
-            ...dica(aberto && app.janela.tituloTexto?.textContent ? app.janela.tituloTexto.textContent : NOMES[id]),
+            ...dica(aberto && app.janela.tituloTexto?.textContent ? app.janela.tituloTexto.textContent : this.sim.perfil?.apps[id]?.nome || NOMES[id]),
             onClick: () => this.sim.alternarApp(id),
           },
-          icone(ICONE_DO_APP[id], { tamanho: 24 }),
+          icone(this.sim.perfil?.apps[id]?.icone || ICONE_DO_APP[id], { tamanho: 24 }),
           h('span', { class: 'barra-indicador' })
         );
       })

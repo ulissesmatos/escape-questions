@@ -1,16 +1,18 @@
 import { h } from '../../../core/dom.js';
 import { normalizarArroba, problemaDoArroba, sugerirArrobas } from '../regras/arroba.js';
+import { CURRICULO_WORD } from './curriculoWord.js';
 
 /**
  * Tela de entrada: "Já tenho meu @" (só digitar o @) ou "Criar meu @"
  * (nome, turma e o @, conferido na hora). Com um @ salvo no computador,
  * aparece o atalho "Continuar como @fulano".
  *
- * props: { sessao, aoEntrar() }
+ * props: { sessao, curriculo (CURRICULO_WORD), aoEntrar() }
  */
 export class TelaEntrada {
   constructor(props) {
     this.props = props;
+    const { entrada } = props.curriculo || CURRICULO_WORD;
     this.modo = props.sessao.ultimoArroba ? 'entrar' : 'criar';
     this.painel = h('div', { class: 'entrada-painel' });
     this.el = h(
@@ -20,9 +22,10 @@ export class TelaEntrada {
       h(
         'div',
         { class: 'entrada-caixa' },
-        h('p', { class: 'entrada-olho', text: 'COMANDO CENTRAL • ACESSO DE AGENTE' }),
-        h('h1', { class: 'entrada-titulo' }, 'OPERAÇÃO', h('br'), 'WORD'),
-        h('p', { class: 'entrada-texto', text: 'O Dr. Kaos quer acabar com todos os documentos do mundo. A Central precisa de agentes que dominem o Word. Você topa?' }),
+        h('p', { class: 'entrada-olho', text: entrada.olho }),
+        h('h1', { class: 'entrada-titulo' }, entrada.titulo[0], h('br'), entrada.titulo[1]),
+        h('p', { class: 'entrada-texto', text: entrada.texto }),
+        entrada.aviso && h('p', { class: 'entrada-aviso', text: entrada.aviso }),
         this.painel,
         h('a', { href: 'index.html', class: 'entrada-voltar', text: '← Voltar para as atividades' })
       )

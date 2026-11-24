@@ -16,6 +16,7 @@ export const TIPOS = {
   txt: { extensao: '.txt', descricao: 'Documento de Texto' },
   imagem: { extensao: '.png', descricao: 'Arquivo PNG' },
   pdf: { extensao: '.pdf', descricao: 'Documento PDF' },
+  exe: { extensao: '.exe', descricao: 'Aplicativo' },
 };
 
 const PROIBIDOS = /[\\/:*?"<>|]/;

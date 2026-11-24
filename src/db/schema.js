@@ -252,6 +252,21 @@ const COMANDOS = [
     concluida_em TIMESTAMPTZ,
     PRIMARY KEY (conta_id, missao)
   )`,
+  // Operação Anzol (segurança na internet): mesmo @ da Operação Word, progresso próprio
+  `CREATE TABLE IF NOT EXISTS seguranca_progresso (
+    conta_id INTEGER NOT NULL REFERENCES word_contas(id) ON DELETE CASCADE,
+    missao TEXT NOT NULL,
+    tentativas INTEGER NOT NULL DEFAULT 0,
+    estrelas INTEGER NOT NULL DEFAULT 0,
+    melhor_tempo_ms INTEGER,
+    dicas INTEGER NOT NULL DEFAULT 0,
+    mostre_me INTEGER NOT NULL DEFAULT 0,
+    perdido INTEGER NOT NULL DEFAULT 0,
+    documento TEXT,
+    iniciada_em TIMESTAMPTZ,
+    concluida_em TIMESTAMPTZ,
+    PRIMARY KEY (conta_id, missao)
+  )`,
   // Tarefas editadas no painel (sem linha = vale o tasks.json)
   `CREATE TABLE IF NOT EXISTS lab_config (
     chave TEXT PRIMARY KEY,

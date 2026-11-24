@@ -45,13 +45,23 @@ const MONO = [
   'text_case_uppercase', 'text_case_lowercase', 'text_case_title', 'document_header_footer', 'list',
   'text_bullet_list_square', 'checkbox_checked', 'arrow_export_ltr', 'sparkle', 'text_grammar_wand',
   'cursor_click', 'book_open', 'text_header_1', 'document_bullet_list',
+  // Operação Anzol (segurança na internet)
+  'mail', 'mail_inbox', 'mail_read', 'mail_warning', 'shield', 'shield_checkmark', 'shield_error', 'shield_dismiss',
+  'phone', 'call', 'chat', 'chat_warning', 'lock_closed', 'lock_open', 'key', 'flag', 'prohibited', 'globe',
+  'person_add', 'person_delete', 'person_prohibited', 'people', 'eye', 'eye_off', 'warning', 'alert', 'link_dismiss',
+  'location', 'arrow_reply', 'attach', 'send', 'dismiss_circle', 'checkmark_circle', 'bug', 'more_vertical', 'edit',
+  'camera', 'money', 'gift', 'hand_left',
 ];
 
 // Coloridos (botões grandes da faixa, Explorador e janelas)
 const COR = ['image_32_color', 'table_32_color', 'clipboard_32_color', 'link_32_color', 'paint_brush_32_color',
   'document_text_48_color', 'document_48_color', 'image_48_color', 'lightbulb_24_color', 'checkmark_circle_24_color',
   'warning_24_color', 'question_circle_24_color', 'star_24_color', 'settings_24_color', 'person_48_color',
-  'home_24_color', 'comment_24_color'];
+  'home_24_color', 'comment_24_color',
+  // Operação Anzol (segurança na internet)
+  'mail_48_color', 'phone_48_color', 'shield_checkmark_48_color', 'people_community_48_color',
+  'warning_48_color', 'gift_24_color',
+  'lock_shield_48_color', 'mail_alert_32_color'];
 
 const EMOJIS = {
   pasta: 'File folder/Color/file_folder_color.svg',

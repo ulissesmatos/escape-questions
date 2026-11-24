@@ -209,6 +209,11 @@ export class Guia {
   }
 
   visivelPasso(passo) {
+    // passo de um programa do perfil (Email, Edge...) atrás de outra janela: primeiro trazer para a frente
+    const app = this.appDoAlvo(passo.alvo || passo.alvos?.[0] || '');
+    if (app && !this.sim.apps[app]?.janela.ativa) return false;
+    // o programa sabe se está no lugar certo para o passo (ex.: o Edge no site que o passo pede)
+    if (app && this.sim.apps[app].noLugarDoPasso?.(passo) === false) return false;
     if (this.ehDoDocumento(passo)) {
       if (!this.wordPronto()) return false;
       if (passo.alvo === 'word.folha') return true;
@@ -294,6 +299,8 @@ export class Guia {
     const semAlvo = (texto) => ({ passo, indice: -1, elemento: null, texto, prerequisito: true, obterRetangulo: () => null });
     const precisaWord = alvo.startsWith('word.') || alvo.startsWith('dialogo.') || this.ehDoDocumento(passo);
     if (alvo.startsWith('iniciar.')) return this.apontar('barra.iniciar', 'Clique no botão Iniciar (o logotipo do Windows).');
+    const doPerfil = this.prerequisitoDoPerfil(passo, alvo);
+    if (doPerfil) return doPerfil;
     if (alvo.startsWith('area.')) return this.apontar('barra.areaDeTrabalho', 'As janelas estão cobrindo a Área de Trabalho. Clique neste cantinho (ou minimize as janelas).');
     if (alvo.startsWith('explorador.') || (alvo.startsWith('contexto.') && !c.appAberto('word'))) {
       if (!c.appAberto('explorador')) return this.apontar('barra.explorador', 'Abra o Explorador de Arquivos: a pasta amarela na barra de tarefas.');
@@ -323,6 +330,36 @@ export class Guia {
       if (alvo.startsWith('word.menu.') || alvo.startsWith('contexto.')) return semAlvo('O menu fechou. Volte um passo e abra de novo.');
     }
     return semAlvo(passo.texto);
+  }
+
+  /**
+   * Programas do perfil que não são do Word (ex.: Email, Celular): o passo é
+   * de um programa pelo prefixo do data-alvo. Se ele está fechado, abre pela
+   * barra de tarefas ou pelo menu Iniciar; atrás de outra janela, traz para
+   * frente; aberto, pergunta ao próprio programa o que falta
+   * (app.prerequisito(passo, guia), ex.: "abra o e-mail X primeiro").
+   */
+  /** Programa do perfil dono do data-alvo (pelos prefixos), ou null */
+  appDoAlvo(alvo) {
+    const apps = this.sim.perfil?.apps || {};
+    return Object.keys(apps).find((chave) => (apps[chave].prefixos || []).some((p) => alvo.startsWith(p))) || null;
+  }
+
+  prerequisitoDoPerfil(passo, alvo) {
+    const apps = this.sim.perfil?.apps || {};
+    const id = this.appDoAlvo(alvo);
+    if (!id) return null;
+    const { nome } = apps[id];
+    const c = this.c;
+    if (!c.appAberto(id)) {
+      if ((this.sim.perfil.barra || []).includes(id)) return this.apontar(`barra.${id}`, `Abra o ${nome}: clique no ícone dele na barra de tarefas.`);
+      return c.menuIniciarAberto() ? this.apontar(`iniciar.app.${id}`, `Clique em ${nome}.`) : this.apontar('barra.iniciar', `Primeiro abra o ${nome}: clique no botão Iniciar.`);
+    }
+    const app = this.sim.apps[id];
+    if (!c.janelaVisivel(id) || !app.janela.ativa) return this.apontar(`barra.${id}`, `Traga o ${nome} para a frente: clique nele na barra de tarefas.`);
+    const doApp = app.prerequisito?.(passo, this);
+    if (doApp) return doApp;
+    return { passo, indice: -1, elemento: null, texto: passo.texto, prerequisito: true, obterRetangulo: () => null };
   }
 
   /** O arquivo está em outra pasta: mostra o caminho até ela no Explorador */

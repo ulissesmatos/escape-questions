@@ -1,6 +1,6 @@
 import { h } from '../../../core/dom.js';
 import { icone } from '../sistema/icones.js';
-import { conceito } from '../regras/conceitos.js';
+import { conceito as conceitoDoWord } from '../regras/conceitos.js';
 
 const ICONES = { info: 'img:agente', dica: 'img:lightbulb-24-color', alerta: 'img:warning-24-color', sucesso: 'img:checkmark-circle-24-color', pergunta: 'img:question-circle-24-color' };
 const MAXIMO_NO_HISTORICO = 8;
@@ -14,13 +14,15 @@ const MAXIMO_NO_HISTORICO = 8;
  * - os botões Dica e Mostre-me (o Mostre-me some quando semMostreMe está
  *   ligado na configuração do professor).
  *
- * props: { titulo, subtitulo, historia, semMostreMe, aoDica, aoMostreMe,
+ * props: { titulo, subtitulo, historia, semMostreMe, conceito (id → conceito), avatar, aoDica, aoMostreMe,
  *          aoResponder(objetivo, valor), aoSair, aoReiniciar, aoTelaCheia,
  *          aoConceito(id), aoRecolher }
  */
 export class Central {
   constructor(props) {
     this.props = props;
+    this.conceito = props.conceito || conceitoDoWord;
+    const avatar = props.avatar || 'img:agente';
     this.recolhido = false;
     this.historico = [];
     this.tempo = h('span', { class: 'central-tempo', text: '00:00' });
@@ -45,7 +47,7 @@ export class Central {
       h(
         'header',
         { class: 'central-topo' },
-        h('div', { class: 'central-logo' }, icone('img:agente', { tamanho: 30 })),
+        h('div', { class: 'central-logo' }, icone(avatar, { tamanho: 30 })),
         h('div', { class: 'central-titulos' }, h('small', { text: props.subtitulo }), h('strong', { text: props.titulo })),
         this.tempo,
         h('button', { type: 'button', class: 'central-recolher', 'aria-label': 'Recolher painel', title: 'Recolher painel', onClick: () => this.alternar() }, icone('chevron_right', { tamanho: 16 }))
@@ -73,7 +75,7 @@ export class Central {
         )
       )
     );
-    this.aba = h('button', { type: 'button', class: 'central-aba', hidden: true, onClick: () => this.alternar() }, icone('img:agente', { tamanho: 26 }), h('span', { text: 'Central' }));
+    this.aba = h('button', { type: 'button', class: 'central-aba', hidden: true, onClick: () => this.alternar() }, icone(avatar, { tamanho: 26 }), h('span', { text: 'Central' }));
   }
 
   alternar() {
@@ -97,7 +99,7 @@ export class Central {
     this.barra.style.width = `${estados.length ? (feitos / estados.length) * 100 : 0}%`;
     this.lista.replaceChildren(
       ...estados.map(({ objetivo, feito }, i) => {
-        const c = objetivo.conceito ? conceito(objetivo.conceito) : null;
+        const c = objetivo.conceito ? this.conceito(objetivo.conceito) : null;
         const item = h(
           'li',
           { class: `central-objetivo${feito ? ' feito' : ''}${i === atual ? ' atual' : ''}${i > atual && !feito ? ' depois' : ''}`, 'data-indice': i },
@@ -126,6 +128,16 @@ export class Central {
   }
 
   campoResposta(objetivo) {
+    // pergunta de escolher: um botão para cada opção
+    if (objetivo.pergunta.opcoes) {
+      return h(
+        'div',
+        { class: 'central-opcoes' },
+        objetivo.pergunta.opcoes.map((opcao, i) =>
+          h('button', { type: 'button', class: 'central-opcao', 'data-alvo': `central.opcao.${i}`, text: opcao, onClick: () => this.props.aoResponder(objetivo, opcao) })
+        )
+      );
+    }
     const campo = h('input', { type: 'text', inputmode: 'numeric', class: 'central-resposta-campo', placeholder: 'Sua resposta', autocomplete: 'off', 'aria-label': 'Resposta' });
     const enviar = () => {
       if (!campo.value.trim()) return campo.focus();

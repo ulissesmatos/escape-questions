@@ -92,6 +92,12 @@ export async function abrirChrome({ largura = 1366, altura = 768, porta = 9333 }
       }
       await esperar(120);
     },
+    /** Só leva o mouse até o ponto (ex.: parar em cima de um link para ver o endereço) */
+    async mover(x, y) {
+      await enviar('Input.dispatchMouseEvent', { type: 'mouseMoved', x: x - 4, y });
+      await enviar('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
+      await esperar(150);
+    },
     /** Clica no centro de um elemento (seletor CSS ou data-alvo) */
     async clicarEm(seletor, opcoes = {}) {
       const sel = seletor.startsWith('alvo:') ? `[data-alvo="${seletor.slice(5)}"]` : seletor;
